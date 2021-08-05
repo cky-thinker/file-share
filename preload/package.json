@@ -12,6 +12,7 @@
     "path": "^0.12.7"
   },
   "devDependencies": {
+    "art-template": "^4.13.2",
     "parcel-bundler": "^1.12.5"
   }
 }

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>文件下载</title>
+    <style>
+        .body {
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+            'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+            line-height: 1.7;
+            background: linear-gradient(180deg, #FFB7B7 0%, #727272 100%), radial-gradient(60.91% 100% at 50% 0%, #FFD1D1 0%, #260000 100%), linear-gradient(238.72deg, #FFDDDD 0%, #720066 100%), linear-gradient(127.43deg, #00FFFF 0%, #FF4444 100%), radial-gradient(100.22% 100% at 70.57% 0%, #FF0000 0%, #00FFE0 100%), linear-gradient(127.43deg, #B7D500 0%, #3300FF 100%);
+            background-blend-mode: screen, overlay, hard-light, color-burn, color-dodge, normal;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-position: 0 100%;
+        }
+
+        .text-medium {
+            font-size: 16px;
+        }
+
+        .content {
+            width: 750px;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            justify-content: space-around;
+            padding-top: 200px;
+        }
+
+        .item {
+            width: 200px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+            padding: 16px 18px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .item:hover {
+            cursor: pointer;
+            background-color: #f5f5f5;
+        }
+
+        .filename {
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            word-break: break-all;
+            overflow: hidden;
+        }
+
+    </style>
+</head>
+<body class="body">
+<div class="content">
+    {{each files}}
+    <div class="item" onclick="javascript:window.location.href='/download/{{$value.name}}'">
+        <div class="text-medium filename">{{$value.name}}</div>
+        <div>
+            <svg t="1628213180275" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                 p-id="2103" width="50" height="50">
+                <path d="M512 450.016c15.68 0 28.544 11.776 30.304 26.944l0.224 3.552-0.032 292.352 80.384-80.416 2.88-2.528c12.064-9.216 30.016-7.744 41.792 4.032 11.744 11.776 13.216 29.696 4 41.76l-2.528 2.88-107.904 107.904c-22.56 22.592-59.648 22.592-85.152 0.832l-4.16-3.808-115.36-115.36-2.72-3.072c-10.048-12.704-9.76-30.592 1.248-41.6 10.976-10.976 28.864-11.264 41.6-1.216l3.04 2.72 81.856 81.888v-286.368c0-16.832 13.664-30.496 30.528-30.496zM512 128c131.2 0 239.392 99.36 254.272 227.392C875.648 370.304 960 464.64 960 578.816c0 124.48-100.288 225.376-224 225.376l-3.744-0.192a32.128 32.128 0 0 1-28.256-32c0-16.512 12.352-30.112 28.256-32L736 739.84c88.352 0 160-72.096 160-160.992 0-80.832-59.552-148.864-138.336-159.584l-49.216-6.72-5.76-49.632C691.52 266.176 609.632 192.416 512 192.416c-97.664 0-179.456 73.76-190.656 170.464l-5.76 49.696-49.28 6.688C187.616 429.952 128 497.984 128 578.816 128 665.376 195.904 736 281.056 739.648L288 739.84c17.664 0 32 14.4 32 32.192 0 16.512-12.352 30.144-28.256 32L288 804.16c-123.712 0-224-100.896-224-225.376 0-114.176 84.352-208.512 193.76-223.36C272.64 227.328 380.8 128 512 128z"
+                      fill="#000000" p-id="2104"></path>
+            </svg>
+        </div>
+    </div>
+    {{/each}}
+</div>
+</body>
+</html>
