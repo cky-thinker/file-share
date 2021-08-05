@@ -19,10 +19,13 @@ target/
 *.iml
 *.ipr
 
+.cache
+node_modules
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
-/dist/
+/utools/
 /nbdist/
 /.nb-gradle/
 build/

@@ -1,0 +1,17 @@
+{
+  "name": "preload",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "rm -rf ../utools/index.js && parcel build src/index.js --out-dir ../utools --target node --bundle-node-modules --no-source-maps"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5"
+  }
+}

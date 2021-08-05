@@ -1,0 +1,12 @@
+{
+  "main": "./build/index.html",
+  "preload": "./index.js",
+  "logo": "assets/logo.png",
+  "features": [
+    {
+      "code": "FileShare",
+      "explain": "局域网文件共享",
+      "cmds":["share", "文件", "共享", "文件共享", "局域网"]
+    }
+  ]
+}
