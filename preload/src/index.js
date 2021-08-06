@@ -50,19 +50,10 @@ const listFiles = () => {
   return fileDb.values();
 }
 
-// window.api = {
-//   startServer,
-//   stopServer,
-//   addFile,
-//   removeFile,
-//   listFiles
-// }
-
-startServer();
-addFile({name: "jls8_378_379_translate.pdf", path: "/Users/chenkeyu/Desktop/jls8_378_379_translate.pdf"})
-addFile({name: "temp.txt", path: "/Users/chenkeyu/Desktop/temp.txt"})
-addFile({name: "certificate.png", path: "/Users/chenkeyu/Desktop/certificate.png"})
-addFile({name: "BX20210802-404.pdf", path: "/Users/chenkeyu/Desktop/BX20210802-404.pdf"})
-
-console.log(listFiles())
-removeFile({name: "temp.txt", path: "/Users/chenkeyu/Desktop/temp.txt"})
+window.api = {
+  startServer,
+  stopServer,
+  addFile,
+  removeFile,
+  listFiles
+}

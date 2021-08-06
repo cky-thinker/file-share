@@ -4,7 +4,7 @@
   "main": "src/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf ../utools/index.js && parcel build src/index.js --out-dir ../utools --target node --bundle-node-modules --no-source-maps"
+    "build": "rm -rf ../utools/index.js && copy -r src/views ../utools && parcel build src/index.js --out-dir ../utools --target node --bundle-node-modules --no-source-maps"
   },
   "dependencies": {
     "express": "^4.17.1",
