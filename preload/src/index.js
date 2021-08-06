@@ -7,11 +7,12 @@ let server;
 
 const initApp = () => {
   let app = express();
+  app.use(express.static('web'))
+  app.use(express.static('app'))
   // 文件下载页面
-  app.get('/', function (req, res) {
+  app.get('/files', function (req, res) {
     let files = Array.from(fileDb.values());
-    let html = template(__dirname + "/views/index.art.html", {files: files})
-    res.send(html);
+    res.json({files: files});
   });
   // 文件下载链接
   app.get('/download/:name', function (req, res) {

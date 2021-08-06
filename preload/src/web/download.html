@@ -54,7 +54,10 @@
     </style>
 </head>
 <body class="body">
-<div class="content">
+<div id="app" class="content">
+</div>
+<script src="/lib/template-web.js"></script>
+<script id="tpl-files" type="text/html">
     {{each files}}
     <div class="item" onclick="javascript:window.location.href='/download/{{$value.name}}'">
         <div class="text-medium filename">{{$value.name}}</div>
@@ -67,6 +70,26 @@
         </div>
     </div>
     {{/each}}
-</div>
+</script>
+<script>
+  function sendGet(url, callback) {
+    const xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        callback(JSON.parse(xhr.responseText))
+      }
+    };
+    //发送异步请求
+    xhr.open("GET", url, true);
+    //发送请求
+    xhr.send();
+  }
+
+  const filesTemplate = document.getElementById("tpl-files").innerHTML;
+
+  sendGet("/files", (data) => {
+    document.getElementById("app").innerHTML = template(filesTemplate, data)
+  })
+</script>
 </body>
 </html>

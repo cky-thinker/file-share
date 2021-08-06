@@ -74,7 +74,7 @@
     data: () => {
       return {
         serverRunning: false,
-        url: "http://172.16.11.57:3456",
+        url: "http://localhost:8080/download.html",
         qrcode: "https://pic2.zhimg.com/36940066ff196785773634369b4290c8_r.jpg?source=1940ef5c",
         files: []
       }

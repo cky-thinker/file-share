@@ -1,7 +1,7 @@
 {
-  "main": "./build/index.html",
+  "main": "./app/index.html",
   "preload": "./index.js",
-  "logo": "assets/logo.png",
+  "logo": "./asserts/logo.png",
   "features": [
     {
       "code": "FileShare",
