@@ -6,7 +6,7 @@
     {
       "code": "FileShare",
       "explain": "局域网文件共享",
-      "cmds":["share", "文件", "共享", "文件共享", "局域网"]
+      "cmds":["局域网文件共享","FileShare", "FS", "share", "文件", "共享", "文件共享", "局域网"]
     }
   ]
 }

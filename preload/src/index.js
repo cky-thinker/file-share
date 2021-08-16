@@ -1,5 +1,6 @@
 const path = require('path')
 const express = require('express') // http://expressjs.com/
+const IpUtil = require('./utils/IpUtil')
 
 let fileDb = new Map();
 let server;
@@ -24,12 +25,13 @@ const initApp = () => {
 }
 
 // 开启服务
-const startServer = (port = 8080) => {
+const startServer = (port = 5421) => {
   const app = initApp()
+  let url = `http://${IpUtil.getIpAddress()}:${port}/download.html`;
   server = app.listen(port, () => {
-    console.log("start on http://localhost:" + port)
+    console.log("start success! download url: " + url)
   });
-  return {success: true, message: "启动成功"};
+  return {success: true, message: "启动成功", url: url};
 }
 
 // 关闭服务
@@ -38,10 +40,12 @@ const stopServer = () => {
 }
 
 const addFile = (file) => {
+  console.log("addFile: " + file);
   fileDb.set(file.name, file)
 }
 
 const removeFile = (file) => {
+  console.log("removeFile: " + file);
   fileDb.delete(file.name)
 }
 
