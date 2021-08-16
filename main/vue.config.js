@@ -1,4 +1,5 @@
 module.exports = {
+  publicPath: '././',
   devServer: {
     proxy: {
       '/sockjs-node/info': {
