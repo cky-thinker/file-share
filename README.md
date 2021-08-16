@@ -3,6 +3,13 @@
 
 提供简单，快速，轻便，方便的文件共享
 
+## 开发相关
+main文件夹：生成main对应的应用页面
+
+preload文件夹：生成preload.js文件
+
+utools文件夹：main和preload的build输出路径，用于插件最终基于该目录运行与打包
+
 ## 开始界面
 ![开始界面](./wiki/1.png)
 
