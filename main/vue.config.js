@@ -1,7 +1,7 @@
 const path = require('path');
 const resolve = dir => path.join(__dirname, dir);
 module.exports = {
-  publicPath: '././',
+  publicPath: process.env.NODE_ENV === "development" ? './' : '././',
   chainWebpack: config => {
     config.resolve.alias.set('@', resolve('src'));
   },
