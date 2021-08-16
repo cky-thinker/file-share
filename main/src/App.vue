@@ -1,71 +1,72 @@
 <template>
   <div class="body">
-    <div v-if="serverRunning">
-      <el-space size="large" direction="vertical">
-        <el-card class="box-card">
-          <template #header>
-            <div class="card-header">
-              <el-row class="row-bg" justify="space-between">
-                <el-col :span="6">正在分享...</el-col>
-                <el-col :span="6">
-                  <el-button type="danger" size="small" @click="stopServer" plain>取消分享</el-button>
-                </el-col>
-              </el-row>
-            </div>
-          </template>
-          <el-row class="row-bg" justify="space-between">
-            分享链接：{{ url }}
-            <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
-                       @click="handleClipboard($event)"></el-button>
-          </el-row>
-        </el-card>
-
-        <el-card class="box-card">
-          <template #header>
-            <div class="card-header">
-              <el-row class="row-bg" justify="space-between">
-                <el-col :span="6">分享列表</el-col>
-                <el-col :span="6">
-                  <el-upload action="" :show-file-list="false" multiple :http-request="addFiles">
-                    <el-button type="primary" size="small" plain>添加文件</el-button>
-                  </el-upload>
-                </el-col>
-              </el-row>
-            </div>
-          </template>
-
-          <div v-for="file in files" :key="file" class="text item file-item">
+    <div class="container">
+      <div v-if="serverRunning">
+        <el-space size="large" direction="vertical">
+          <el-card class="box-card">
+            <template #header>
+              <div class="card-header">
+                <el-row class="row-bg" justify="space-between">
+                  <el-col :span="6">正在分享...</el-col>
+                  <el-col :span="6">
+                    <el-button type="danger" size="small" @click="stopServer" plain>取消分享</el-button>
+                  </el-col>
+                </el-row>
+              </div>
+            </template>
             <el-row class="row-bg" justify="space-between">
-              <el-col :span="20">{{ file.name }}</el-col>
-              <el-col :span="4">
-                <el-button type="default" icon="el-icon-delete"
-                           @click="() => removeFile(file)"></el-button>
-              </el-col>
+              分享链接：{{ url }}
+              <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
+                         @click="handleClipboard($event)"></el-button>
             </el-row>
-          </div>
+          </el-card>
 
-          <el-alert v-if="files.length === 0" title="无" :closable="false" type="info" center>
-          </el-alert>
-        </el-card>
-      </el-space>
-    </div>
-    <div v-else>
-      <div class="btn-box">
-        <div class="start-btn" @click="startServer">开启服务</div>
-        <div class="start-btn-shadow">
-          <span style="--i:1"></span>
-          <span style="--i:2"></span>
-          <span style="--i:3"></span>
-          <span style="--i:4"></span>
-          <span style="--i:5"></span>
-          <span style="--i:6"></span>
-          <span style="--i:7"></span>
-          <span style="--i:8"></span>
-          <span style="--i:9"></span>
-          <span style="--i:10"></span>
+          <el-card class="box-card">
+            <template #header>
+              <div class="card-header">
+                <el-row class="row-bg" justify="space-between">
+                  <el-col :span="6">分享列表</el-col>
+                  <el-col :span="6">
+                    <el-upload action="" :show-file-list="false" multiple :http-request="addFiles">
+                      <el-button type="primary" size="small" plain>添加文件</el-button>
+                    </el-upload>
+                  </el-col>
+                </el-row>
+              </div>
+            </template>
+
+            <div v-for="file in files" :key="file" class="text item file-item">
+              <el-row class="row-bg" justify="space-between">
+                <el-col :span="20">{{ file.name }}</el-col>
+                <el-col :span="4">
+                  <el-button type="default" icon="el-icon-delete"
+                             @click="() => removeFile(file)"></el-button>
+                </el-col>
+              </el-row>
+            </div>
+
+            <el-alert v-if="files.length === 0" title="无" :closable="false" type="info" center>
+            </el-alert>
+          </el-card>
+        </el-space>
+      </div>
+      <div v-else>
+        <div class="btn-box">
+          <div class="start-btn" @click="startServer">开启服务</div>
+          <div class="start-btn-shadow">
+            <span style="--i:1"></span>
+            <span style="--i:2"></span>
+            <span style="--i:3"></span>
+            <span style="--i:4"></span>
+            <span style="--i:5"></span>
+            <span style="--i:6"></span>
+            <span style="--i:7"></span>
+            <span style="--i:8"></span>
+            <span style="--i:9"></span>
+            <span style="--i:10"></span>
+          </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -133,6 +134,10 @@ export default {
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-position: 0 100%;
+  min-height: 600px;
+}
+
+.container {
   max-width: 500px;
   margin: 0 auto;
 }
@@ -169,10 +174,10 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
   z-index: 99;
   position: absolute;
-  top:50%;
-  left:50%;
-  margin-top:-50px;
-  margin-left:-50px;
+  top: 150px;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -50px;
   background-color: #409eff;
   color: #ffffff;
 }
@@ -189,10 +194,10 @@ export default {
   justify-content: center;
   align-items: center;
   position: absolute;
-  top:50%;
-  left:50%;
-  margin-top:-50px;
-  margin-left:-50px;
+  top: 150px;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -50px;
   z-index: 1;
 }
 
@@ -200,7 +205,7 @@ export default {
   z-index: 1;
   position: absolute;
   box-sizing: border-box;
-  border: 2px solid #fff;
+  border: 2px solid #ffffff;
   border-radius: 50%;
   animation: animate 2s linear infinite;
   animation-delay: calc(0.5s * var(--i))
@@ -209,6 +214,7 @@ export default {
 .start-btn-shadow:nth-child(2) span {
   border: none;
   background-color: #f5f5f5;
+  opacity: 0.8;
 }
 
 @keyframes animate {
@@ -218,7 +224,7 @@ export default {
   }
 
   50% {
-    opacity: 1;
+    opacity: 0.5;
   }
 
   100% {
