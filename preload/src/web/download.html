@@ -25,16 +25,18 @@
             margin: 0 auto;
             text-align: center;
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-around;
             padding-top: 200px;
         }
 
         .item {
-            width: 200px;
+            width: 180px;
             border-radius: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
             padding: 16px 18px;
             background-color: rgba(255, 255, 255, 0.8);
+            margin: 16px;
         }
 
         .item:hover {
@@ -44,11 +46,10 @@
 
         .filename {
             text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 2;
             word-break: break-all;
             overflow: hidden;
+            white-space: nowrap;
+            height: 3rem;
         }
 
     </style>
@@ -60,7 +61,7 @@
 <script id="tpl-files" type="text/html">
     {{each files}}
     <div class="item" onclick="javascript:window.location.href='/download/{{$value.name}}'">
-        <div class="text-medium filename">{{$value.name}}</div>
+        <div class="text-medium filename" title="{{$value.name}}">{{$value.name}}</div>
         <div>
             <svg t="1628213180275" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
                  p-id="2103" width="50" height="50">
@@ -72,24 +73,25 @@
     {{/each}}
 </script>
 <script>
-  function sendGet(url, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        callback(JSON.parse(xhr.responseText))
-      }
-    };
-    //发送异步请求
-    xhr.open("GET", url, true);
-    //发送请求
-    xhr.send();
-  }
+    function sendGet(url, callback) {
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                callback(JSON.parse(xhr.responseText))
+            }
+        };
+        //发送异步请求
+        xhr.open("GET", url, true);
+        //发送请求
+        xhr.send();
+    }
 
-  const filesTemplate = document.getElementById("tpl-files").innerHTML;
-
-  sendGet("/files", (data) => {
-    document.getElementById("app").innerHTML = template(filesTemplate, data)
-  })
+    window.onload = function () {
+        console.log("onload");
+        sendGet("/files", (data) => {
+            document.getElementById("app").innerHTML = template('tpl-files', data)
+        })
+    }
 </script>
 </body>
 </html>

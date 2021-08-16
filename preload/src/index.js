@@ -1,14 +1,13 @@
 const path = require('path')
 const express = require('express') // http://expressjs.com/
-const template = require('art-template');
 
 let fileDb = new Map();
 let server;
 
 const initApp = () => {
   let app = express();
-  app.use(express.static('web'))
-  app.use(express.static('app'))
+  app.use(express.static(path.join(__dirname, 'web')))
+  app.use(express.static(path.join(__dirname, 'app')))
   // 文件下载页面
   app.get('/files', function (req, res) {
     let files = Array.from(fileDb.values());
@@ -18,9 +17,8 @@ const initApp = () => {
   app.get('/download/:name', function (req, res) {
     let filename = req.params.name
     let filePath = fileDb.get(filename).path;
-    res.download(filePath, path.basename(filePath), () => {
-      console.log("send file: " + filePath)
-    })
+    console.log("send file: " + filePath);
+    res.download(filePath)
   });
   return app;
 }
@@ -58,3 +56,9 @@ window.api = {
   removeFile,
   listFiles
 }
+
+// for local test
+// startServer();
+// addFile({name: "test1.txt", path: "/Users/chenkeyu/Desktop/test1.txt"})
+// addFile({name: "test2.txt", path: "/Users/chenkeyu/Desktop/test2.txt"})
+// addFile({name: "test3.txt", path: "/Users/chenkeyu/Desktop/test3.txt"})

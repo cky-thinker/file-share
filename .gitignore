@@ -37,4 +37,9 @@ dist
 
 ### VS Code ###
 .vscode/
+app/
+web/
 
+/utools2/asserts/logo.png
+/utools2/index.js
+/utools2/plugin.json
