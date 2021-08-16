@@ -3,17 +3,53 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>文件下载</title>
+    <title>文件列表</title>
     <style>
+        @font-face {
+            font-family: 'Dancing Script';
+            src: url("/lib/Dancing Script.ttf");
+        }
+
         .body {
             font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
             'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
             line-height: 1.7;
-            background: linear-gradient(180deg, #FFB7B7 0%, #727272 100%), radial-gradient(60.91% 100% at 50% 0%, #FFD1D1 0%, #260000 100%), linear-gradient(238.72deg, #FFDDDD 0%, #720066 100%), linear-gradient(127.43deg, #00FFFF 0%, #FF4444 100%), radial-gradient(100.22% 100% at 70.57% 0%, #FF0000 0%, #00FFE0 100%), linear-gradient(127.43deg, #B7D500 0%, #3300FF 100%);
+            background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
             background-blend-mode: screen, overlay, hard-light, color-burn, color-dodge, normal;
             background-attachment: fixed;
             background-repeat: no-repeat;
             background-position: 0 100%;
+            color: #ffffff;
+        }
+
+        header {
+            text-align: center;
+        }
+
+        header .overlay {
+            width: 750px;
+            margin: 0 auto;
+            height: 100%;
+            padding: 8px;
+            color: #FFF;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-family: 'Open Sans', sans-serif;
+            margin-bottom: 30px;
+            display: block;
+            font-size: 1em;
+            margin-block-start: 1em;
+            margin-block-end: 1em;
+            margin-inline-start: 0;
+            margin-inline-end: 0;
+            font-weight: bold;
         }
 
         .text-medium {
@@ -27,7 +63,7 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
-            padding-top: 200px;
+            padding-top: 18px;
         }
 
         .item {
@@ -55,6 +91,13 @@
     </style>
 </head>
 <body class="body">
+<header>
+    <div class="overlay">
+        <h1>File Share</h1>
+        <h3>跨平台、高速传输工具</h3>
+    </div>
+</header>
+
 <div id="app" class="content">
 </div>
 <script src="/lib/template-web.js"></script>
@@ -71,6 +114,9 @@
         </div>
     </div>
     {{/each}}
+    {{if files.length == 0}}
+    <div class="">暂无分享文件，请"添加文件"到"分享列表"</div>
+    {{/if}}
 </script>
 <script>
     function sendGet(url, callback) {

@@ -15,4 +15,4 @@ function getIpAddress() {
     }
 }
 
-export {getIpAddress}
+exports.getIpAddress=getIpAddress

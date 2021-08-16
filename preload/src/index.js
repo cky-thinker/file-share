@@ -61,7 +61,7 @@ window.api = {
   listFiles
 }
 
-// for local test
+// for local test: node src/index.js
 // startServer();
 // addFile({name: "test1.txt", path: "/Users/chenkeyu/Desktop/test1.txt"})
 // addFile({name: "test2.txt", path: "/Users/chenkeyu/Desktop/test2.txt"})
