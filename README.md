@@ -8,7 +8,7 @@ main文件夹：生成main对应的应用页面
 
 preload文件夹：生成preload.js文件
 
-utools文件夹：main和preload的build输出路径，用于插件最终基于该目录运行与打包
+utools文件夹：main和preload的build输出路径，插件最终基于该目录运行与打包
 
 ## 开始界面
 ![开始界面](./wiki/1.png)
