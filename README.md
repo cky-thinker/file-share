@@ -8,14 +8,23 @@
 
 ### 同事之间传输大文件简直噩梦，file-share的诞生就是终结这个噩梦！
 
-## 使用指南
+## 安装指南
 step1：安装utools工具箱，地址： https://u.tools/
 
-step2：在utools插件商店搜索"局域网文件共享"即可安装使用
+step2：在utools插件商店搜索"文件共享"安装插件
 
-![安装界面](wiki/asserts/images/5.png)
+## 使用指南
+
+step1：在utools输入框输入"文件共享"、"FS"、"FileShare"等关键词，打开文件共享工具
+
+step2（重要）：点击 alt + D 或 command + D 分离窗口，如果不分离窗口，窗口自动关闭后，文件共享功能也会失效
+
+step3：点击开启服务，并添加要共享的文件
+
+step4：将分享链接发送给你的朋友，下载文件
 
 ## 开发相关
+
 main文件夹：生成main对应的应用页面
 
 preload文件夹：生成preload.js文件
