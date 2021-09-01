@@ -1,7 +1,6 @@
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
-!preload/src/web/**/target/
 !**/src/test/**/target/
 
 ### STS ###
@@ -25,11 +24,9 @@ node_modules
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
-/utools/
 /nbdist/
 /.nb-gradle/
 build/
-!preload/src/web/**/build/
 !**/src/test/**/build/
 **/logs
 **/tmp
@@ -37,9 +34,4 @@ dist
 
 ### VS Code ###
 .vscode/
-app/
-web/
-
-/utools2/asserts/logo.png
-/utools2/index.js
-/utools2/plugin.json
+utools/main/*

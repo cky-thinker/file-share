@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build && rm -rf ../utools/app && mv dist ../utools/app",
+    "serve": "export NODE_ENV='development' &&vue-cli-service serve",
+    "build": "export NODE_ENV='production' && vue-cli-service build && rm -rf ../utools/main && mv dist ../utools/main",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {

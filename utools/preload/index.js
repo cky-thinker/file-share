@@ -8,7 +8,6 @@ let server;
 const initApp = () => {
   let app = express();
   app.use(express.static(path.join(__dirname, 'web')))
-  app.use(express.static(path.join(__dirname, 'app')))
   // 文件下载页面
   app.get('/files', function (req, res) {
     let files = Array.from(fileDb.values());
@@ -61,8 +60,8 @@ window.api = {
   listFiles
 }
 
-// for local test: node src/index.js
+// for local test: node index.js
 // startServer();
-// addFile({name: "test1.txt", path: "/Users/chenkeyu/Desktop/test1.txt"})
-// addFile({name: "test2.txt", path: "/Users/chenkeyu/Desktop/test2.txt"})
-// addFile({name: "test3.txt", path: "/Users/chenkeyu/Desktop/test3.txt"})
+// addFile({name: "test1.txt", path: "/Users/chenkeyu/Desktop/test/test1.txt"})
+// addFile({name: "test2.txt", path: "/Users/chenkeyu/Desktop/test/test2.txt"})
+// addFile({name: "test3.txt", path: "/Users/chenkeyu/Desktop/test/test3.txt"})

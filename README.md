@@ -23,16 +23,16 @@ preload文件夹：生成preload.js文件
 utools文件夹：main和preload的build输出路径，插件最终基于该目录运行与打包
 
 ## 开始界面
-![开始界面](./wiki/1.png)
+![开始界面](wiki/asserts/images/1.png)
 
 ## 运行界面
-![运行界面](./wiki/2.png)
+![运行界面](wiki/asserts/images/2.png)
 
 ## 添加分享文件
-![添加共享文件](./wiki/3.png)
+![添加共享文件](wiki/asserts/images/3.png)
 
 ## 通过网址下载文件
-![通过网址下载文件](./wiki/4.png)
+![通过网址下载文件](wiki/asserts/images/4.png)
 
 ## 版本
 v1.0.0功能实现：

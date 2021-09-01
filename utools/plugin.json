@@ -1,6 +1,6 @@
 {
-  "main": "./app/index.html",
-  "preload": "./index.js",
+  "main": "./main/index.html",
+  "preload": "./preload/index.js",
   "logo": "./asserts/logo.png",
   "features": [
     {
