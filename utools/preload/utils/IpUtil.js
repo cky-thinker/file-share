@@ -39,7 +39,7 @@ function loopback(family) {
 let getNetInterfaceNames = function() {
     let interfaces = networkInterfaces();
     return Object.keys(interfaces).filter(function (name) {
-        return !/(loopback|vmware|internal|lo)/gi.test(name);
+        return !/(loopback|vmware|internal|lo|vEthernet)/gi.test(name);
     })
 }
 
