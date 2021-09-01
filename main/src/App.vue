@@ -15,11 +15,11 @@
               </div>
             </template>
             <el-row class="row-bg" justify="space-between">
-              <el-button v-if="netInterfaceNames.length>1" type="default" size="mini" icon="el-icon-switch" title="切换网卡地址"
-                         @click="changeNetInterface()"></el-button>
               分享链接：{{ url }}
               <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
                          @click="handleClipboard($event)"></el-button>
+              <el-button v-if="netInterfaceNames.length>1" type="default" size="mini" icon="el-icon-sort" title="切换网卡"
+                         @click="changeNetInterface()"></el-button>
             </el-row>
           </el-card>
 
@@ -130,7 +130,7 @@ export default {
       let name = this.netInterfaceNames[this.currentNetInterfaceIdx % this.netInterfaceNames.length];
       let ip = api.getIpAddress(this.currentNetInterfaceIdx);
       this.url = api.genUrl(ip);
-      ElMessage.success({message: `切换网卡为${name} ip: ${ip}`, type: 'success'});
+      ElMessage.success({message: `切换网卡为 "${name}"`, type: 'success'});
     }
   },
   mounted: function () {
