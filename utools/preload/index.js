@@ -24,10 +24,14 @@ const initApp = () => {
     return app;
 }
 
+const genUrl = (ip, port = 5421) => {
+    return `http://${ip}:${port}/download.html`;
+}
+
 // 开启服务
 const startServer = (port = 5421) => {
     const app = initApp()
-    let url = `http://${IpUtil.getIpAddress()}:${port}/download.html`;
+    let url = genUrl(IpUtil.getIpAddress(), port);
     server = app.listen(port, () => {
         console.log("start success! download url: " + url)
     });
@@ -74,6 +78,10 @@ if (process.env.NODE_ENV === "test") {
         stopServer,
         addFile,
         removeFile,
-        listFiles
+        listFiles,
+        genUrl,
+        getIpAddress: IpUtil.getIpAddress,
+        getIpAddresses: IpUtil.getIpAddresses,
+        getNetInterfaceNames: IpUtil.getNetInterfaceNames
     }
 }

@@ -55,13 +55,14 @@ let getIpAddresses = function(netInterfaceName) {
     });
 }
 
-let getIpAddress = function() {
+let getIpAddress = function(idx = 0) {
     let names = getNetInterfaceNames();
     if (!names.length) {
         return loopback('ipv4');
     }
 
-    let ipAddresses = getIpAddresses(names[0]);
+    idx = (idx % names.length);
+    let ipAddresses = getIpAddresses(names[idx]);
 
     return !ipAddresses.length ? loopback('ipv4') : ipAddresses[0].address;
 };
