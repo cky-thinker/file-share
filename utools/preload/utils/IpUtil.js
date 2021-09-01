@@ -36,24 +36,36 @@ function loopback(family) {
     return family === 'ipv4' ? '127.0.0.1' : 'fe80::1';
 }
 
-let getIpAddresses = function() {
+let getNetInterfaceNames = function() {
     let interfaces = networkInterfaces();
     return Object.keys(interfaces).filter(function (name) {
-        return !/(loopback|vmware|internal)/gi.test(name);
-    }).map(function (nic) {
-        let addresses = interfaces[nic].filter(function (ipAddress) {
-            let {family, address, internal} = ipAddress;
-            return family.toLowerCase() === 'ipv4' && !isLoopback(address) && isPrivate(address) && !internal;
-        });
+        return !/(loopback|vmware|internal|lo)/gi.test(name);
+    })
+}
 
-        return addresses.length ? addresses : undefined;
-    }).filter(Boolean).flat();
+let getIpAddresses = function(netInterfaceName) {
+    let interfaces = networkInterfaces();
+    if (!interfaces[netInterfaceName]) {
+        return [];
+    }
+
+    return interfaces[netInterfaceName].filter(function (ipAddress) {
+        let {family, address, internal} = ipAddress;
+        return family.toLowerCase() === 'ipv4' && !isLoopback(address) && isPrivate(address) && !internal;
+    });
 }
 
 let getIpAddress = function() {
-    let all = getIpAddresses();
+    let names = getNetInterfaceNames();
+    if (!names.length) {
+        return loopback('ipv4');
+    }
 
-    return !all.length ? loopback('ipv4') : all[0].address;
+    let ipAddresses = getIpAddresses(names[0]);
+
+    return !ipAddresses.length ? loopback('ipv4') : ipAddresses[0].address;
 };
 
 exports.getIpAddress=getIpAddress
+exports.getIpAddresses=getIpAddresses
+exports.getNetInterfaceNames=getNetInterfaceNames
