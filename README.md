@@ -11,9 +11,9 @@
 ## 使用指南
 step1：安装utools工具箱，地址： https://u.tools/
 
-step2：[下载最新插件](https://gitee.com/yuDeJiJie/file-share/releases/) 
+step2：在utools插件商店搜索"局域网文件共享"即可安装使用
 
-step3：调出utools工具箱输入框，将插件文件(xx.upx)拖入并安装
+![安装界面](wiki/asserts/images/5.png)
 
 ## 开发相关
 main文件夹：生成main对应的应用页面
