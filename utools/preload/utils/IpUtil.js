@@ -1,4 +1,4 @@
-const { networkInterfaces } = require('os');
+const {networkInterfaces} = require('os');
 
 function _normalizeFamily(family) {
     return family ? family.toLowerCase() : 'ipv4';
@@ -36,14 +36,7 @@ function loopback(family) {
     return family === 'ipv4' ? '127.0.0.1' : 'fe80::1';
 }
 
-let getNetInterfaceNames = function() {
-    let interfaces = networkInterfaces();
-    return Object.keys(interfaces).filter(function (name) {
-        return !/(loopback|vmware|internal|lo|vEthernet)/gi.test(name);
-    })
-}
-
-let getIpAddresses = function(netInterfaceName) {
+let getIpAddresses = function (netInterfaceName) {
     let interfaces = networkInterfaces();
     if (!interfaces[netInterfaceName]) {
         return [];
@@ -55,7 +48,16 @@ let getIpAddresses = function(netInterfaceName) {
     });
 }
 
-let getIpAddress = function(idx = 0) {
+let getNetInterfaceNames = function () {
+    let interfaces = networkInterfaces();
+    return Object.keys(interfaces).filter(function (name) {
+        return !/(loopback|vmware|internal|lo|vEthernet)/gi.test(name);
+    }).filter(function (name) {
+        return getIpAddresses(name).length > 0;
+    })
+}
+
+let getIpAddress = function (idx = 0) {
     let names = getNetInterfaceNames();
     if (!names.length) {
         return loopback('ipv4');
@@ -64,9 +66,9 @@ let getIpAddress = function(idx = 0) {
     idx = (idx % names.length);
     let ipAddresses = getIpAddresses(names[idx]);
 
-    return !ipAddresses.length ? loopback('ipv4') : ipAddresses[0].address;
+    return ipAddresses.length > 0 ? ipAddresses[0].address : loopback('ipv4');
 };
 
-exports.getIpAddress=getIpAddress
-exports.getIpAddresses=getIpAddresses
-exports.getNetInterfaceNames=getNetInterfaceNames
+exports.getIpAddress = getIpAddress
+exports.getIpAddresses = getIpAddresses
+exports.getNetInterfaceNames = getNetInterfaceNames
