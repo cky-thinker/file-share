@@ -16,8 +16,13 @@
             </template>
             <el-row class="row-bg" justify="space-between">
               分享链接：{{ url }}
-              <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
-                         @click="handleClipboard($event)"></el-button>
+              <el-popover placement="left" :width="100" trigger="hover">
+                <template #reference>
+                  <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
+                             @click="handleClipboard($event)"></el-button>
+                </template>
+                <qrcode-vue :value="url"></qrcode-vue>
+              </el-popover>
               <el-button v-if="netInterfaceNames.length>1" type="default" size="mini" icon="el-icon-sort" title="切换网卡"
                          @click="changeNetInterface()"></el-button>
             </el-row>
@@ -76,6 +81,7 @@
 <script>
 import Clipboard from 'clipboard'
 import {ElMessage} from 'element-plus'
+import QrcodeVue from 'qrcode.vue'
 
 let api = window.api;
 
@@ -136,7 +142,7 @@ export default {
   mounted: function () {
     this.netInterfaceNames = api.getNetInterfaceNames();
   },
-  components: {}
+  components: {QrcodeVue}
 }
 </script>
 
@@ -182,6 +188,10 @@ body {
 .btn-box {
   width: 150px;
   height: 150px;
+}
+
+.el-popover.el-popper {
+  min-width: 100px !important;
 }
 
 .start-btn {
