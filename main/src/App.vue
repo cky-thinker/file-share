@@ -33,14 +33,18 @@
               <div class="card-header">
                 <el-row class="row-bg" justify="space-between">
                   <el-col :span="6">分享列表</el-col>
-                  <el-col :span="6">
-                    <el-upload action="" :show-file-list="false" multiple :http-request="addFiles">
-                      <el-button type="primary" size="small" plain>添加文件</el-button>
-                    </el-upload>
-                  </el-col>
                 </el-row>
               </div>
             </template>
+
+            <div class="upload-box">
+              <el-upload drag multiple :show-file-list="false" action="" :http-request="addFiles">
+                <i class="el-icon-upload"></i>
+                <div class="el-upload__text">
+                  拖拽文件到此处或点击<em>选择文件</em>，进行分享~
+                </div>
+              </el-upload>
+            </div>
 
             <div v-for="file in files" :key="file" class="text item file-item">
               <el-row class="row-bg" justify="space-between">
@@ -119,8 +123,12 @@ export default {
     },
     addFiles: function (params) {
       let file = {name: params.file.name, path: params.file.path};
-      this.files.push(file);
-      api.addFile(file)
+      let {success, message} = api.addFile(file);
+      if (success) {
+        this.files.push(file);
+      } else {
+        ElMessage.error(message);
+      }
     },
     removeFile: function (file) {
       let removeFiles = this.files.filter((f) => f.name === file.name);
@@ -167,14 +175,25 @@ body {
   padding-top: 18px;
 }
 
-.file-item {
-  margin-bottom: 10px;
+.upload-box {
+  display: flex;
+  justify-content: center;
+  align-items: center
 }
 
-.qrcode {
-  max-width: 300px;
-  max-height: 300px;
-  text-align: left;
+.el-upload-dragger .el-icon-upload {
+  font-size: 46px !important;
+  margin: 0 !important;
+}
+
+.el-upload-dragger {
+  height: 90px !important;
+  width: 457px !important;
+  margin-bottom: 16px;
+}
+
+.file-item {
+  margin-bottom: 10px;
 }
 
 .box-card {

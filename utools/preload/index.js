@@ -45,7 +45,11 @@ const stopServer = () => {
 
 const addFile = (file) => {
     console.log("addFile: " + file);
+    if (fs.lstatSync(file.path).isDirectory()) {
+        return {success: false, message: '不能选择文件夹'}
+    }
     fileDb.set(file.name, file)
+    return {success: true};
 }
 
 const removeFile = (file) => {
