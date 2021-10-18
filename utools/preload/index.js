@@ -52,6 +52,12 @@ const addFile = (file) => {
     return {success: true};
 }
 
+const addText = (textBody) => {
+    console.log("addText: " + textBody);
+    fileDb.set(textBody.name, textBody)
+    return {success: true};
+}
+
 const removeFile = (file) => {
     console.log("removeFile: " + file);
     fileDb.delete(file.name)
@@ -78,6 +84,7 @@ if (process.env.NODE_ENV === "test") {
     startServer();
 } else {
     window.api = {
+        addText,
         startServer,
         stopServer,
         addFile,

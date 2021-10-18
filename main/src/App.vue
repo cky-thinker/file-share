@@ -14,25 +14,61 @@
                 </el-row>
               </div>
             </template>
-            <el-row class="row-bg" justify="space-between">
-              分享链接：{{ url }}
-              <el-popover placement="left" :width="100" trigger="hover">
-                <template #reference>
-                  <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
-                             @click="handleClipboard($event)"></el-button>
-                </template>
-                <qrcode-vue :value="url"></qrcode-vue>
-              </el-popover>
-              <el-button v-if="netInterfaceNames.length>1" type="default" size="mini" icon="el-icon-sort" title="切换网卡"
-                         @click="changeNetInterface()"></el-button>
+            <el-row class="row-bg">
+              <el-col :span="20">分享链接：{{ url }}</el-col>
+              <el-col :span="2">
+                <el-popover placement="left" :width="100" trigger="hover">
+                  <template #reference>
+                    <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
+                               @click="handleClipboard($event)"></el-button>
+                  </template>
+                  <qrcode-vue :value="url"></qrcode-vue>
+                </el-popover>
+              </el-col>
+              <el-col :span="2">
+                <el-button v-if="netInterfaceNames.length>1" type="default" size="mini" icon="el-icon-sort" title="切换网卡"
+                           @click="changeNetInterface()"></el-button>
+              </el-col>
             </el-row>
           </el-card>
 
           <el-card class="box-card">
             <template #header>
               <div class="card-header">
-                <el-row class="row-bg" justify="space-between">
-                  <el-col :span="6">分享列表</el-col>
+                <el-row class="row-bg">
+                  <el-col :span="20">分享列表</el-col>
+                  <el-col :span="2">
+                    <el-button @click="dialogFormVisible = true" type="default" size="mini" icon="el-icon-message"
+                               title="分享一段文本"></el-button>
+                    <el-dialog v-model="dialogFormVisible" title="分享一段文本">
+                      <el-input
+                          type="textarea"
+                          :rows="2"
+                          :autosize="{ minRows: 2, maxRows: 4}"
+                          placeholder="请输入内容"
+                          v-model="form.text">
+                      </el-input>
+                      <template #footer>
+                        <el-button type="primary" @click="formSubmit">提交</el-button>
+                      </template>
+                    </el-dialog>
+                    <el-dialog title="分享一段文本" v-model:visible="dialogFormVisible">
+                      <el-form :model="form">
+                        <el-form-item label="文本内容">
+                          <el-input
+                              type="textarea"
+                              :rows="2"
+                              :autosize="{ minRows: 2, maxRows: 4}"
+                              placeholder="请输入内容"
+                              v-model="form.text">
+                          </el-input>
+                        </el-form-item>
+                      </el-form>
+                      <div class="dialog-footer">
+                        <el-button type="primary" @click="formSubmit">提交</el-button>
+                      </div>
+                    </el-dialog>
+                  </el-col>
                 </el-row>
               </div>
             </template>
@@ -109,9 +145,26 @@ export default {
       files: [],
       netInterfaceNames: [],
       currentNetInterfaceIdx: 0,
+      form: {
+        text: ''
+      },
+      dialogFormVisible: false
     }
   },
   methods: {
+    formSubmit: function () {
+      let text = this.form.text;
+      // 取文本前10位为名称
+      let name = text.substring(0, Math.min(10, text.length));
+      if (text.length > 10) {
+        name += '...'
+      }
+      let textBody = {type: 'text', name: name, content: text}
+      api.addText(textBody);
+      this.files.push(textBody);
+      this.form.text = '';
+      this.dialogFormVisible = false;
+    },
     startServer: function () {
       let {url} = api.startServer();
       this.url = url
