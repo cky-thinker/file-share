@@ -133,11 +133,17 @@
         xhr.send();
     }
 
-    window.onload = function () {
-        console.log("onload");
+    function updatePage() {
         sendGet("/files", (data) => {
             document.getElementById("app").innerHTML = template('tpl-files', data)
         })
+    }
+
+    window.onload = function () {
+        console.log("onload");
+        updatePage();
+        // 每隔3秒更新页面
+        setInterval(updatePage, 3000);
     }
 </script>
 </body>
