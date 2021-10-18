@@ -8,13 +8,13 @@ let server;
 
 const initApp = () => {
     let app = express();
-    app.use(express.static(path.join(__dirname, 'web')))
-    // 文件下载页面
+    app.use(express.static(path.join(__dirname, 'web'), {index: 'download.html'}))
+    // 获取文件列表
     app.get('/files', function (req, res) {
         let files = Array.from(fileDb.values());
         res.json({files: files});
     });
-    // 文件下载链接
+    // 下载文件
     app.get('/download/:name', function (req, res) {
         let filename = req.params.name
         let filePath = fileDb.get(filename).path;
@@ -25,7 +25,7 @@ const initApp = () => {
 }
 
 const genUrl = (ip, port = 5421) => {
-    return `http://${ip}:${port}/download.html`;
+    return `http://${ip}:${port}`;
 }
 
 // 开启服务
