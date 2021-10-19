@@ -20,7 +20,7 @@
                 <el-popover placement="left" :width="100" trigger="hover">
                   <template #reference>
                     <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
-                               @click="handleClipboard($event)"></el-button>
+                               @click="handleClipboard(url, $event)"></el-button>
                   </template>
                   <qrcode-vue :value="url"></qrcode-vue>
                 </el-popover>
@@ -84,9 +84,11 @@
 
             <div v-for="file in files" :key="file" class="text item file-item">
               <el-row class="row-bg" justify="space-between">
-                <el-col :span="20">{{ file.name }}</el-col>
-                <el-col :span="4">
-                  <el-button type="default" icon="el-icon-delete"
+                <el-col :span="18">{{ file.name }}</el-col>
+                <el-col :span="6">
+                  <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制文本到剪切板"
+                             @click="handleClipboard(file.content, $event)"></el-button>
+                  <el-button type="default" size="mini" icon="el-icon-delete"
                              @click="() => removeFile(file)"></el-button>
                 </el-col>
               </el-row>
@@ -189,8 +191,8 @@ export default {
       this.files = this.files.filter((f) => f.name !== file.name);
       api.removeFile(removeFiles[0])
     },
-    handleClipboard: function (event) {
-      copyClipboard(this.url, event)
+    handleClipboard: function (data, event) {
+      copyClipboard(data, event)
     },
     changeNetInterface: function () {
       this.currentNetInterfaceIdx = this.currentNetInterfaceIdx + 1;
