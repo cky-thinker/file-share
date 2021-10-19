@@ -52,6 +52,21 @@
             font-weight: bold;
         }
 
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 18px;
+        }
+
+        .text-send-btn {
+            margin: 18px;
+        }
+
+        .file-send-btn {
+            margin: 18px;
+        }
+
         .text-medium {
             font-size: 16px;
         }
@@ -89,6 +104,97 @@
             height: 3rem;
         }
 
+        .icon {
+
+        }
+
+        .btn {
+            display: inline-block;
+            border-radius: 20px;
+            padding: 12px 23px;
+            line-height: 1;
+            min-height: 40px;
+            white-space: nowrap;
+            cursor: pointer;
+            color: #FFFFFF;
+            background-color: #a6c1ee;
+            border-color: #a6c1ee;
+            text-align: center;
+            box-sizing: border-box;
+            font-weight: 500;
+            font-size: 14px;
+            outline: none;
+            margin: 0;
+            transition: .1s;
+            transition-property: all;
+            transition-duration: 0.1s;
+            transition-timing-function: ease;
+            transition-delay: 0s;
+        }
+
+        .btn:hover {
+            cursor: pointer;
+            background-color: #fbc2eb;
+        }
+
+        .icon-btn {
+            padding: 16px;
+        }
+
+        .message {
+            width: 475px;
+            height: 119px;
+            max-height: 80px;
+            max-width: 475px;
+            min-width: 475px;
+            margin-bottom: 18px;
+        }
+
+        /** dialog **/
+        .mask {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.1);
+            top: 0;
+            left: 0;
+        }
+
+        .dialog {
+            display: none;
+            position: fixed;
+            z-index: 3;
+            width: 500px;
+            min-height: 220px;
+            max-height: 220px;
+            top: 50%;
+            left: 50%;
+            margin: -150px 0 0 -250px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .dialog-header {
+            border-bottom: 1px solid #eee;
+            padding: 10px;
+        }
+
+        .dialog-body {
+            padding: 10px;
+            min-height: 50px;
+        }
+
+        .dialog-footer {
+            border-top: 1px solid #eee;
+            padding: 10px;
+            position: relative;
+            top: 90px;
+        }
+
+
     </style>
 </head>
 <body class="body">
@@ -99,9 +205,68 @@
     </div>
 </header>
 
+<div class="btn-group">
+
+    <!-- 发送文本 -->
+    <span id="text-send-btn" class="icon-btn">
+        <svg t="1634659742968" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+             p-id="2537" width="50" height="50"><path
+                d="M960 736a96 96 0 0 1-96 96h-704A96 96 0 0 1 64 736V288.512v-1.216A96 96 0 0 1 160 192h704A96 96 0 0 1 960 287.36v448.64z m-64-390.72l-367.232 225.92a32 32 0 0 1-33.536 0L128 345.344V736a32 32 0 0 0 32 32h704a32 32 0 0 0 32-32V345.28zM864 256h-704a32 32 0 0 0-28.032 16.576L512 506.432l380.032-233.856A32 32 0 0 0 864 256z"
+                p-id="2538" fill="#ffffff"></path></svg>
+    </span>
+
+    <!-- 发送文本 -->
+    <span id="file-send-btn" class="icon-btn">
+        <svg t="1634659866866" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+             p-id="6850" width="50" height="50"><path
+                d="M880 298.4H521L403.7 186.2c-1.5-1.4-3.5-2.2-5.5-2.2H144c-17.7 0-32 14.3-32 32v592c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V330.4c0-17.7-14.3-32-32-32zM840 768H184V256h188.5l119.6 114.4H840V768z"
+                p-id="6851" fill="#ffffff"></path></svg>
+    </span>
+</div>
+
+<div class="mask" id="mask"></div>
+<!-- TODO ajax 上传文本 -->
+<div class="dialog" id="text-send-dialog">
+    <div class="dialog-header">
+        <span style="color: black">分享一段文本</span>
+    </div>
+    <div class="dialog-body">
+        <div>
+            <textarea class="message" id="message" name="message" rows="3"></textarea>
+        </div>
+        <div>
+            <span class="btn" style="float: left">提交</span>
+            <span class="btn dialog-close" style="float: right">取消</span>
+        </div>
+    </div>
+</div>
+
+<!-- TODO dialog调整 -->
+<!-- TODO ajax 上传文件 -->
+<div class="dialog" id="file-send-dialog">
+    <div class="dialog-header">
+        <span> 分享一个文件 </span>
+    </div>
+    <div class="dialog-body">
+        <form id="file-send-form" action="/addText" method="post">
+            <div class="form-item">
+                <label for="message">文本</label>
+                <input type="file"/>
+            </div>
+            <div class="form-item">
+                <input type="submit" value="提交"/>
+            </div>
+            <div class="dialog-footer">
+                <span class="btn dialog-close">取消</span>
+            </div>
+        </form>
+    </div>
+    <div></div>
+</div>
+
 <div id="app" class="content">
 </div>
-<script src="/lib/template-web.js"></script>
+<!--<script src="/lib/template-web.js"></script>-->
 <script id="tpl-files" type="text/html">
     {{each files}}
     {{if $value.type === 'text'}}
@@ -141,16 +306,17 @@
     {{/if}}
 </script>
 <script>
-    function copyHandle(content){
-        let copy = (e)=>{
+    function copyHandle(content) {
+        let copy = (e) => {
             e.preventDefault()
-            e.clipboardData.setData('text/plain',content)
+            e.clipboardData.setData('text/plain', content)
             alert('复制成功')
-            document.removeEventListener('copy',copy)
+            document.removeEventListener('copy', copy)
         }
-        document.addEventListener('copy',copy)
+        document.addEventListener('copy', copy)
         document.execCommand("Copy");
     }
+
     function sendGet(url, callback) {
         const xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
@@ -170,12 +336,43 @@
         })
     }
 
-    window.onload = function () {
-        console.log("onload");
-        updatePage();
-        // 每隔6秒更新页面
-        setInterval(updatePage, 6000);
+    // window.onload = function () {
+    //     console.log("onload");
+    //     updatePage();
+    //     // 每隔6秒更新页面
+    //     setInterval(updatePage, 6000);
+    // }
+
+    // dialog
+    function initDialog(id, openBtnId) {
+        let openDialogBtn = document.getElementById(openBtnId)
+        let mask = document.getElementById('mask')
+        let dialogBox = document.getElementById(id)
+        let dialogClose = dialogBox.getElementsByClassName('dialog-close')[0];
+
+        openDialogBtn.addEventListener('click', function () {
+            //显示遮罩层
+            mask.style.display = 'block';
+            //显示弹出窗口
+            dialogBox.style.display = 'block';
+        });
+        dialogClose.addEventListener('click', function () {
+            //隐藏遮罩层
+            mask.style.display = 'none';
+            //显示弹出窗口
+            dialogBox.style.display = 'none';
+        });
+        mask.addEventListener('click', function () {
+            //隐藏遮罩层
+            mask.style.display = 'none';
+            //显示弹出窗口
+            dialogBox.style.display = 'none';
+        });
     }
+
+    initDialog('text-send-dialog', 'text-send-btn')
+    initDialog('file-send-dialog', 'file-send-btn')
+
 </script>
 </body>
 </html>
