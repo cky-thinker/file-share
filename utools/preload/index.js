@@ -2,6 +2,8 @@ const path = require('path')
 const express = require('express') // http://expressjs.com/
 const IpUtil = require('./utils/IpUtil')
 const fs = require("fs")
+const multer = require('multer')
+const bodyParser = require("body-parser");
 
 let fileDb = new Map();
 let server;
@@ -21,6 +23,41 @@ const initApp = () => {
         console.log("send file: " + filePath);
         res.download(filePath)
     });
+
+    const USER_HOME = process.env.HOME || process.env.USERPROFILE
+    let fileDownload = path.join(USER_HOME, 'Downloads')
+    // 通过 filename 属性定制
+    let storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, fileDownload);    // 保存的路径，备注：需要自己创建
+        },
+        filename: function (req, file, cb) {
+            // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
+            cb(null, file.originalname);
+        }
+    });
+
+    // 上传文件api
+    let upload = multer({storage: storage});
+    app.post('/addFile', upload.single('file'), function (req, res, next) {
+        let file = req.file;
+        addFile({name: file.originalname, path: file.path})
+        res.redirect('/')
+    })
+
+    // 上传文本
+    const urlencodedParser = bodyParser.urlencoded({extended: false});
+    app.post('/addText', urlencodedParser, function (req, res, next) {
+        // 取文本前10位为名称
+        let text = req.body.message
+        let name = text.substring(0, Math.min(10, text.length));
+        if (text.length > 10) {
+            name += '...'
+        }
+        addText({type: 'text', name: name, content: text})
+        res.redirect('/')
+    })
+
     return app;
 }
 
