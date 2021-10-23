@@ -86,8 +86,10 @@
               <el-row class="row-bg" justify="space-between">
                 <el-col :span="18">{{ file.name }}</el-col>
                 <el-col :span="6">
-                  <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制文本到剪切板"
+                  <el-button v-if="file.type === 'text'" type="default" size="mini" icon="el-icon-document-copy" title="复制文本到剪切板"
                              @click="handleClipboard(file.content, $event)"></el-button>
+                  <el-button v-if="file.type === 'file'" type="default" size="mini" icon="el-icon-search" title="打开文件所在位置"
+                             @click="openFile(file.name, $event)"></el-button>
                   <el-button type="default" size="mini" icon="el-icon-delete"
                              @click="() => removeFile(file)"></el-button>
                 </el-col>
@@ -190,6 +192,11 @@ export default {
       console.log(removeFiles)
       this.files = this.files.filter((f) => f.name !== file.name);
       api.removeFile(removeFiles[0])
+    },
+    openFile: function (filename) {
+      api.openFile(filename, (err) => {
+        ElMessage.error({message: `文件打开失败 "${err}"`, type: 'error'});
+      })
     },
     handleClipboard: function (data, event) {
       copyClipboard(data, event)

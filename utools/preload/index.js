@@ -4,6 +4,7 @@ const IpUtil = require('./utils/IpUtil')
 const fs = require("fs")
 const multer = require('multer')
 const bodyParser = require("body-parser");
+const openExplorer = require('open-file-explorer');
 
 let fileDb = new Map();
 let server;
@@ -80,11 +81,26 @@ const stopServer = () => {
     server.close();
 }
 
+
+const DEFAULT_HANDLER = (err) => console.log(err)
+const openFile = (filename, errorHandler = DEFAULT_HANDLER) => {
+    let file = fileDb.get(filename);
+    let fileDir = path.dirname(file.path)
+    openExplorer(fileDir, err => {
+        if (err) {
+            errorHandler(err)
+        } else {
+            console.log('打开成功：' + file.path)
+        }
+    });
+}
+
 const addFile = (file) => {
     console.log("addFile: " + file);
     if (fs.lstatSync(file.path).isDirectory()) {
         return {success: false, message: '不能选择文件夹'}
     }
+    file.type = 'file'
     fileDb.set(file.name, file)
     return {success: true};
 }
@@ -124,6 +140,7 @@ if (process.env.NODE_ENV === "test") {
         addText,
         startServer,
         stopServer,
+        openFile,
         addFile,
         removeFile,
         listFiles,
