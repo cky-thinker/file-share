@@ -370,7 +370,7 @@
         </div>
     </div>
     {{/if}}
-    {{if $value.type === undefined}}
+    {{if $value.type === 'file'}}
     <div class="item" onclick="javascript:window.location.href='/download/{{$value.name}}'">
         <div class="text-medium filename" title="{{$value.name}}">{{$value.name}}</div>
         <div>

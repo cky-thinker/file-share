@@ -88,7 +88,7 @@
                 <el-col :span="6">
                   <el-button v-if="file.type === 'text'" type="default" size="mini" icon="el-icon-document-copy" title="复制文本到剪切板"
                              @click="handleClipboard(file.content, $event)"></el-button>
-                  <el-button v-if="file.type === 'file'" type="default" size="mini" icon="el-icon-search" title="打开文件所在位置"
+                  <el-button v-if="file.type === 'file'" type="default" size="mini" icon="el-icon-search" title="打开文件所在目录"
                              @click="openFile(file.name, $event)"></el-button>
                   <el-button type="default" size="mini" icon="el-icon-delete"
                              @click="() => removeFile(file)"></el-button>
@@ -152,20 +152,15 @@ export default {
       form: {
         text: ''
       },
-      dialogFormVisible: false
+      dialogFormVisible: false,
+      timer: null
     }
   },
   methods: {
     formSubmit: function () {
       let text = this.form.text;
-      // 取文本前10位为名称
-      let name = text.substring(0, Math.min(10, text.length));
-      if (text.length > 10) {
-        name += '...'
-      }
-      let textBody = {type: 'text', name: name, content: text}
-      api.addText(textBody);
-      this.files.push(textBody);
+      api.addText(text);
+      this.files = api.listFiles();
       this.form.text = '';
       this.dialogFormVisible = false;
     },
@@ -182,7 +177,7 @@ export default {
       let file = {name: params.file.name, path: params.file.path};
       let {success, message} = api.addFile(file);
       if (success) {
-        this.files.push(file);
+        this.files = api.listFiles();
       } else {
         ElMessage.error(message);
       }
@@ -190,8 +185,8 @@ export default {
     removeFile: function (file) {
       let removeFiles = this.files.filter((f) => f.name === file.name);
       console.log(removeFiles)
-      this.files = this.files.filter((f) => f.name !== file.name);
       api.removeFile(removeFiles[0])
+      this.files = api.listFiles();
     },
     openFile: function (filename) {
       api.openFile(filename, (err) => {
@@ -207,10 +202,21 @@ export default {
       let ip = api.getIpAddress(this.currentNetInterfaceIdx);
       this.url = api.genUrl(ip);
       ElMessage.success({message: `切换网卡为 "${name}"`, type: 'success'});
+    },
+    queryInfo() {
+      this.files = api.listFiles();
     }
   },
   mounted: function () {
     this.netInterfaceNames = api.getNetInterfaceNames();
+    this.queryInfo()
+    this.timer = setInterval(() => {
+      setTimeout(this.queryInfo, 0)
+    }, 1000 * 3)
+  },
+  beforeUnmount() {
+    clearInterval(this.timer)
+    this.timer = null
   },
   components: {QrcodeVue}
 }

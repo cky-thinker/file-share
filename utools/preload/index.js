@@ -8,7 +8,7 @@ const openExplorer = require('open-file-explorer');
 
 let fileDb = new Map();
 let server;
-
+// 服务初始化
 const initApp = () => {
     let app = express();
     app.use(express.static(path.join(__dirname, 'web'), {index: 'download.html'}))
@@ -49,13 +49,8 @@ const initApp = () => {
     // 上传文本
     const urlencodedParser = bodyParser.urlencoded({extended: false});
     app.post('/addText', urlencodedParser, function (req, res, next) {
-        // 取文本前10位为名称
         let text = req.body.message
-        let name = text.substring(0, Math.min(10, text.length));
-        if (text.length > 10) {
-            name += '...'
-        }
-        addText({type: 'text', name: name, content: text})
+        addText(text)
         res.redirect('/')
     })
 
@@ -100,13 +95,18 @@ const addFile = (file) => {
     if (fs.lstatSync(file.path).isDirectory()) {
         return {success: false, message: '不能选择文件夹'}
     }
-    file.type = 'file'
-    fileDb.set(file.name, file)
+    fileDb.set(file.name, {type: 'file', name: file.name, path: file.path})
     return {success: true};
 }
 
-const addText = (textBody) => {
-    console.log("addText: " + textBody);
+const addText = (text) => {
+    console.log("addText: " + text);
+    // 取文本前10位为名称
+    let name = text.substring(0, Math.min(10, text.length));
+    if (text.length > 10) {
+        name += '...'
+    }
+    let textBody = {type: 'text', name: name, content: text}
     fileDb.set(textBody.name, textBody)
     return {success: true};
 }
@@ -117,7 +117,7 @@ const removeFile = (file) => {
 }
 
 const listFiles = () => {
-    return fileDb.values();
+    return Array.from(fileDb.values());
 }
 
 // 本地测试: export NODE_ENV='test' && node index.js
