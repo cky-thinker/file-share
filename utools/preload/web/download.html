@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>文件列表</title>
     <style>
         @font-face {
@@ -27,7 +28,7 @@
         }
 
         header .overlay {
-            width: 750px;
+            width: 100%;
             margin: 0 auto;
             height: 100%;
             padding: 8px;
@@ -72,7 +73,7 @@
         }
 
         .content {
-            width: 750px;
+            width: 100%;
             margin: 0 auto;
             text-align: center;
             display: flex;
@@ -162,68 +163,123 @@
             cursor: pointer;
         }
 
-        .file-form {
-            width: 475px;
-            height: 119px;
-            max-height: 80px;
-            max-width: 475px;
-            min-width: 475px;
-            margin-bottom: 18px;
+        /** ------- pc端 --------- **/
+        @media only screen and (min-width: 500px) {
+            .file-form {
+                width: 475px;
+                height: 119px;
+                max-height: 80px;
+                max-width: 475px;
+                min-width: 475px;
+                margin-bottom: 18px;
+                border-color: #eee;
+            }
+
+            .message {
+                width: 475px;
+                height: 119px;
+                max-height: 80px;
+                max-width: 475px;
+                min-width: 475px;
+                margin-bottom: 18px;
+                border-color: #eee;
+            }
+
+            /** dialog **/
+            .mask {
+                display: none;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                z-index: 2;
+                background: rgba(0, 0, 0, 0.1);
+                top: 0;
+                left: 0;
+            }
+
+            .dialog {
+                display: none;
+                position: fixed;
+                z-index: 3;
+                width: 500px;
+                min-height: 220px;
+                max-height: 220px;
+                top: 50%;
+                left: 50%;
+                margin: -150px 0 0 -250px;
+                background: #fff;
+                padding: 15px;
+                border-radius: 5px;
+            }
+
+            .dialog-header {
+                border-bottom: 1px solid #eee;
+                padding: 10px;
+            }
+
+            .dialog-body {
+                padding: 10px;
+                min-height: 50px;
+            }
         }
 
-        .message {
-            width: 475px;
-            height: 119px;
-            max-height: 80px;
-            max-width: 475px;
-            min-width: 475px;
-            margin-bottom: 18px;
-        }
 
-        /** dialog **/
-        .mask {
-            display: none;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            background: rgba(0, 0, 0, 0.1);
-            top: 0;
-            left: 0;
-        }
+        /** ------- 移动端 ---------- **/
+        @media only screen and (max-width: 500px) {
+            .file-form {
+                height: 6rem;
+                max-height: 6rem;
+                width: 100%;
+                margin-bottom: 1rem;
+                border-color: #eee;
+            }
 
-        .dialog {
-            display: none;
-            position: fixed;
-            z-index: 3;
-            width: 500px;
-            min-height: 220px;
-            max-height: 220px;
-            top: 50%;
-            left: 50%;
-            margin: -150px 0 0 -250px;
-            background: #fff;
-            padding: 15px;
-            border-radius: 5px;
-        }
+            .message {
+                height: 6rem;
+                max-height: 6rem;
+                width: 100%;
+                margin-bottom: 18px;
+                border-color: #eee;
+            }
 
-        .dialog-header {
-            border-bottom: 1px solid #eee;
-            padding: 10px;
-        }
+            /** dialog **/
+            .mask {
+                display: none;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                z-index: 2;
+                background: rgba(0, 0, 0, 0.1);
+                top: 0;
+                left: 0;
+            }
 
-        .dialog-body {
-            padding: 10px;
-            min-height: 50px;
-        }
+            .dialog {
+                display: none;
+                position: fixed;
+                z-index: 3;
+                width: 18rem;
+                height: fit-content;
+                margin: 0 auto;
+                left: 0;
+                right: 0;
+                top: 20%;
+                bottom: 0;
+                background: #fff;
+                padding: 1rem;
+                border-radius: 1rem;
+            }
 
-        .dialog-footer {
-            border-top: 1px solid #eee;
-            padding: 10px;
-            position: relative;
-            top: 90px;
-        }
+            .dialog-header {
+                border-bottom: 1px solid #eee;
+                padding: 10px;
+            }
 
+            .dialog-body {
+                padding: 10px;
+                min-height: 50px;
+            }
+        }
 
     </style>
 </head>
