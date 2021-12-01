@@ -15,8 +15,8 @@
               </div>
             </template>
             <el-row class="row-bg">
-              <el-col :span="20">分享链接：{{ url }}</el-col>
-              <el-col :span="2">
+              <el-col :span="18">分享链接：{{ url }}</el-col>
+              <el-col :span="3">
                 <el-popover placement="left" :width="100" trigger="hover">
                   <template #reference>
                     <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
@@ -25,7 +25,7 @@
                   <qrcode-vue :value="url"></qrcode-vue>
                 </el-popover>
               </el-col>
-              <el-col :span="2">
+              <el-col :span="3">
                 <el-button v-if="netInterfaceNames.length>1" type="default" size="mini" icon="el-icon-sort" title="切换网卡"
                            @click="changeNetInterface()"></el-button>
               </el-col>
@@ -34,40 +34,43 @@
 
           <el-card class="box-card">
             <template #header>
+              <el-dialog v-model="dialogFormVisible" title="分享一段文本">
+                <el-input
+                    type="textarea"
+                    :rows="2"
+                    :autosize="{ minRows: 2, maxRows: 4}"
+                    placeholder="请输入内容"
+                    v-model="form.text">
+                </el-input>
+                <template #footer>
+                  <el-button type="primary" @click="formSubmit">提交</el-button>
+                </template>
+              </el-dialog>
+
+              <el-dialog v-model="settingFormVisible" title="设置" style="width: 70%;">
+                <el-row class="row-bg">
+                  <el-col :span="24">
+                    <el-form ref="form" :model="settingForm" label-width="80px">
+                      <el-form-item label="上传路径">
+                        <el-input v-model="settingForm.uploadPath"></el-input>
+                      </el-form-item>
+                    </el-form>
+                  </el-col>
+                </el-row>
+                <template #footer>
+                  <el-button type="primary" @click="updateSettingsForm">更新</el-button>
+                  <el-button type="primary" @click="closeSettingsForm">取消</el-button>
+                </template>
+              </el-dialog>
+
               <div class="card-header">
                 <el-row class="row-bg">
-                  <el-col :span="20">分享列表</el-col>
-                  <el-col :span="2">
-                    <el-button @click="dialogFormVisible = true" type="default" size="mini" icon="el-icon-message"
-                               title="分享一段文本"></el-button>
-                    <el-dialog v-model="dialogFormVisible" title="分享一段文本">
-                      <el-input
-                          type="textarea"
-                          :rows="2"
-                          :autosize="{ minRows: 2, maxRows: 4}"
-                          placeholder="请输入内容"
-                          v-model="form.text">
-                      </el-input>
-                      <template #footer>
-                        <el-button type="primary" @click="formSubmit">提交</el-button>
-                      </template>
-                    </el-dialog>
-                    <el-dialog title="分享一段文本" v-model:visible="dialogFormVisible">
-                      <el-form :model="form">
-                        <el-form-item label="文本内容">
-                          <el-input
-                              type="textarea"
-                              :rows="2"
-                              :autosize="{ minRows: 2, maxRows: 4}"
-                              placeholder="请输入内容"
-                              v-model="form.text">
-                          </el-input>
-                        </el-form-item>
-                      </el-form>
-                      <div class="dialog-footer">
-                        <el-button type="primary" @click="formSubmit">提交</el-button>
-                      </div>
-                    </el-dialog>
+                  <el-col :span="18">分享列表</el-col>
+                  <el-col :span="3">
+                    <el-button @click="dialogFormVisible = true" type="default" size="mini" icon="el-icon-message" title="分享一段文本"></el-button>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-button @click="onHandlerSetting()" type="default" size="mini" icon="el-icon-setting" title="设置"></el-button>
                   </el-col>
                 </el-row>
               </div>
@@ -152,11 +155,30 @@ export default {
       form: {
         text: ''
       },
+      settingFormVisible: false,
+      settingForm: {
+        uploadPath: '',
+      },
       dialogFormVisible: false,
       timer: null
     }
   },
   methods: {
+    onHandlerSetting: function () {
+      console.log("--onHandlerSetting--")
+      this.settingForm = api.getSettings();
+      this.settingFormVisible = true;
+    },
+    updateSettingsForm: function () {
+      console.log(this.settingForm.uploadPath)
+      api.updateUploadPath(this.settingForm.uploadPath);
+      this.settingForm = api.getSettings();
+      this.settingFormVisible = false;
+    },
+    closeSettingsForm: function () {
+      this.settingForm = api.getSettings();
+      this.settingFormVisible = false;
+    },
     formSubmit: function () {
       let text = this.form.text;
       api.addText(text);

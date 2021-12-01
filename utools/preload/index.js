@@ -8,6 +8,42 @@ const openExplorer = require('open-file-explorer');
 
 let fileDb = new Map();
 let server;
+
+const updateSettings = (settings) => {
+    console.log("updateSettings:" + settings)
+    utools.dbStorage.setItem('settings', settings);
+}
+
+const getSettings = () => {
+    return utools.dbStorage.getItem('settings');
+}
+
+const uploadPath = 'uploadPath'
+const initSettings = () => {
+    console.log('initSettings')
+    let USER_HOME = process.env.HOME || process.env.USERPROFILE
+    let fileDownload = path.join(USER_HOME, 'Downloads')
+    updateSettings({uploadPath: fileDownload})
+}
+
+utools.onPluginReady(() => {
+    console.log('插件装配完成，已准备好')
+    initSettings();
+})
+
+const getFileDownload = () => {
+    return getSettings()[uploadPath]
+}
+
+const updateUploadPath = (dir) => {
+    console.log("updateUploadPath: " + dir);
+    if (!fs.lstatSync(dir).isDirectory()) {
+        dir = path.resolve(dir, '..')
+    }
+    console.log("path:" + dir)
+    updateSettings({uploadPath: dir})
+}
+
 // 服务初始化
 const initApp = () => {
     let app = express();
@@ -25,12 +61,10 @@ const initApp = () => {
         res.download(filePath)
     });
 
-    const USER_HOME = process.env.HOME || process.env.USERPROFILE
-    let fileDownload = path.join(USER_HOME, 'Downloads')
     // 通过 filename 属性定制
     let storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, fileDownload);    // 保存的路径，备注：需要自己创建
+            cb(null, getFileDownload());    // 保存的路径，备注：需要自己创建
         },
         filename: function (req, file, cb) {
             // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
@@ -137,6 +171,9 @@ if (process.env.NODE_ENV === "test") {
     startServer();
 } else {
     window.api = {
+        updateUploadPath,
+        updateSettings,
+        getSettings,
         addText,
         startServer,
         stopServer,
