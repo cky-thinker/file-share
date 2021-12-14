@@ -9,21 +9,32 @@ const openExplorer = require('open-file-explorer');
 let fileDb = new Map();
 let server;
 
-const updateSettings = (settings) => {
-    console.log("updateSettings:" + settings)
-    utools.dbStorage.setItem('settings', settings);
+const updateUploadPath = (path) => {
+    console.log("updateUploadPath: " + path);
+    if (!fs.existsSync(path)) {
+        return {success: false, message: '文件夹不存在'}
+    }
+    if (!fs.lstatSync(path).isDirectory()) {
+        return {success: false, message: '上传路径必须为文件夹'}
+    }
+    utools.dbStorage.setItem('uploadPath', path);
+    return {success: true, message: '修改成功'}
 }
 
 const getSettings = () => {
-    return utools.dbStorage.getItem('settings');
+    return {uploadPath: utools.dbStorage.getItem('uploadPath')};
 }
 
 const uploadPath = 'uploadPath'
 const initSettings = () => {
     console.log('initSettings')
+    let newPath = utools.dbStorage.getItem('uploadPath')
+    if (newPath != null) {
+        return;
+    }
     let USER_HOME = process.env.HOME || process.env.USERPROFILE
     let fileDownload = path.join(USER_HOME, 'Downloads')
-    updateSettings({uploadPath: fileDownload})
+    updateUploadPath(fileDownload)
 }
 
 utools.onPluginReady(() => {
@@ -33,15 +44,6 @@ utools.onPluginReady(() => {
 
 const getFileDownload = () => {
     return getSettings()[uploadPath]
-}
-
-const updateUploadPath = (dir) => {
-    console.log("updateUploadPath: " + dir);
-    if (!fs.lstatSync(dir).isDirectory()) {
-        dir = path.resolve(dir, '..')
-    }
-    console.log("path:" + dir)
-    updateSettings({uploadPath: dir})
 }
 
 // 服务初始化
@@ -172,7 +174,6 @@ if (process.env.NODE_ENV === "test") {
 } else {
     window.api = {
         updateUploadPath,
-        updateSettings,
         getSettings,
         addText,
         startServer,

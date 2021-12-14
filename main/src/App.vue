@@ -171,7 +171,12 @@ export default {
     },
     updateSettingsForm: function () {
       console.log(this.settingForm.uploadPath)
-      api.updateUploadPath(this.settingForm.uploadPath);
+      let {success, message} = api.updateUploadPath(this.settingForm.uploadPath);
+      if (success) {
+        ElMessage.success(message);
+      } else {
+        ElMessage.error(message);
+      }
       this.settingForm = api.getSettings();
       this.settingFormVisible = false;
     },
