@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="viewport"
           content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>文件列表</title>
@@ -352,7 +352,7 @@
 <script id="tpl-files" type="text/html">
     {{each files}}
     {{if $value.type === 'text'}}
-    <div class="item" onclick="copyHandle('{{$value.content}}')">
+    <div class="item" onclick="copyHandle(this)" data="{{$value.content}}">
         <div class="text-medium filename" title="{{$value.name}}">{{$value.name}}</div>
         <div>
             <svg t="1634575437431" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -400,7 +400,8 @@
         console.log('submit')
     }
 
-    function copyHandle(content) {
+    function copyHandle(el) {
+        let content = el.getAttribute("data");
         let copy = (e) => {
             e.preventDefault()
             e.clipboardData.setData('text/plain', content)
