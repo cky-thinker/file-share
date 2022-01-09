@@ -65,9 +65,19 @@
 
               <div class="card-header">
                 <el-row class="row-bg">
-                  <el-col :span="18">分享列表</el-col>
+                  <el-col :span="15">分享列表</el-col>
                   <el-col :span="3">
                     <el-button @click="dialogFormVisible = true" type="default" size="mini" icon="el-icon-message" title="分享一段文本"></el-button>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-popconfirm
+                        @confirm="removeFileAll()"
+                        title="确定要清空所有文件吗？"
+                    >
+                      <template #reference>
+                        <el-button type="default" size="mini" icon="el-icon-delete" title="清空列表"></el-button>
+                      </template>
+                    </el-popconfirm>
                   </el-col>
                   <el-col :span="3">
                     <el-button @click="onHandlerSetting()" type="default" size="mini" icon="el-icon-setting" title="设置"></el-button>
@@ -208,6 +218,13 @@ export default {
       } else {
         ElMessage.error(message);
       }
+    },
+    removeFileAll: function () {
+      this.files.forEach(f => {
+        api.removeFile(f)
+      })
+      this.files = api.listFiles();
+      ElMessage.success({message: '已清空列表', type: 'success'});
     },
     removeFile: function (file) {
       let removeFiles = this.files.filter((f) => f.name === file.name);
