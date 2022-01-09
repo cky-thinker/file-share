@@ -281,6 +281,28 @@
             }
         }
 
+        .alter {
+            display: none;
+            position:fixed;
+            margin:auto;
+            left:0;
+            right:0;
+            top:0;
+            bottom:0;
+            width: 200px;
+            height: min-content;
+            padding: 1rem 1rem;
+            border: 1px solid transparent;
+            border-radius: .25rem;
+            text-align: center;
+        }
+
+        .alert-success {
+            background-color: #f0f9eb;
+            color: #67c23a;
+            opacity: 0.8;
+        }
+
     </style>
 </head>
 <body class="body">
@@ -290,6 +312,9 @@
         <h3>跨平台、高速的文件传输工具</h3>
     </div>
 </header>
+<div id="alter-success" class="alter alert-success">
+
+</div>
 
 <div class="btn-group">
 
@@ -389,8 +414,8 @@
     {{/if}}
 </script>
 <script>
-    $(document).ready(function(){
-        $('.submit-btn').on('click', function() {
+    $(document).ready(function () {
+        $('.submit-btn').on('click', function () {
             let form = $(this).closest('form')
             form.submit();
         });
@@ -400,8 +425,8 @@
             let copy = (e) => {
                 e.preventDefault()
                 e.clipboardData.setData('text/plain', content)
-                alert('复制成功')
                 document.removeEventListener('copy', copy)
+                $('#alter-success').html('复制成功').fadeIn(500).fadeOut(1000)
             }
             document.addEventListener('copy', copy)
             document.execCommand("Copy");
