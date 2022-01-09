@@ -323,7 +323,7 @@
             </div>
             <div>
                 <span class="btn btn-primary dialog-close" style="float: left">取消</span>
-                <span class="btn btn-primary" style="float: right" onclick="submitText()">提交</span>
+                <span class="btn btn-primary submit-btn" style="float: right">提交</span>
             </div>
         </form>
     </div>
@@ -340,7 +340,7 @@
             </div>
             <div>
                 <span class="btn btn-primary dialog-close" style="float: left">取消</span>
-                <span class="btn btn-primary" style="float: right" onclick="submitFile()">提交</span>
+                <span class="btn btn-primary submit-btn" style="float: right">提交</span>
             </div>
         </form>
     </div>
@@ -348,11 +348,12 @@
 
 <div id="app" class="content">
 </div>
-<script src="/lib/template-web.js"></script>
+<script src="lib/template-web.js"></script>
+<script src="lib/jquery.js"></script>
 <script id="tpl-files" type="text/html">
     {{each files}}
     {{if $value.type === 'text'}}
-    <div class="item" onclick="copyHandle(this)" data="{{$value.content}}">
+    <div class="item item-text" data="{{$value.content}}">
         <div class="text-medium filename" title="{{$value.name}}">{{$value.name}}</div>
         <div>
             <svg t="1634575437431" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -388,86 +389,78 @@
     {{/if}}
 </script>
 <script>
-    function submitFile() {
-        let form = document.getElementById('submit-file')
-        form.submit()
-        console.log('submit')
-    }
+    $(document).ready(function(){
+        $('.submit-btn').on('click', function() {
+            let form = $(this).closest('form')
+            form.submit();
+        });
 
-    function submitText() {
-        let form = document.getElementById('submit-text')
-        form.submit()
-        console.log('submit')
-    }
-
-    function copyHandle(el) {
-        let content = el.getAttribute("data");
-        let copy = (e) => {
-            e.preventDefault()
-            e.clipboardData.setData('text/plain', content)
-            alert('复制成功')
-            document.removeEventListener('copy', copy)
-        }
-        document.addEventListener('copy', copy)
-        document.execCommand("Copy");
-    }
-
-    function sendGet(url, callback) {
-        const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                callback(JSON.parse(xhr.responseText))
+        $(document).on('click', '.item-text', function (e) {
+            let content = $(this).attr("data");
+            let copy = (e) => {
+                e.preventDefault()
+                e.clipboardData.setData('text/plain', content)
+                alert('复制成功')
+                document.removeEventListener('copy', copy)
             }
-        };
-        //发送异步请求
-        xhr.open("GET", url, true);
-        //发送请求
-        xhr.send();
-    }
+            document.addEventListener('copy', copy)
+            document.execCommand("Copy");
+            e.preventDefault()
+        });
 
-    function updatePage() {
-        sendGet("/files", (data) => {
-            document.getElementById("app").innerHTML = template('tpl-files', data)
-        })
-    }
+        function sendGet(url, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    callback(JSON.parse(xhr.responseText))
+                }
+            };
+            //发送异步请求
+            xhr.open("GET", url, true);
+            //发送请求
+            xhr.send();
+        }
 
-    window.onload = function () {
-        console.log("onload");
+        function updatePage() {
+            sendGet("/files", (data) => {
+                document.getElementById("app").innerHTML = template('tpl-files', data)
+            })
+        }
+
         updatePage();
         // 每隔6秒更新页面
         setInterval(updatePage, 6000);
-    }
 
-    // dialog
-    function initDialog(id, openBtnId) {
-        let openDialogBtn = document.getElementById(openBtnId)
-        let mask = document.getElementById('mask')
-        let dialogBox = document.getElementById(id)
-        let dialogClose = dialogBox.getElementsByClassName('dialog-close')[0];
+        // dialog
+        function initDialog(id, openBtnId) {
+            let openDialogBtn = document.getElementById(openBtnId)
+            let mask = document.getElementById('mask')
+            let dialogBox = document.getElementById(id)
+            let dialogClose = dialogBox.getElementsByClassName('dialog-close')[0];
 
-        openDialogBtn.addEventListener('click', function () {
-            //显示遮罩层
-            mask.style.display = 'block';
-            //显示弹出窗口
-            dialogBox.style.display = 'block';
-        });
-        dialogClose.addEventListener('click', function () {
-            //隐藏遮罩层
-            mask.style.display = 'none';
-            //显示弹出窗口
-            dialogBox.style.display = 'none';
-        });
-        mask.addEventListener('click', function () {
-            //隐藏遮罩层
-            mask.style.display = 'none';
-            //显示弹出窗口
-            dialogBox.style.display = 'none';
-        });
-    }
+            openDialogBtn.addEventListener('click', function () {
+                //显示遮罩层
+                mask.style.display = 'block';
+                //显示弹出窗口
+                dialogBox.style.display = 'block';
+            });
+            dialogClose.addEventListener('click', function () {
+                //隐藏遮罩层
+                mask.style.display = 'none';
+                //显示弹出窗口
+                dialogBox.style.display = 'none';
+            });
+            mask.addEventListener('click', function () {
+                //隐藏遮罩层
+                mask.style.display = 'none';
+                //显示弹出窗口
+                dialogBox.style.display = 'none';
+            });
+        }
 
-    initDialog('text-send-dialog', 'text-send-btn')
-    initDialog('file-send-dialog', 'file-send-btn')
-
+        initDialog('text-send-dialog', 'text-send-btn')
+        initDialog('file-send-dialog', 'file-send-btn')
+    });
 </script>
 </body>
 </html>
