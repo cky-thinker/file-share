@@ -111,11 +111,14 @@ const addFile = (file) => {
 const addText = (text) => {
     console.log("addText: " + text);
     // 取文本前10位为名称
-    let name = text.substring(0, Math.min(10, text.length));
-    if (text.length > 10) {
+    let name = text.substring(0, Math.min(20, text.length));
+    let intro = text.substring(0, Math.min(100, text.length));
+    if (text.length > 20) {
         name += '...'
     }
-    let textBody = {type: 'text', name: name, content: text}
+    console.log(name)
+    console.log(intro)
+    let textBody = {type: 'text', name: name, content: text, intro}
     fileDb.set(textBody.name, textBody)
     return {success: true};
 }

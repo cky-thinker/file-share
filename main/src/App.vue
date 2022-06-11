@@ -102,7 +102,13 @@
 
             <div v-for="file in files" :key="file" class="text item file-item">
               <el-row class="row-bg" justify="space-between">
-                <el-col :span="18">{{ file.name }}</el-col>
+                <el-col :span="18">
+                  <el-tooltip v-if="file.type === 'text'" effect="light" placement="top">
+                    <template #content>{{ file.intro }}</template>
+                    <span>{{ file.name }}</span>
+                  </el-tooltip>
+                  <span v-if="file.type === 'file'">{{ file.name }}</span>
+                </el-col>
                 <el-col :span="6">
                   <el-button v-if="file.type === 'text'" type="default" size="mini" icon="el-icon-document-copy"
                              title="复制文本到剪切板"
