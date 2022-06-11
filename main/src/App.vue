@@ -15,14 +15,14 @@
               </div>
             </template>
             <el-row class="row-bg">
-              <el-col :span="18">分享链接：{{ url }}</el-col>
+              <el-col :span="18">分享链接：{{ settingForm.url }}</el-col>
               <el-col :span="3">
                 <el-popover placement="left" :width="100" trigger="hover">
                   <template #reference>
                     <el-button type="default" size="mini" icon="el-icon-document-copy" title="复制链接到剪切板"
-                               @click="handleClipboard(url, $event)"></el-button>
+                               @click="handleClipboard(settingForm.url, $event)"></el-button>
                   </template>
-                  <qrcode-vue :value="url"></qrcode-vue>
+                  <qrcode-vue :value="settingForm.url"></qrcode-vue>
                 </el-popover>
               </el-col>
               <el-col :span="3">
@@ -54,6 +54,9 @@
                       <el-form-item label="上传路径">
                         <el-input v-model="settingForm.uploadPath"></el-input>
                       </el-form-item>
+                      <el-form-item label="服务端口">
+                        <el-input v-model="settingForm.port"></el-input>
+                      </el-form-item>
                     </el-form>
                   </el-col>
                 </el-row>
@@ -67,7 +70,8 @@
                 <el-row class="row-bg">
                   <el-col :span="15">分享列表</el-col>
                   <el-col :span="3">
-                    <el-button @click="dialogFormVisible = true" type="default" size="mini" icon="el-icon-message" title="分享一段文本"></el-button>
+                    <el-button @click="dialogFormVisible = true" type="default" size="mini" icon="el-icon-message"
+                               title="分享一段文本"></el-button>
                   </el-col>
                   <el-col :span="3">
                     <el-popconfirm
@@ -80,7 +84,8 @@
                     </el-popconfirm>
                   </el-col>
                   <el-col :span="3">
-                    <el-button @click="onHandlerSetting()" type="default" size="mini" icon="el-icon-setting" title="设置"></el-button>
+                    <el-button @click="onHandlerSetting()" type="default" size="mini" icon="el-icon-setting"
+                               title="设置"></el-button>
                   </el-col>
                 </el-row>
               </div>
@@ -99,9 +104,11 @@
               <el-row class="row-bg" justify="space-between">
                 <el-col :span="18">{{ file.name }}</el-col>
                 <el-col :span="6">
-                  <el-button v-if="file.type === 'text'" type="default" size="mini" icon="el-icon-document-copy" title="复制文本到剪切板"
+                  <el-button v-if="file.type === 'text'" type="default" size="mini" icon="el-icon-document-copy"
+                             title="复制文本到剪切板"
                              @click="handleClipboard(file.content, $event)"></el-button>
-                  <el-button v-if="file.type === 'file'" type="default" size="mini" icon="el-icon-search" title="打开文件所在目录"
+                  <el-button v-if="file.type === 'file'" type="default" size="mini" icon="el-icon-search"
+                             title="打开文件所在目录"
                              @click="openFile(file.name, $event)"></el-button>
                   <el-button type="default" size="mini" icon="el-icon-delete"
                              @click="() => removeFile(file)"></el-button>
@@ -157,7 +164,6 @@ export default {
   data: () => {
     return {
       serverRunning: false,
-      url: "",
       qrcode: "",
       files: [],
       netInterfaceNames: [],
@@ -167,7 +173,9 @@ export default {
       },
       settingFormVisible: false,
       settingForm: {
+        url: '',
         uploadPath: '',
+        port: 5421
       },
       dialogFormVisible: false,
       timer: null
@@ -176,22 +184,25 @@ export default {
   methods: {
     onHandlerSetting: function () {
       console.log("--onHandlerSetting--")
-      this.settingForm = api.getSettings();
+      this.settingForm = api.getSetting();
       this.settingFormVisible = true;
     },
     updateSettingsForm: function () {
-      console.log(this.settingForm.uploadPath)
-      let {success, message} = api.updateUploadPath(this.settingForm.uploadPath);
-      if (success) {
-        ElMessage.success(message);
-      } else {
-        ElMessage.error(message);
-      }
-      this.settingForm = api.getSettings();
-      this.settingFormVisible = false;
+      console.log(this.settingForm)
+      api.updateSetting(this.settingForm)
+          .then(() => {
+            ElMessage.success("更新成功");
+            this.settingForm = api.getSetting();
+            this.settingFormVisible = false;
+          })
+          .catch(() => {
+            ElMessage.error("更新失败");
+            this.settingForm = api.getSetting();
+            this.settingFormVisible = false;
+          })
     },
     closeSettingsForm: function () {
-      this.settingForm = api.getSettings();
+      this.settingForm = api.getSetting();
       this.settingFormVisible = false;
     },
     formSubmit: function () {
@@ -202,8 +213,8 @@ export default {
       this.dialogFormVisible = false;
     },
     startServer: function () {
-      let {url} = api.startServer();
-      this.url = url
+      api.startServer();
+      this.settingForm = api.getSetting()
       this.serverRunning = true;
     },
     stopServer: function () {
@@ -244,8 +255,10 @@ export default {
       this.currentNetInterfaceIdx = this.currentNetInterfaceIdx + 1;
       let name = this.netInterfaceNames[this.currentNetInterfaceIdx % this.netInterfaceNames.length];
       let ip = api.getIpAddress(this.currentNetInterfaceIdx);
-      this.url = api.genUrl(ip);
-      ElMessage.success({message: `切换网卡为 "${name}"`, type: 'success'});
+      api.updateIp(ip).then(() => {
+        this.settingForm = api.getSetting()
+        ElMessage.success({message: `切换网卡为 "${name}"`, type: 'success'});
+      })
     },
     queryInfo() {
       this.files = api.listFiles();

@@ -1,6 +1,8 @@
 const path = require('path')
 const express = require('express') // http://expressjs.com/
 const IpUtil = require('./utils/IpUtil')
+const Setting = require('./utils/SettingManager')
+const EventDispatcher = require('./utils/EventDispatcher')
 const fs = require("fs")
 const multer = require('multer')
 const bodyParser = require("body-parser");
@@ -9,42 +11,10 @@ const openExplorer = require('open-file-explorer');
 let fileDb = new Map();
 let server;
 
-const updateUploadPath = (path) => {
-    console.log("updateUploadPath: " + path);
-    if (!fs.existsSync(path)) {
-        return {success: false, message: '文件夹不存在'}
-    }
-    if (!fs.lstatSync(path).isDirectory()) {
-        return {success: false, message: '上传路径必须为文件夹'}
-    }
-    utools.dbStorage.setItem('uploadPath', path);
-    return {success: true, message: '修改成功'}
-}
-
-const getSettings = () => {
-    return {uploadPath: utools.dbStorage.getItem('uploadPath')};
-}
-
-const uploadPath = 'uploadPath'
-const initSettings = () => {
-    console.log('initSettings')
-    let newPath = utools.dbStorage.getItem('uploadPath')
-    if (newPath != null) {
-        return;
-    }
-    let USER_HOME = process.env.HOME || process.env.USERPROFILE
-    let fileDownload = path.join(USER_HOME, 'Downloads')
-    updateUploadPath(fileDownload)
-}
-
 utools.onPluginReady(() => {
     console.log('插件装配完成，已准备好')
-    initSettings();
+    Setting.getSetting(); // 初始化配置
 })
-
-const getFileDownload = () => {
-    return getSettings()[uploadPath]
-}
 
 // 服务初始化
 const initApp = () => {
@@ -66,7 +36,7 @@ const initApp = () => {
     // 通过 filename 属性定制
     let storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, getFileDownload());    // 保存的路径，备注：需要自己创建
+            cb(null, Setting.getUploadPath());    // 保存的路径，备注：需要自己创建
         },
         filename: function (req, file, cb) {
             // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
@@ -93,25 +63,28 @@ const initApp = () => {
     return app;
 }
 
-const genUrl = (ip, port = 5421) => {
-    return `http://${ip}:${port}`;
+const updateIp = (ip) => {
+    return Setting.updateIp(ip)
+}
+
+const getUrl = () => {
+    return Setting.getUrl()
 }
 
 // 开启服务
-const startServer = (port = 5421) => {
+const startServer = () => {
+    let port = Setting.getPort();
     const app = initApp()
-    let url = genUrl(IpUtil.getIpAddress(), port);
     server = app.listen(port, () => {
-        console.log("start success! download url: " + url)
+        console.log("start success! download url: " + Setting.getUrl())
     });
-    return {success: true, message: "启动成功", url: url};
+    return {success: true, message: "启动成功", url: Setting.getUrl()};
 }
 
 // 关闭服务
 const stopServer = () => {
     server.close();
 }
-
 
 const DEFAULT_HANDLER = (err) => console.log(err)
 const openFile = (filename, errorHandler = DEFAULT_HANDLER) => {
@@ -156,6 +129,29 @@ const listFiles = () => {
     return Array.from(fileDb.values());
 }
 
+// 配置更新
+const updateSetting = (setting) => {
+    return new Promise((resolve, reject) => {
+        let updateUploadPath = Setting.updateUploadPath(setting[Setting.uploadPathKey]);
+        let updatePort = Setting.updatePort(setting[Setting.portKey]).then(() => {
+            // 端口更新成功后重启服务
+            stopServer()
+            startServer()
+        })
+        Promise.all([updateUploadPath, updatePort])
+            .then((msg) => {
+                console.log("更新成功")
+                console.log(msg)
+                resolve(msg)
+            })
+            .catch((msg) => {
+                console.log("更新失败")
+                console.log(msg)
+                reject(msg)
+            })
+    })
+}
+
 // 本地测试: export NODE_ENV='test' && node index.js
 if (process.env.NODE_ENV === "test") {
     let userHome = process.env.HOME || process.env.USERPROFILE;
@@ -173,8 +169,8 @@ if (process.env.NODE_ENV === "test") {
     startServer();
 } else {
     window.api = {
-        updateUploadPath,
-        getSettings,
+        updateSetting,
+        getSetting: Setting.getSetting,
         addText,
         startServer,
         stopServer,
@@ -182,7 +178,8 @@ if (process.env.NODE_ENV === "test") {
         addFile,
         removeFile,
         listFiles,
-        genUrl,
+        updateIp,
+        getUrl,
         getIpAddress: IpUtil.getIpAddress,
         getIpAddresses: IpUtil.getIpAddresses,
         getNetInterfaceNames: IpUtil.getNetInterfaceNames
