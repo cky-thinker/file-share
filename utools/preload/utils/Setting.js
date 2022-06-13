@@ -1,13 +1,14 @@
 // ----- 配置管理 -----
 const path = require('path')
 const fs = require("fs")
-const net = require('net')
 
 const AppDatabase = require('./Database')
 const IpUtil = require("./IpUtil");
 const uploadPathKey = 'uploadPath' // 上传路径
 const portKey = 'port' // 端口号
 const ipKey = 'ip' // 端口号
+
+let curIp = IpUtil.getIpAddress();
 
 // 上传路径默认值
 function getDefaultUploadPath() {
@@ -74,7 +75,7 @@ function getUrl() {
 }
 
 function getIp() {
-    return AppDatabase.getStorageItem(ipKey, IpUtil.getIpAddress)
+    return curIp;
 }
 
 function updateIp(ip) {
@@ -86,7 +87,7 @@ function updateIp(ip) {
         if (getIp() === ip) {
             return resolve({success: true, message: '修改成功'});
         }
-        AppDatabase.setStorageItem(ipKey, ip);
+        curIp = ip;
         resolve({success: true, message: '修改成功'});
     })
 }

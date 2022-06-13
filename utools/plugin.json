@@ -6,7 +6,22 @@
     {
       "code": "FileShare",
       "explain": "FileShare文件共享(局域网)",
-      "cmds":["局域网文件共享","FileShare", "FS", "share", "文件", "共享", "文件共享", "局域网"]
+      "cmds": [
+        "局域网文件共享",
+        "FileShare",
+        "FS",
+        "share",
+        "文件",
+        "共享",
+        "文件共享",
+        "局域网",
+        {
+          "type": "files",
+          "label": "分享",
+          "fileType": "file",
+          "minLength": 1
+        }
+      ]
     }
   ]
 }

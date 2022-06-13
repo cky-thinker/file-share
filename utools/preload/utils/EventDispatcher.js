@@ -1,23 +1,23 @@
 // ----- 事件分发器 -----
 
 // 事件处理回调
-const eventCallbacks = {}
+const eventListeners = {}
 // 注册事件处理回调
-const registryFailCallback = (type, callback) => {
-    eventCallbacks[type] ||= []
-    eventCallbacks[type].push(callback)
+const registryEventListener = (type, listener) => {
+    eventListeners[type] ||= []
+    eventListeners[type].push(listener)
 }
 // 触发事件，事件结构 {type: '', data: {}}
 const triggerEvent = (event) => {
-    let callbacks = eventCallbacks[event.type]
-    if (!callbacks) {
+    let listeners = eventListeners[event.type]
+    if (!listeners) {
         return;
     }
-    for (let callback of callbacks) {
-        callback(event)
+    for (let listener of listeners) {
+        listener(event)
     }
 }
 
 
-exports.registryFailCallback = registryFailCallback
+exports.registryEventListener = registryEventListener
 exports.triggerEvent = triggerEvent
