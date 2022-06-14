@@ -53,13 +53,18 @@ const updateSetting = (setting) => {
     })
 }
 
+const openFile = (filename) => {
+    let file = FileDb.getFile(filename)
+    FileUtil.openFile(file.path)
+}
+
 window.api = {
     updateSetting,
     getSetting: Setting.getSetting,
     startServer: Server.startServer,
     stopServer: Server.stopServer,
     getServerStatus: Server.getServerStatus,
-    openFile: FileUtil.openFile,
+    openFile,
     registryEventListener: EventDispatcher.registryEventListener,
     addText: FileDb.addText,
     addFile: FileDb.addFile,
