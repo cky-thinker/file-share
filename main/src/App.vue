@@ -311,6 +311,9 @@
         background-repeat: no-repeat;
         background-position: 0 100%;
         min-height: 600px;
+        position : absolute;
+        width : 100%;
+        height : 100%;
     }
 
     .container {
