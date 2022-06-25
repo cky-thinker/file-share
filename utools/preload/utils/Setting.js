@@ -32,7 +32,8 @@ function updateUploadPath(path) {
         }
         // 值没变，不更新
         if (getUploadPath() === path) {
-            resolve({success: true, message: '修改成功'})
+            console.log("updatePath值没变，不更新")
+            resolve({success: true, message: 'ValueNotChange'})
         }
         if (!fs.existsSync(path)) {
             return reject({success: false, message: '文件夹不存在'});
@@ -40,7 +41,7 @@ function updateUploadPath(path) {
         if (!fs.lstatSync(path).isDirectory()) {
             return reject({success: false, message: '上传路径必须为文件夹'})
         }
-        AppDatabase.setStorageItem(uploadPathKey, value);
+        AppDatabase.setStorageItem(uploadPathKey, path);
         resolve({success: true, message: '修改成功'})
     })
 }
@@ -61,7 +62,8 @@ function updatePort(port) {
         }
         // 值没变，不更新
         if (getPort() === port) {
-            return resolve({success: true, message: '修改成功'});
+            console.log("port 值没变，不更新")
+            return resolve({success: true, message: 'ValueNotChange'});
         }
         AppDatabase.setStorageItem(portKey, port);
         resolve({success: true, message: '修改成功'});
@@ -85,7 +87,8 @@ function updateIp(ip) {
         }
         // 值没变，不更新
         if (getIp() === ip) {
-            return resolve({success: true, message: '修改成功'});
+            console.log("ip 值没变，不更新")
+            return resolve({success: true, message: 'ValueNotChange'});
         }
         curIp = ip;
         resolve({success: true, message: '修改成功'});

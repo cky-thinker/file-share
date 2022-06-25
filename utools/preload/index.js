@@ -38,17 +38,22 @@ utools.onPluginReady(() => {
 const updateSetting = (setting) => {
     return new Promise((resolve, reject) => {
         let updateUploadPath = Setting.updateUploadPath(setting[Setting.uploadPathKey]);
-        let updatePort = Setting.updatePort(setting[Setting.portKey]).then(() => {
+        let updatePort = Setting.updatePort(setting[Setting.portKey]).then((result) => {
+            if (result.message === 'ValueNotChange') {
+                console.log("端口未变更")
+                return;
+            }
             // 端口更新成功后重启服务
-            Server.stopServer()
+            Server.stopServer();
             Server.startServer()
         })
         Promise.all([updateUploadPath, updatePort])
             .then((msg) => {
                 resolve(msg)
             })
-            .catch((msg) => {
-                reject(msg)
+            .catch((e) => {
+                console.log(e)
+                reject(e)
             })
     })
 }
