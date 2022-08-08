@@ -9,7 +9,7 @@ const FileDb = require('./utils/FileDb')
 const EventDispatcher = require('./utils/EventDispatcher')
 
 // 进入插件
-utools.onPluginEnter(({code, type, payload}) => {
+utools.onPluginEnter(({ code, type, payload }) => {
     if (type === 'files' && !!payload) {
         console.log("快捷方式进入插件", payload)
         payload.forEach((toAddFile) => {
@@ -47,7 +47,9 @@ const updateSetting = (setting) => {
             Server.stopServer();
             Server.startServer()
         })
-        Promise.all([updateUploadPath, updatePort])
+        let password = Setting.updatePassword(setting[Setting.Password])
+        let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable])
+        Promise.all([updateUploadPath, updatePort, password, authEnable])
             .then((msg) => {
                 resolve(msg)
             })

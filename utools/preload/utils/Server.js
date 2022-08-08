@@ -1,13 +1,17 @@
 const path = require('path')
+const crypto = require('crypto');
 const express = require('express') // http://expressjs.com/
+const cookieParser = require('cookie-parser');
 const multer = require('multer')
 const bodyParser = require("body-parser");
+const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 const Setting = require('./Setting')
 const EventDispatcher = require('./EventDispatcher')
 const FileDb = require('./FileDb')
 
-// 服务状态
+let session = new Set()
+
 const StatusStart = "start"
 const StatusStop = "stop"
 
@@ -15,16 +19,43 @@ let server;
 let status = StatusStop;
 
 
-// 服务初始化
+function authFilter(req, res, next) {
+    console.log('authFilter', req)
+    // no auth
+    if (!Setting.getAuthEnable()) {
+        console.log('no auth')
+        next()
+        return;
+    }
+    // white list
+    if (req.url.startsWith('/lib/') ||
+        req.url === '/' ||
+        req.url === '/download.html' ||
+        req.url === '/auth') {
+        console.log('white list')
+        next()
+        return;
+    }
+    // validate
+    if (session.has(req.cookies.auth)) {
+        next()
+    } else {
+        res.json({ code: 401, message: '璁よ瘉澶辫触' })
+        res.end();
+    }
+}
+
 const initApp = () => {
     let app = express();
+    app.use(cookieParser());
+    app.use(authFilter);
     let rootPath = path.resolve(__dirname, '..')
-    app.use(express.static(path.join(rootPath, 'web'), {index: 'download.html'}))
-    // 获取文件列表
+    app.use(express.static(path.join(rootPath, 'web'), { index: 'download.html' }))
+    // file list
     app.get('/files', function (req, res) {
-        res.json({files: FileDb.listFiles()});
+        res.json({ code: 200, data: FileDb.listFiles() });
     });
-    // 下载文件
+    // download
     app.get('/download/:name', function (req, res) {
         let filename = req.params.name
         let filePath = FileDb.getFile(filename).path;
@@ -32,27 +63,43 @@ const initApp = () => {
         res.download(filePath)
     });
 
-    // 通过 filename 属性定制
+    app.post('/auth', urlencodedParser, function (req, res) {
+        // no auth
+        if (!Setting.getAuthEnable()) {
+            res.json({ code: 200, message: 'success' })
+            return;
+        }
+        // password error
+        let password = req.body.password
+        if (Setting.getPassword() !== password) {
+            res.json({ code: 403, message: '瀵嗙爜閿欒' })
+            return;
+        }
+        // update auth
+        let md5 = crypto.createHash('md5');
+        var passwordMd5 = md5.update(password).digest('hex');
+        session.add(passwordMd5)
+        res.cookie('auth', passwordMd5)
+        res.json({ code: 200, message: 'success' })
+    });
+
+    //filename
     let storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, Setting.getUploadPath());    // 保存的路径，备注：需要自己创建
+            cb(null, Setting.getUploadPath());
         },
         filename: function (req, file, cb) {
-            // 将保存文件名设置为 字段名 + 时间戳，比如 logo-1478521468943
             cb(null, file.originalname);
         }
     });
 
-    // 上传文件api
-    let upload = multer({storage: storage});
+    let upload = multer({ storage: storage });
     app.post('/addFile', upload.single('file'), function (req, res, next) {
         let file = req.file;
-        FileDb.addFile({name: file.originalname, path: file.path})
+        FileDb.addFile({ name: file.originalname, path: file.path })
         res.redirect('/')
     })
 
-    // 上传文本
-    const urlencodedParser = bodyParser.urlencoded({extended: false});
     app.post('/addText', urlencodedParser, function (req, res, next) {
         let text = req.body.message
         FileDb.addText(text)
@@ -62,7 +109,6 @@ const initApp = () => {
     return app;
 }
 
-// 开启服务
 const startServer = () => {
     let port = Setting.getPort();
     const app = initApp()
@@ -70,16 +116,15 @@ const startServer = () => {
     server = app.listen(port, () => {
         console.log("start success! download url: " + Setting.getUrl())
         status = StatusStart;
-        EventDispatcher.triggerEvent({type: 'server.statusChange', data: {status: StatusStart}})
+        EventDispatcher.triggerEvent({ type: 'server.statusChange', data: { status: StatusStart } })
     });
-    return {success: true, message: "启动成功", url: Setting.getUrl()};
+    return { success: true, message: "鏈嶅姟鍚姩鎴愬姛", url: Setting.getUrl() };
 }
 
-// 关闭服务
 const stopServer = () => {
     server.close();
     status = StatusStop;
-    EventDispatcher.triggerEvent({type: 'server.statusChange', data: {status: StatusStop}})
+    EventDispatcher.triggerEvent({ type: 'server.statusChange', data: { status: StatusStop } })
 }
 
 const getServerStatus = () => {

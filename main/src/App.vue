@@ -20,16 +20,15 @@
                                 <el-popover placement="left" :width="100" trigger="hover">
                                     <template #reference>
                                         <el-button type="default" size="mini" icon="el-icon-document-copy"
-                                                   title="复制链接到剪切板"
-                                                   @click="handleClipboard(settingForm.url, $event)"></el-button>
+                                            title="复制链接到剪切板" @click="handleClipboard(settingForm.url, $event)">
+                                        </el-button>
                                     </template>
                                     <qrcode-vue :value="settingForm.url"></qrcode-vue>
                                 </el-popover>
                             </el-col>
                             <el-col :span="3">
-                                <el-button v-if="netInterfaceNames.length>1" type="default" size="mini"
-                                           icon="el-icon-sort" title="切换网卡"
-                                           @click="changeNetInterface()"></el-button>
+                                <el-button v-if="netInterfaceNames.length > 1" type="default" size="mini"
+                                    icon="el-icon-sort" title="切换网卡" @click="changeNetInterface()"></el-button>
                             </el-col>
                         </el-row>
                     </el-card>
@@ -37,12 +36,8 @@
                     <el-card class="box-card">
                         <template #header>
                             <el-dialog v-model="dialogFormVisible" title="分享一段文本">
-                                <el-input
-                                        type="textarea"
-                                        :rows="2"
-                                        :autosize="{ minRows: 2, maxRows: 4}"
-                                        placeholder="请输入内容"
-                                        v-model="form.text">
+                                <el-input type="textarea" :rows="2" :autosize="{ minRows: 2, maxRows: 4 }"
+                                    placeholder="请输入内容" v-model="form.text">
                                 </el-input>
                                 <template #footer>
                                     <el-button type="primary" @click="formSubmit">提交</el-button>
@@ -59,6 +54,13 @@
                                             <el-form-item label="服务端口">
                                                 <el-input v-model="settingForm.port"></el-input>
                                             </el-form-item>
+                                            <el-form-item label="密码认证">
+                                                <el-switch v-model="settingForm.authEnable">
+                                                </el-switch>
+                                            </el-form-item>
+                                            <el-form-item v-if="settingForm.authEnable" label="校验密码">
+                                                <el-input v-model="settingForm.password" show-password></el-input>
+                                            </el-form-item>
                                         </el-form>
                                     </el-col>
                                 </el-row>
@@ -73,24 +75,19 @@
                                     <el-col :span="15">分享列表</el-col>
                                     <el-col :span="3">
                                         <el-button @click="dialogFormVisible = true" type="default" size="mini"
-                                                   icon="el-icon-message"
-                                                   title="分享一段文本"></el-button>
+                                            icon="el-icon-message" title="分享一段文本"></el-button>
                                     </el-col>
                                     <el-col :span="3">
-                                        <el-popconfirm
-                                                @confirm="removeFileAll()"
-                                                title="确定要清空所有文件吗？"
-                                        >
+                                        <el-popconfirm @confirm="removeFileAll()" title="确定要清空所有文件吗？">
                                             <template #reference>
                                                 <el-button type="default" size="mini" icon="el-icon-delete"
-                                                           title="清空列表"></el-button>
+                                                    title="清空列表"></el-button>
                                             </template>
                                         </el-popconfirm>
                                     </el-col>
                                     <el-col :span="3">
                                         <el-button @click="onHandlerSetting()" type="default" size="mini"
-                                                   icon="el-icon-setting"
-                                                   title="设置"></el-button>
+                                            icon="el-icon-setting" title="设置"></el-button>
                                     </el-col>
                                 </el-row>
                             </div>
@@ -116,15 +113,13 @@
                                 </el-col>
                                 <el-col :span="6">
                                     <el-button v-if="file.type === 'text'" type="default" size="mini"
-                                               icon="el-icon-document-copy"
-                                               title="复制文本到剪切板"
-                                               @click="handleClipboard(file.content, $event)"></el-button>
+                                        icon="el-icon-document-copy" title="复制文本到剪切板"
+                                        @click="handleClipboard(file.content, $event)"></el-button>
                                     <el-button v-if="file.type === 'file'" type="default" size="mini"
-                                               icon="el-icon-search"
-                                               title="打开文件所在目录"
-                                               @click="openFile(file.name, $event)"></el-button>
+                                        icon="el-icon-search" title="打开文件所在目录" @click="openFile(file.name, $event)">
+                                    </el-button>
                                     <el-button type="default" size="mini" icon="el-icon-delete"
-                                               @click="() => removeFile(file)"></el-button>
+                                        @click="() => removeFile(file)"></el-button>
                                 </el-col>
                             </el-row>
                         </div>
@@ -156,276 +151,277 @@
 </template>
 
 <script>
-    import Clipboard from 'clipboard'
-    import {ElMessage} from 'element-plus'
-    import QrcodeVue from 'qrcode.vue'
+import Clipboard from 'clipboard'
+import { ElMessage } from 'element-plus'
+import QrcodeVue from 'qrcode.vue'
 
-    let api = window.api;
+let api = window.api;
 
-    let copyClipboard = (text, event) => {
-        const clipboard = new Clipboard(event.target, {
-            text: () => text
-        })
-        clipboard.on('success', () => {
-            ElMessage.success({message: '复制成功', type: 'success'});
-        })
-        clipboard.onClick(event)
-    }
+let copyClipboard = (text, event) => {
+    const clipboard = new Clipboard(event.target, {
+        text: () => text
+    })
+    clipboard.on('success', () => {
+        ElMessage.success({ message: '复制成功', type: 'success' });
+    })
+    clipboard.onClick(event)
+}
 
-    export default {
-        name: 'App',
-        data: () => {
-            return {
-                serverStatus: 'stop',
-                qrcode: "",
-                files: [],
-                netInterfaceNames: [],
-                currentNetInterfaceIdx: 0,
-                form: {
-                    text: ''
-                },
-                settingFormVisible: false,
-                settingForm: {
-                    url: '',
-                    uploadPath: '',
-                    port: 5421
-                },
-                dialogFormVisible: false,
-                timer: null
+export default {
+    name: 'App',
+    data: () => {
+        return {
+            serverStatus: 'stop',
+            qrcode: "",
+            files: [],
+            netInterfaceNames: [],
+            currentNetInterfaceIdx: 0,
+            form: {
+                text: ''
+            },
+            settingFormVisible: false,
+            settingForm: {
+                url: '',
+                uploadPath: '',
+                port: 5421
+            },
+            dialogFormVisible: false,
+            timer: null
+        }
+    },
+    methods: {
+        onHandlerSetting: function () {
+            console.log("--onHandlerSetting--")
+            this.settingForm = api.getSetting();
+            this.settingFormVisible = true;
+        },
+        updateSettingsForm: function () {
+            console.log(this.settingForm)
+            api.updateSetting(this.settingForm)
+                .then(() => {
+                    ElMessage.success("更新成功");
+                    this.settingForm = api.getSetting();
+                    this.settingFormVisible = false;
+                })
+                .catch(() => {
+                    ElMessage.error("更新失败");
+                    this.settingForm = api.getSetting();
+                    this.settingFormVisible = false;
+                })
+        },
+        closeSettingsForm: function () {
+            this.settingForm = api.getSetting();
+            this.settingFormVisible = false;
+        },
+        formSubmit: function () {
+            let text = this.form.text;
+            api.addText(text);
+            this.files = api.listFiles();
+            this.form.text = '';
+            this.dialogFormVisible = false;
+        },
+        startServer: function () {
+            this.settingForm = api.getSetting()
+            api.startServer();
+        },
+        stopServer: function () {
+            api.stopServer()
+        },
+        addFiles: function (params) {
+            let file = { name: params.file.name, path: params.file.path };
+            let { success, message } = api.addFile(file);
+            if (success) {
+                this.files = api.listFiles();
+            } else {
+                ElMessage.error(message);
             }
         },
-        methods: {
-            onHandlerSetting: function () {
-                console.log("--onHandlerSetting--")
-                this.settingForm = api.getSetting();
-                this.settingFormVisible = true;
-            },
-            updateSettingsForm: function () {
-                console.log(this.settingForm)
-                api.updateSetting(this.settingForm)
-                    .then(() => {
-                        ElMessage.success("更新成功");
-                        this.settingForm = api.getSetting();
-                        this.settingFormVisible = false;
-                    })
-                    .catch(() => {
-                        ElMessage.error("更新失败");
-                        this.settingForm = api.getSetting();
-                        this.settingFormVisible = false;
-                    })
-            },
-            closeSettingsForm: function () {
-                this.settingForm = api.getSetting();
-                this.settingFormVisible = false;
-            },
-            formSubmit: function () {
-                let text = this.form.text;
-                api.addText(text);
-                this.files = api.listFiles();
-                this.form.text = '';
-                this.dialogFormVisible = false;
-            },
-            startServer: function () {
-                this.settingForm = api.getSetting()
-                api.startServer();
-            },
-            stopServer: function () {
-                api.stopServer()
-            },
-            addFiles: function (params) {
-                let file = {name: params.file.name, path: params.file.path};
-                let {success, message} = api.addFile(file);
-                if (success) {
-                    this.files = api.listFiles();
-                } else {
-                    ElMessage.error(message);
-                }
-            },
-            removeFileAll: function () {
-                this.files.forEach(f => {
-                    api.removeFile(f)
-                })
-                this.files = api.listFiles();
-                ElMessage.success({message: '已清空列表', type: 'success'});
-            },
-            removeFile: function (file) {
-                let removeFiles = this.files.filter((f) => f.name === file.name);
-                console.log(removeFiles)
-                api.removeFile(removeFiles[0])
-                this.files = api.listFiles();
-            },
-            openFile: function (filename) {
-                api.openFile(filename, (err) => {
-                    ElMessage.error({message: `文件打开失败 "${err}"`, type: 'error'});
-                })
-            },
-            handleClipboard: function (data, event) {
-                copyClipboard(data, event)
-            },
-            changeNetInterface: function () {
-                this.currentNetInterfaceIdx = this.currentNetInterfaceIdx + 1;
-                let name = this.netInterfaceNames[this.currentNetInterfaceIdx % this.netInterfaceNames.length];
-                let ip = api.getIpAddress(this.currentNetInterfaceIdx);
-                api.updateIp(ip).then(() => {
-                    this.settingForm = api.getSetting()
-                    ElMessage.success({message: `切换网卡为 "${name}"`, type: 'success'});
-                })
-            },
-            updatePage() {
-                this.serverStatus = api.getServerStatus();
-                this.netInterfaceNames = api.getNetInterfaceNames();
-                this.files = api.listFiles();
-                this.settingForm = api.getSetting()
-            }
-        },
-        mounted: function () {
-            // 注册事件监听
-            api.registryEventListener('server.statusChange', (event) => {
-                console.log("---服务状态变更---", event)
-                this.serverStatus = event.data.status
+        removeFileAll: function () {
+            this.files.forEach(f => {
+                api.removeFile(f)
             })
-            api.registryEventListener('fileDb.listChange', (event) => {
-                console.log("---文件列表变更---", event)
-                this.files = api.listFiles();
+            this.files = api.listFiles();
+            ElMessage.success({ message: '已清空列表', type: 'success' });
+        },
+        removeFile: function (file) {
+            let removeFiles = this.files.filter((f) => f.name === file.name);
+            console.log(removeFiles)
+            api.removeFile(removeFiles[0])
+            this.files = api.listFiles();
+        },
+        openFile: function (filename) {
+            api.openFile(filename, (err) => {
+                ElMessage.error({ message: `文件打开失败 "${err}"`, type: 'error' });
             })
-            this.updatePage()
         },
-        beforeUnmount() {
-            clearInterval(this.timer)
-            this.timer = null
+        handleClipboard: function (data, event) {
+            copyClipboard(data, event)
         },
-        components: {QrcodeVue}
-    }
+        changeNetInterface: function () {
+            this.currentNetInterfaceIdx = this.currentNetInterfaceIdx + 1;
+            let name = this.netInterfaceNames[this.currentNetInterfaceIdx % this.netInterfaceNames.length];
+            let ip = api.getIpAddress(this.currentNetInterfaceIdx);
+            api.updateIp(ip).then(() => {
+                this.settingForm = api.getSetting()
+                ElMessage.success({ message: `切换网卡为 "${name}"`, type: 'success' });
+            })
+        },
+        updatePage() {
+            this.serverStatus = api.getServerStatus();
+            this.netInterfaceNames = api.getNetInterfaceNames();
+            this.files = api.listFiles();
+            this.settingForm = api.getSetting()
+            console.log("---settingForm--", this.settingForm)
+        }
+    },
+    mounted: function () {
+        // 注册事件监听
+        api.registryEventListener('server.statusChange', (event) => {
+            console.log("---服务状态变更---", event)
+            this.serverStatus = event.data.status
+        })
+        api.registryEventListener('fileDb.listChange', (event) => {
+            console.log("---文件列表变更---", event)
+            this.files = api.listFiles();
+        })
+        this.updatePage()
+    },
+    beforeUnmount() {
+        clearInterval(this.timer)
+        this.timer = null
+    },
+    components: { QrcodeVue }
+}
 </script>
 
 <style>
-    body {
-        margin: 0;
+body {
+    margin: 0;
+}
+
+.body {
+    font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+    background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
+    background-blend-mode: screen, overlay, hard-light, color-burn, color-dodge, normal;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    min-height: 600px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding-top: 18px;
+}
+
+.upload-box {
+    display: flex;
+    justify-content: center;
+    align-items: center
+}
+
+.el-upload-dragger .el-icon-upload {
+    font-size: 46px !important;
+    margin: 0 !important;
+}
+
+.el-upload-dragger {
+    height: 90px !important;
+    width: 457px !important;
+    margin-bottom: 16px;
+}
+
+.file-item {
+    margin-bottom: 10px;
+}
+
+.box-card {
+    width: 500px;
+}
+
+.row-bg {
+    align-items: center;
+}
+
+.btn-box {
+    width: 150px;
+    height: 150px;
+}
+
+.el-popover.el-popper {
+    min-width: 100px !important;
+}
+
+.start-btn {
+    text-align: center;
+    line-height: 100px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+    z-index: 99;
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    margin-top: -50px;
+    margin-left: -50px;
+    background-color: #409eff;
+    color: #ffffff;
+}
+
+.start-btn:hover {
+    cursor: pointer;
+    background-color: #66b1ff;
+}
+
+.start-btn-shadow {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    margin-top: -50px;
+    margin-left: -50px;
+    z-index: 1;
+}
+
+.start-btn-shadow span {
+    z-index: 1;
+    position: absolute;
+    box-sizing: border-box;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    animation: animate 2s linear infinite;
+    animation-delay: calc(0.5s * var(--i))
+}
+
+.start-btn-shadow:nth-child(2) span {
+    border: none;
+    background-color: #f5f5f5;
+    opacity: 0.8;
+}
+
+@keyframes animate {
+    0% {
+        width: 50px;
+        height: 50px;
     }
 
-    .body {
-        font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
-        background-image: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
-        background-blend-mode: screen, overlay, hard-light, color-burn, color-dodge, normal;
-        background-attachment: fixed;
-        background-repeat: no-repeat;
-        background-position: 0 100%;
-        min-height: 600px;
-        position : absolute;
-        width : 100%;
-        height : 100%;
+    50% {
+        opacity: 0.5;
     }
 
-    .container {
-        max-width: 500px;
-        margin: 0 auto;
-        padding-top: 18px;
+    100% {
+        width: 200px;
+        height: 200px;
+        opacity: 0;
     }
-
-    .upload-box {
-        display: flex;
-        justify-content: center;
-        align-items: center
-    }
-
-    .el-upload-dragger .el-icon-upload {
-        font-size: 46px !important;
-        margin: 0 !important;
-    }
-
-    .el-upload-dragger {
-        height: 90px !important;
-        width: 457px !important;
-        margin-bottom: 16px;
-    }
-
-    .file-item {
-        margin-bottom: 10px;
-    }
-
-    .box-card {
-        width: 500px;
-    }
-
-    .row-bg {
-        align-items: center;
-    }
-
-    .btn-box {
-        width: 150px;
-        height: 150px;
-    }
-
-    .el-popover.el-popper {
-        min-width: 100px !important;
-    }
-
-    .start-btn {
-        text-align: center;
-        line-height: 100px;
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
-        z-index: 99;
-        position: absolute;
-        top: 150px;
-        left: 50%;
-        margin-top: -50px;
-        margin-left: -50px;
-        background-color: #409eff;
-        color: #ffffff;
-    }
-
-    .start-btn:hover {
-        cursor: pointer;
-        background-color: #66b1ff;
-    }
-
-    .start-btn-shadow {
-        width: 100px;
-        height: 100px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: absolute;
-        top: 150px;
-        left: 50%;
-        margin-top: -50px;
-        margin-left: -50px;
-        z-index: 1;
-    }
-
-    .start-btn-shadow span {
-        z-index: 1;
-        position: absolute;
-        box-sizing: border-box;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        animation: animate 2s linear infinite;
-        animation-delay: calc(0.5s * var(--i))
-    }
-
-    .start-btn-shadow:nth-child(2) span {
-        border: none;
-        background-color: #f5f5f5;
-        opacity: 0.8;
-    }
-
-    @keyframes animate {
-        0% {
-            width: 50px;
-            height: 50px;
-        }
-
-        50% {
-            opacity: 0.5;
-        }
-
-        100% {
-            width: 200px;
-            height: 200px;
-            opacity: 0;
-        }
-    }
+}
 </style>
