@@ -53,11 +53,21 @@
       </div>
     </el-card>
     <el-dialog
-      title="上传文件"
+      title="选取文件"
+      name="file"
       customClass="dialog"
       :visible.sync="fileFormVisible">
       <div style="display: flex; justify-content: center">
-        <file-upload/>
+        <el-upload
+          drag
+          action="/api/addFile"
+          :on-success="uploadSuccess"
+          :on-error="uploadError"
+          :file-list="fileList"
+          multiple>
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        </el-upload>
       </div>
     </el-dialog>
     <el-dialog
@@ -85,7 +95,6 @@
   import {Message} from "element-ui";
   import {copyClipboard} from '@/utils/clipboard'
 
-  // TODO 文件上传 api
   // TODO 登录校验
   // TODO 文件夹支持
   export default {
@@ -102,15 +111,30 @@
         },
         // 当前文件列表
         files: [],
-        path: '/'
+        path: '/',
+        fileList: []
       }
     },
     mounted() {
       this.showFiles()
       // 3s更新一下列表
-      // setInterval(this.showFiles, 3000)
+      setInterval(this.showFiles, 3000)
     },
     methods: {
+      uploadSuccess(response, file, fileList) {
+        console.log('---uploadSuccess---', response, file, fileList)
+        Message({message: '上传成功', type: 'success'})
+        this.fileList = fileList.filter((f) => {
+          return f.name !== file.name;
+        })
+      },
+      uploadError(err, file, fileList) {
+        console.log('---uploadError---', err, file, fileList)
+        Message({message: '上传失败', type: 'success'})
+        this.fileList = fileList.filter((f) => {
+          return f.name !== file.name;
+        })
+      },
       downloadFile(filename) {
         window.location.href = "/api/download?filename=" + encodeURI(filename)
       },
@@ -223,5 +247,18 @@
   /** ------- 移动端 ---------- **/
   @media only screen and (max-width: 500px) {
 
+  }
+</style>
+
+<style>
+  .el-upload-dragger .el-icon-upload {
+    font-size: 46px !important;
+    margin: 0 !important;
+  }
+
+  .el-upload-dragger {
+    height: 90px !important;
+    width: 500px !important;
+    margin-bottom: 16px;
   }
 </style>

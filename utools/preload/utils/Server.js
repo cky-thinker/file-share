@@ -104,7 +104,7 @@ const initApp = () => {
     app.post('/api/addFile', upload.single('file'), function (req, res, next) {
         let file = req.file;
         FileDb.addFile({name: file.originalname, path: file.path})
-        res.redirect('/')
+        res.json({code: 200, message: '添加成功'})
     })
 
     app.post('/api/addText', urlencodedParser, function (req, res, next) {

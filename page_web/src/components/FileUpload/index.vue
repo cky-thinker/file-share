@@ -1,15 +1,17 @@
 <template>
   <div class="upload-file">
     <el-upload
+      name="file"
       :action="uploadFileUrl"
-      :before-upload="handleBeforeUpload"
       :file-list="fileList"
+      :headers="headers"
+      multiple
       :limit="limit"
+      drag
+      :before-upload="handleBeforeUpload"
       :on-error="handleUploadError"
       :on-exceed="handleExceed"
       :on-success="handleUploadSuccess"
-      :show-file-list="false"
-      :headers="headers"
       class="upload-file-uploader"
       ref="upload"
     >
