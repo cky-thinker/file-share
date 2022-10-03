@@ -29,7 +29,7 @@ export default {
       method: 'get',
       url: url,
       responseType: 'blob',
-      headers: { 'Authorization': 'Bearer ' + getToken() }
+      headers: { 'Authorization': getToken() }
     }).then(async (res) => {
       const isLogin = await this.blobValidate(res.data);
       if (isLogin) {

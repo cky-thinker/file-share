@@ -111,7 +111,6 @@
   import {Message} from "element-ui";
   import {copyClipboard} from '@/utils/clipboard'
 
-  // TODO 登录校验
   // TODO 文件夹支持
   export default {
     name: 'HomeView',
