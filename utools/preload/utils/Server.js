@@ -4,7 +4,7 @@ const express = require('express') // http://expressjs.com/
 const cookieParser = require('cookie-parser');
 const multer = require('multer')
 const bodyParser = require("body-parser");
-const urlencodedParser = bodyParser.urlencoded({ extended: false });
+const urlencodedParser = bodyParser.urlencoded({extended: false});
 
 const Setting = require('./Setting')
 const EventDispatcher = require('./EventDispatcher')
@@ -28,19 +28,19 @@ function authFilter(req, res, next) {
         return;
     }
     // white list
-    if (req.url.startsWith('/lib/') ||
-        req.url === '/' ||
-        req.url === '/download.html' ||
-        req.url === '/auth') {
-        console.log('white list')
+    if (req.url === '/' ||
+        req.url === '/index.html' ||
+        req.url === '/favicon.ico' ||
+        req.url === '/api/auth' ||
+        req.url.startsWith('/static')) {
         next()
         return;
     }
     // validate
-    if (session.has(req.cookies.auth)) {
+    if (session.has(req.headers['Authorization'])) {
         next()
     } else {
-        res.json({ code: 401, message: '认证失败' })
+        res.json({code: 401, message: '认证失败'})
         res.end();
     }
 }
@@ -50,37 +50,36 @@ const initApp = () => {
     app.use(cookieParser());
     app.use(authFilter);
     let rootPath = path.resolve(__dirname, '..')
-    app.use(express.static(path.join(rootPath, 'web'), { index: 'download.html' }))
+    app.use(express.static(path.join(rootPath, 'web'), {index: 'index.html'}))
     // file list
-    app.get('/files', function (req, res) {
-        res.json({ code: 200, data: FileDb.listFiles() });
+    app.get('/api/files', function (req, res) {
+        res.json({code: 200, data: FileDb.listFiles()});
     });
     // download
-    app.get('/download/:name', function (req, res) {
+    app.get('/api/download/:name', function (req, res) {
         let filename = req.params.name
         let filePath = FileDb.getFile(filename).path;
         console.log("send file: " + filePath);
         res.download(filePath)
     });
 
-    app.post('/auth', urlencodedParser, function (req, res) {
+    app.post('/api/auth', urlencodedParser, function (req, res) {
         // no auth
         if (!Setting.getAuthEnable()) {
-            res.json({ code: 200, message: 'success' })
+            res.json({code: 200, message: 'success'})
             return;
         }
         // password error
         let password = req.body.password
         if (Setting.getPassword() !== password) {
-            res.json({ code: 403, message: '密码错误' })
+            res.json({code: 403, message: '密码错误'})
             return;
         }
         // update auth
         let md5 = crypto.createHash('md5');
-        var passwordMd5 = md5.update(password).digest('hex');
-        session.add(passwordMd5)
-        res.cookie('auth', passwordMd5)
-        res.json({ code: 200, message: 'success' })
+        let token = md5.update(password).digest('hex');l
+        session.add(token)
+        res.json({code: 200, data: {Authorization: token}, message: 'success'})
     });
 
     //filename
@@ -93,14 +92,14 @@ const initApp = () => {
         }
     });
 
-    let upload = multer({ storage: storage });
-    app.post('/addFile', upload.single('file'), function (req, res, next) {
+    let upload = multer({storage: storage});
+    app.post('/api/addFile', upload.single('file'), function (req, res, next) {
         let file = req.file;
-        FileDb.addFile({ name: file.originalname, path: file.path })
+        FileDb.addFile({name: file.originalname, path: file.path})
         res.redirect('/')
     })
 
-    app.post('/addText', urlencodedParser, function (req, res, next) {
+    app.post('/api/addText', urlencodedParser, function (req, res, next) {
         let text = req.body.message
         FileDb.addText(text)
         res.redirect('/')
@@ -116,15 +115,15 @@ const startServer = () => {
     server = app.listen(port, () => {
         console.log("start success! download url: " + Setting.getUrl())
         status = StatusStart;
-        EventDispatcher.triggerEvent({ type: 'server.statusChange', data: { status: StatusStart } })
+        EventDispatcher.triggerEvent({type: 'server.statusChange', data: {status: StatusStart}})
     });
-    return { success: true, message: "服务启动成功", url: Setting.getUrl() };
+    return {success: true, message: "服务启动成功", url: Setting.getUrl()};
 }
 
 const stopServer = () => {
     server.close();
     status = StatusStop;
-    EventDispatcher.triggerEvent({ type: 'server.statusChange', data: { status: StatusStop } })
+    EventDispatcher.triggerEvent({type: 'server.statusChange', data: {status: StatusStop}})
 }
 
 const getServerStatus = () => {

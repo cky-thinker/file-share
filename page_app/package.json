@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "serve": "export NODE_ENV='development' &&vue-cli-service serve",
-    "build": "export NODE_ENV='production' && vue-cli-service build && rm -rf ../utools/main && mv dist ../utools/main",
+    "build:mac": "export NODE_ENV='production' && vue-cli-service build && rm -rf ../utools/main && mv dist ../utools/main",
+    "build:win": "set NODE_ENV='production' && vue-cli-service build && rm -rf ../utools/main && mv dist ../utools/main",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
