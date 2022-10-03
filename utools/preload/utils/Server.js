@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 const crypto = require('crypto');
 const express = require('express') // http://expressjs.com/
 const cookieParser = require('cookie-parser');
@@ -10,6 +11,7 @@ const jsonParser = bodyParser.json()
 const Setting = require('./Setting')
 const EventDispatcher = require('./EventDispatcher')
 const FileDb = require('./FileDb')
+const FileUtil = require('./FileUtil')
 
 let session = new Set()
 
@@ -47,6 +49,34 @@ function authFilter(req, res, next) {
     }
 }
 
+/**
+ * 根据文件路径，查询起始的分享文件，并且拼接该文件的路径
+ */
+function parsePath(filename) {
+    if (!filename) {
+        return {finalPath: '', filePaths: []}
+    }
+    // 查询起始分享文件
+    let filePaths = filename.split('/').filter(p => !!p && p !== '')
+    let startPath = filePaths[0]
+    let startFile = FileDb.getFile(startPath);
+    if (!startFile) {
+        throw new Error("分享列表未找到该文件")
+    }
+    let filePath = startFile.path;
+    console.log('filePath', filePath)
+    console.log('filePaths', filePaths)
+    // 拼接路径
+    let dirname = path.dirname(filePath)
+    console.log('prefix', dirname)
+    let fullPath = [...filePaths]
+    fullPath.unshift(dirname)
+    console.log('fullPath', fullPath)
+    let finalPath = fullPath.join(path.sep)
+    console.log('finalPath', finalPath)
+    return {finalPath, filePaths};
+}
+
 const initApp = () => {
     let app = express();
     app.use(cookieParser());
@@ -55,20 +85,55 @@ const initApp = () => {
     app.use(express.static(path.join(rootPath, 'web'), {index: 'index.html'}))
     // file list
     app.get('/api/files', function (req, res) {
-        res.json({code: 200, data: FileDb.listFiles()});
+        let path = req.query.path
+        console.log('/api/files', path)
+        let finalPath, filePaths;
+        try {
+            let result = parsePath(path)
+            finalPath = result.finalPath
+            filePaths = result.filePaths
+        } catch (e) {
+            res.json({code: 500, message: e.message});
+            return;
+        }
+
+        if (finalPath.length === 0) {
+            res.json({code: 200, data: {path: [], files: FileDb.listFiles()}});
+            return;
+        }
+        return res.json({code: 200, data: {path: filePaths, files: FileUtil.listFiles(finalPath)}});
     });
     // download
     app.get('/api/download', function (req, res) {
+        let token = req.query.token
+        console.log('/api/download token', token)
+        if (Setting.getAuthEnable() && (!token || !session.has(token))) {
+            res.sendStatus(403)
+            return;
+        }
+
         let filename = req.query.filename
-        console.log('/api/download', filename)
-        let file = FileDb.getFile(filename);
-        if (!file) {
+        console.log('/api/download filename', filename)
+
+        let finalPath;
+        try {
+            finalPath = parsePath(filename).finalPath
+            if (!finalPath) {
+                console.log("文件路径解析为空")
+                res.sendStatus(400);
+                return;
+            }
+        } catch (e) {
             res.sendStatus(404);
             return;
         }
-        let filePath = file.path;
-        console.log("send file: " + filePath);
-        res.download(filePath)
+        console.log('finalPath', finalPath)
+        if (!fs.existsSync(finalPath)) {
+            res.sendStatus(404);
+        }
+
+        console.log("send file: " + finalPath);
+        res.download(finalPath)
     });
 
     app.post('/api/login', urlencodedParser, jsonParser, function (req, res) {

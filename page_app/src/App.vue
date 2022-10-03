@@ -1,7 +1,7 @@
 <template>
     <div class="body">
         <div class="container">
-            <div v-if="serverStatus === 'start'">
+            <div :style="serverStatus === 'start' ? '' : 'display:none'">
                 <el-space size="large" direction="vertical">
                     <el-card class="box-card">
                         <template #header>
@@ -94,7 +94,7 @@
                         </template>
 
                         <div class="upload-box">
-                            <el-upload drag multiple :show-file-list="false" action="" :http-request="addFiles">
+                            <el-upload ref="uploadFile" accept="" drag multiple :show-file-list="false" action="" :http-request="addFiles">
                                 <i class="el-icon-upload"></i>
                                 <div class="el-upload__text">
                                     拖拽文件到此处或点击<em>选择文件</em>，进行分享~
@@ -109,13 +109,13 @@
                                         <template #content>{{ file.intro }}</template>
                                         <span>{{ file.name }}</span>
                                     </el-tooltip>
-                                    <span v-if="file.type === 'file'">{{ file.name }}</span>
+                                    <span v-if="['directory', 'file'].includes(file.type)">{{ file.name }}</span>
                                 </el-col>
                                 <el-col :span="6">
                                     <el-button v-if="file.type === 'text'" type="default" size="mini"
                                         icon="el-icon-document-copy" title="复制文本到剪切板"
                                         @click="handleClipboard(file.content, $event)"></el-button>
-                                    <el-button v-if="file.type === 'file'" type="default" size="mini"
+                                    <el-button v-if="['directory', 'file'].includes(file.type)" type="default" size="mini"
                                         icon="el-icon-search" title="打开文件所在目录" @click="openFile(file.name, $event)">
                                     </el-button>
                                     <el-button type="default" size="mini" icon="el-icon-delete"
@@ -129,7 +129,7 @@
                     </el-card>
                 </el-space>
             </div>
-            <div v-else>
+            <div :style="serverStatus === 'start' ? 'display:none' : ''">
                 <div class="btn-box">
                     <div class="start-btn" @click="startServer">开启服务</div>
                     <div class="start-btn-shadow">
@@ -228,6 +228,7 @@ export default {
             api.stopServer()
         },
         addFiles: function (params) {
+            console.log("addFiles", params)
             let file = { name: params.file.name, path: params.file.path };
             let { success, message } = api.addFile(file);
             if (success) {
@@ -275,6 +276,7 @@ export default {
         }
     },
     mounted: function () {
+        // document.getElementsByClassName('el-upload__input')[0].webkitdirectory = true
         // 注册事件监听
         api.registryEventListener('server.statusChange', (event) => {
             console.log("---服务状态变更---", event)
@@ -283,6 +285,7 @@ export default {
         api.registryEventListener('fileDb.listChange', (event) => {
             console.log("---文件列表变更---", event)
             this.files = api.listFiles();
+            console.log(this.files)
         })
         this.updatePage()
     },

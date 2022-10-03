@@ -1,4 +1,4 @@
-const TokenKey = 'Authorization'
+export const TokenKey = 'Authorization'
 const authInvalidCallback = []
 
 export function getToken() {

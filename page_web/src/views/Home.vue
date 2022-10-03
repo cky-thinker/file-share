@@ -17,6 +17,20 @@
           <svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/>
           <span>上传消息</span></el-button>
       </div>
+      <div style="padding-left: 16px; padding-right: 16px; margin-bottom: 8px;">
+        <el-breadcrumb separator="/">
+          <el-breadcrumb-item>
+            <el-link :underline="false" @click="skipPath(0)">
+              首页
+            </el-link>
+          </el-breadcrumb-item>
+          <el-breadcrumb-item v-for="(p, idx) in path">
+            <el-link :underline="false" @click="skipPath(idx + 1)">
+              {{p}}
+            </el-link>
+          </el-breadcrumb-item>
+        </el-breadcrumb>
+      </div>
       <div style="padding-left: 16px; padding-right: 16px">
         <el-table
           :max-height="listHeight"
@@ -26,25 +40,33 @@
         >
           <el-table-column width="50">
             <template slot-scope="scope">
-              <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
-              <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
-              <svg-icon v-if="scope.row.type === 'text'" name="message"/>
+              <div class="pointer" @click="handleItemClick(scope.row, $event)">
+                <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
+                <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
+                <svg-icon v-if="scope.row.type === 'text'" name="message"/>
+              </div>
             </template>
           </el-table-column>
-          <el-table-column>
+          <el-table-column class-name="pointer" @click="handleItemClick(scope.row, $event)">
             <template slot-scope="scope">
-              <el-tooltip class="item" effect="dark"
-                          :content="scope.row.type === 'text' ? scope.row.content : scope.row.name"
-                          placement="top-start">
-                <div>{{scope.row.name}}</div>
-              </el-tooltip>
+              <div class="pointer" @click="handleItemClick(scope.row, $event)">
+                <el-tooltip class="item" effect="dark"
+                            :content="scope.row.type === 'text' ? scope.row.content : scope.row.name"
+                            placement="right">
+                  <div>{{scope.row.name}}</div>
+                </el-tooltip>
+              </div>
             </template>
           </el-table-column>
           <el-table-column width="70">
             <template slot-scope="scope">
-              <el-button v-if="scope.row.type === 'file'" @click="downloadFile(scope.row.name)" icon="el-icon-download"
+              <el-button v-if="scope.row.type === 'directory'" @click="handleItemClick(scope.row, $event)"
+                         icon="el-icon-search"
                          size="mini" plain></el-button>
-              <el-button v-if="scope.row.type === 'text'" @click="copyMsg(scope.row.content, $event)"
+              <el-button v-if="scope.row.type === 'file'" @click="handleItemClick(scope.row, $event)"
+                         icon="el-icon-download"
+                         size="mini" plain></el-button>
+              <el-button v-if="scope.row.type === 'text'" @click="handleItemClick(scope.row, $event)"
                          icon="el-icon-document-copy"
                          size="mini" plain></el-button>
             </template>
@@ -111,7 +133,6 @@
   import {Message} from "element-ui";
   import {copyClipboard} from '@/utils/clipboard'
 
-  // TODO 文件夹支持
   export default {
     name: 'HomeView',
     data() {
@@ -131,7 +152,7 @@
           password: ''
         },
         // 共享文件列表
-        path: '/',
+        path: [],
         files: [],
         headers: {
           Authorization: ''
@@ -149,6 +170,29 @@
       this.updateHeaders()
     },
     methods: {
+      handleItemClick(item, event) {
+        if (item.type === 'directory') {
+          this.openDirectory(item.name)
+        } else if (item.type === 'file') {
+          this.downloadFile(item.name)
+        } else if (item.type === 'text') {
+          this.copyMsg(item.content, event)
+        }
+      },
+      openDirectory(name) {
+        this.path.push(name)
+        this.showFiles()
+      },
+      skipPath(idx) {
+        this.path = this.path.slice(0, idx);
+        this.showFiles()
+      },
+      showFiles() {
+        listFiles({path: this.path.join('/')}).then(res => {
+          this.files = res.data.files
+          this.path = res.data.path
+        })
+      },
       updateHeaders() {
         this.headers = {Authorization: getToken()}
       },
@@ -180,15 +224,12 @@
         this.fileFormVisible = false
       },
       downloadFile(filename) {
-        window.location.href = "/api/download?filename=" + encodeURI(filename)
+        window.location.href = `/api/download?filename=${encodeURI(this.path.join('/') + '/' + filename)}&token=${getToken()}`
       },
       copyMsg(data, event) {
+        console.log(data)
+        console.log(event)
         copyClipboard(data, event)
-      },
-      showFiles() {
-        listFiles({path: this.path}).then(res => {
-          this.files = res.data
-        })
       },
       showMsgForm() {
         this.msgFormVisible = true
@@ -218,6 +259,10 @@
 </script>
 <style lang="scss">
   @import '../assets/font/DancingScript.css';
+
+  .pointer {
+    cursor: pointer;
+  }
 
   .body {
     max-width: 750px;
