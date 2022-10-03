@@ -42,9 +42,10 @@
           </el-table-column>
           <el-table-column width="70">
             <template slot-scope="scope">
-              <el-button v-if="scope.row.type === 'file'" @click="console.log(scope)" icon="el-icon-download"
+              <el-button v-if="scope.row.type === 'file'" @click="downloadFile(scope.row.name)" icon="el-icon-download"
                          size="mini" plain></el-button>
-              <el-button v-if="scope.row.type === 'text'" @click="console.log(scope)" icon="el-icon-document-copy"
+              <el-button v-if="scope.row.type === 'text'" @click="copyMsg(scope.row.content, $event)"
+                         icon="el-icon-document-copy"
                          size="mini" plain></el-button>
             </template>
           </el-table-column>
@@ -82,7 +83,12 @@
   import FileUpload from "@/components/FileUpload";
   import {listFiles, uploadMsg} from "@/api/FileApi";
   import {Message} from "element-ui";
+  import {copyClipboard} from '@/utils/clipboard'
 
+  // TODO 文件上传 api
+  // TODO 消息上传 api
+  // TODO 登录校验
+  // TODO 文件夹支持
   export default {
     name: 'HomeView',
     data() {
@@ -96,15 +102,24 @@
           msg: ''
         },
         // 当前文件列表
-        files: []
+        files: [],
+        path: '/'
       }
     },
     mounted() {
-      this.showFiles('/')
+      this.showFiles()
+      // 3s更新一下列表
+      setInterval(this.showFiles, 3000)
     },
     methods: {
-      showFiles(path) {
-        listFiles({path: path}).then(res => {
+      downloadFile(filename) {
+        window.location.href = "/api/download?filename=" + encodeURI(filename)
+      },
+      copyMsg(data, event) {
+        copyClipboard(data, event)
+      },
+      showFiles() {
+        listFiles({path: this.path}).then(res => {
           this.files = res.data
         })
       },

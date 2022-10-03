@@ -5,7 +5,7 @@ function resolve(dir) {
   return path.join(__dirname, dir);
 }
 
-const name = process.env.VUE_APP_TITLE || "测试"; // 网页标题
+const name = process.env.VUE_APP_TITLE || "File-Share 文件共享"; // 网页标题
 
 const port = process.env.port || process.env.npm_config_port || 8000; // 端口
 
@@ -26,6 +26,11 @@ module.exports = {
   // webpack-dev-server 相关配置
   devServer: {
     port: port,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:5421'
+      },
+    }
   },
   configureWebpack: {
     name: name,

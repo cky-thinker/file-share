@@ -4,14 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "vue-cli-service serve",
-    "dev:win": "set NODE_ENV='development' && vue-cli-service serve",
-    "dev:mac": "export NODE_ENV='development' && vue-cli-service serve",
     "build:win": "set NODE_ENV='production' && vue-cli-service build  && rm -rf ../utools/preload/web && mv dist ../utools/preload/web",
     "build:mac": "export NODE_ENV='production' && vue-cli-service build  && rm -rf ../utools/preload/web && mv dist ../utools/preload/web",
     "lint": "vue-cli-service lint"
   },
   "main": "background.js",
   "dependencies": {
+    "clipboard": "^2.0.8",
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
     "element-ui": "^2.15.9",
