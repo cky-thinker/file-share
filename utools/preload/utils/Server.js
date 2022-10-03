@@ -33,6 +33,7 @@ function authFilter(req, res, next) {
         req.url === '/index.html' ||
         req.url === '/favicon.ico' ||
         req.url === '/api/login' ||
+        req.url.startsWith('/api/download') ||
         req.url.startsWith('/static')) {
         next()
         return;
