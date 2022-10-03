@@ -25,6 +25,6 @@ export function uploadMsg(data) {
   return request({
     url: '/addText',
     method: 'post',
-    params: data
+    data: data
   })
 }

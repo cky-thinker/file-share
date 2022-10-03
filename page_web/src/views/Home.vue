@@ -13,7 +13,7 @@
         <el-button @click="fileFormVisible= true">
           <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
           <span>上传文件</span></el-button>
-        <el-button @click="msgFormVisible= true">
+        <el-button @click="showMsgForm">
           <svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/>
           <span>上传消息</span></el-button>
       </div>
@@ -66,7 +66,7 @@
       :visible.sync="msgFormVisible">
       <el-form ref="form" :model="msgForm" label-width="80px">
         <el-form-item label="文本内容">
-          <el-input type="textarea" :rows="5" v-model="msgForm.msg"></el-input>
+          <el-input type="textarea" :rows="5" v-model="msgForm.message"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -86,7 +86,6 @@
   import {copyClipboard} from '@/utils/clipboard'
 
   // TODO 文件上传 api
-  // TODO 消息上传 api
   // TODO 登录校验
   // TODO 文件夹支持
   export default {
@@ -99,7 +98,7 @@
         // 消息表单
         msgFormVisible: false,
         msgForm: {
-          msg: ''
+          message: ''
         },
         // 当前文件列表
         files: [],
@@ -109,7 +108,7 @@
     mounted() {
       this.showFiles()
       // 3s更新一下列表
-      setInterval(this.showFiles, 3000)
+      // setInterval(this.showFiles, 3000)
     },
     methods: {
       downloadFile(filename) {
@@ -123,11 +122,15 @@
           this.files = res.data
         })
       },
+      showMsgForm() {
+        this.msgFormVisible= true
+        this.msgForm = {message: ''}
+      },
       submitMsgForm() {
         this.msgFormVisible = false
         uploadMsg(this.msgForm).then(res => {
-          console.log(res)
           Message({message: '发送成功', type: 'success'})
+          this.showFiles()
         })
       }
     },

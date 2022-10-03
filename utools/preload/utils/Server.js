@@ -51,6 +51,7 @@ const initApp = () => {
     app.use(authFilter);
     let rootPath = path.resolve(__dirname, '..')
     app.use(express.static(path.join(rootPath, 'web'), {index: 'index.html'}))
+    app.use(bodyParser.json())
     // file list
     app.get('/api/files', function (req, res) {
         res.json({code: 200, data: FileDb.listFiles()});
@@ -107,9 +108,14 @@ const initApp = () => {
     })
 
     app.post('/api/addText', urlencodedParser, function (req, res, next) {
+        console.log(req)
         let text = req.body.message
+        if (!text) {
+            res.json({code: 500, message: '消息不能为空'})
+            return;
+        }
         FileDb.addText(text)
-        res.redirect('/')
+        res.json({code: 200, message: '添加成功'})
     })
 
     return app;
