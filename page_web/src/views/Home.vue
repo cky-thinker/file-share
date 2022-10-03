@@ -10,8 +10,12 @@
     <el-card class="file-list">
       <div slot="header" class="clearfix">
         <span style="margin-right: 32px">分享列表</span>
-        <el-button @click="submitFileVisible= true"><svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/> <span>上传文件</span></el-button>
-        <el-button @click="submitMsgVisible= true"><svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/> <span>上传消息</span></el-button>
+        <el-button @click="fileFormVisible= true">
+          <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
+          <span>上传文件</span></el-button>
+        <el-button @click="msgFormVisible= true">
+          <svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/>
+          <span>上传消息</span></el-button>
       </div>
       <div style="padding-left: 16px; padding-right: 16px">
         <el-table
@@ -29,7 +33,9 @@
           </el-table-column>
           <el-table-column>
             <template slot-scope="scope">
-              <el-tooltip class="item" effect="dark" :content="scope.row.type === 'text' ? scope.row.content : scope.row.name" placement="top-start">
+              <el-tooltip class="item" effect="dark"
+                          :content="scope.row.type === 'text' ? scope.row.content : scope.row.name"
+                          placement="top-start">
                 <div>{{scope.row.name}}</div>
               </el-tooltip>
             </template>
@@ -48,28 +54,23 @@
     <el-dialog
       title="上传文件"
       customClass="dialog"
-      :visible.sync="submitFileVisible">
+      :visible.sync="fileFormVisible">
       <div style="display: flex; justify-content: center">
-        <el-upload
-          drag
-          action="https://jsonplaceholder.typicode.com/posts/">
-          <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-        </el-upload>
+        <file-upload/>
       </div>
     </el-dialog>
     <el-dialog
       title="上传文本"
       customClass="dialog"
-      :visible.sync="submitMsgVisible">
+      :visible.sync="msgFormVisible">
       <el-form ref="form" :model="msgForm" label-width="80px">
         <el-form-item label="文本内容">
           <el-input type="textarea" :rows="5" v-model="msgForm.msg"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="submitMsgVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitMsgVisible = false">提 交</el-button>
+        <el-button @click="msgFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitMsgForm">提 交</el-button>
       </span>
     </el-dialog>
   </div>
@@ -78,51 +79,46 @@
 <script>
   import FileIcon from "@/components/FileIcon";
   import SvgIcon from "@/components/SvgIcon";
-
-  let id = 1;
-
-  function getId() {
-    return id++;
-  }
+  import FileUpload from "@/components/FileUpload";
+  import {listFiles, uploadMsg} from "@/api/FileApi";
+  import {Message} from "element-ui";
 
   export default {
     name: 'HomeView',
     data() {
       return {
-        submitFileVisible: false,
-        fileForm: {
-
-        },
-        submitMsgVisible: false,
+        // 文件表单
+        fileFormVisible: false,
+        fileForm: {},
+        // 消息表单
+        msgFormVisible: false,
         msgForm: {
           msg: ''
         },
-        files: [
-          {id: getId(), name: '文件夹', type: 'directory', hasChildren: true},
-          {id: getId(), name: 'test.txt', type: 'file'},
-          {id: getId(), name: 'test.doc', type: 'file'},
-          {id: getId(), name: 'test.ppt', type: 'file'},
-          {id: getId(), name: 'test.ppt', type: 'file'},
-          {id: getId(), name: 'fasdfasdfasdfasfassdfa', type: 'text', content: 'fasdfasdfasdfasfassdfa'}
-        ]
+        // 当前文件列表
+        files: []
       }
     },
+    mounted() {
+      this.showFiles('/')
+    },
     methods: {
-      listFiles(tree, treeNode, resolve) {
-        setTimeout(() => {
-          console.log(tree, treeNode)
-          resolve([
-            {id: getId(), name: 'test.ppt', type: 'file'},
-            {id: getId(), name: '文件夹', type: 'directory', hasChildren: true},
-          ])
-        }, 200)
+      showFiles(path) {
+        listFiles({path: path}).then(res => {
+          this.files = res.data
+        })
       },
-
+      submitMsgForm() {
+        this.msgFormVisible = false
+        uploadMsg(this.msgForm).then(res => {
+          console.log(res)
+          Message({message: '发送成功', type: 'success'})
+        })
+      }
     },
     computed: {
       dialogWidth() {
         let width = window.innerWidth > 500 ? Math.min(window.innerWidth * 0.5, 700) : window.innerWidth * 0.95;
-        console.log(width)
         return String(width);
       },
       listHeight() {
@@ -130,7 +126,7 @@
       }
     },
     components: {
-      FileIcon, SvgIcon
+      FileIcon, SvgIcon, FileUpload
     },
   }
 </script>
