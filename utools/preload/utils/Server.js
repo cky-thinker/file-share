@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const multer = require('multer')
 const bodyParser = require("body-parser");
 const urlencodedParser = bodyParser.urlencoded({extended: false});
+const jsonParser = bodyParser.json()
 
 const Setting = require('./Setting')
 const EventDispatcher = require('./EventDispatcher')
@@ -31,13 +32,13 @@ function authFilter(req, res, next) {
     if (req.url === '/' ||
         req.url === '/index.html' ||
         req.url === '/favicon.ico' ||
-        req.url === '/api/auth' ||
+        req.url === '/api/login' ||
         req.url.startsWith('/static')) {
         next()
         return;
     }
     // validate
-    if (session.has(req.headers['Authorization'])) {
+    if (session.has(req.get('Authorization'))) {
         next()
     } else {
         res.json({code: 401, message: '认证失败'})
@@ -51,7 +52,6 @@ const initApp = () => {
     app.use(authFilter);
     let rootPath = path.resolve(__dirname, '..')
     app.use(express.static(path.join(rootPath, 'web'), {index: 'index.html'}))
-    app.use(bodyParser.json())
     // file list
     app.get('/api/files', function (req, res) {
         res.json({code: 200, data: FileDb.listFiles()});
@@ -70,7 +70,7 @@ const initApp = () => {
         res.download(filePath)
     });
 
-    app.post('/api/auth', urlencodedParser, function (req, res) {
+    app.post('/api/login', urlencodedParser, jsonParser, function (req, res) {
         // no auth
         if (!Setting.getAuthEnable()) {
             res.json({code: 200, message: 'success'})
@@ -85,7 +85,6 @@ const initApp = () => {
         // update auth
         let md5 = crypto.createHash('md5');
         let token = md5.update(password).digest('hex');
-        l
         session.add(token)
         res.json({code: 200, data: {Authorization: token}, message: 'success'})
     });
@@ -107,7 +106,7 @@ const initApp = () => {
         res.json({code: 200, message: '添加成功'})
     })
 
-    app.post('/api/addText', urlencodedParser, function (req, res, next) {
+    app.post('/api/addText', jsonParser, function (req, res, next) {
         console.log(req)
         let text = req.body.message
         if (!text) {

@@ -64,6 +64,7 @@
           :on-success="uploadSuccess"
           :on-error="uploadError"
           :file-list="fileList"
+          :headers="headers"
           multiple>
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -84,6 +85,19 @@
         <el-button type="primary" @click="submitMsgForm">提 交</el-button>
       </span>
     </el-dialog>
+    <el-dialog
+      title="身份校验"
+      customClass="dialog"
+      :visible.sync="loginFormVisible">
+      <el-form ref="loginForm" :model="loginForm" label-width="80px">
+        <el-form-item label="密码">
+          <el-input v-model="loginForm.password"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitLoginForm">提 交</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -92,6 +106,8 @@
   import SvgIcon from "@/components/SvgIcon";
   import FileUpload from "@/components/FileUpload";
   import {listFiles, uploadMsg} from "@/api/FileApi";
+  import {login} from "@/api/UserApi";
+  import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
   import {Message} from "element-ui";
   import {copyClipboard} from '@/utils/clipboard'
 
@@ -104,29 +120,57 @@
         // 文件表单
         fileFormVisible: false,
         fileForm: {},
+        fileList: [],
         // 消息表单
         msgFormVisible: false,
         msgForm: {
           message: ''
         },
-        // 当前文件列表
-        files: [],
+        // 登录表单
+        loginFormVisible: false,
+        loginForm: {
+          password: ''
+        },
+        // 共享文件列表
         path: '/',
-        fileList: []
+        files: [],
+        headers: {
+          Authorization: ''
+        }
       }
     },
     mounted() {
       this.showFiles()
       // 3s更新一下列表
       setInterval(this.showFiles, 3000)
+      addAuthInvalidCallback(() => {
+        this.loginFormVisible = true;
+      })
+      // 更新请求头内容
+      this.updateHeaders()
     },
     methods: {
+      updateHeaders() {
+        this.headers = {Authorization: getToken()}
+      },
+      submitLoginForm() {
+        login(this.loginForm).then(res => {
+          Message({message: '登录成功', type: 'success'})
+          setToken(res.data.Authorization)
+          this.loginFormVisible = false
+          // 更新请求头内容
+          this.updateHeaders()
+          // 更新列表
+          this.showFiles()
+        })
+      },
       uploadSuccess(response, file, fileList) {
         console.log('---uploadSuccess---', response, file, fileList)
         Message({message: '上传成功', type: 'success'})
         this.fileList = fileList.filter((f) => {
           return f.name !== file.name;
         })
+        this.fileFormVisible = false
       },
       uploadError(err, file, fileList) {
         console.log('---uploadError---', err, file, fileList)
@@ -134,6 +178,7 @@
         this.fileList = fileList.filter((f) => {
           return f.name !== file.name;
         })
+        this.fileFormVisible = false
       },
       downloadFile(filename) {
         window.location.href = "/api/download?filename=" + encodeURI(filename)
@@ -147,7 +192,7 @@
         })
       },
       showMsgForm() {
-        this.msgFormVisible= true
+        this.msgFormVisible = true
         this.msgForm = {message: ''}
       },
       submitMsgForm() {

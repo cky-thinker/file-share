@@ -68,7 +68,7 @@
         baseUrl: "",
         uploadFileUrl: '/api/addFile', // 上传的图片服务器地址
         headers: {
-          Authorization: 'Bearer ' + getToken()
+          Authorization: getToken()
         },
         fileList: []
       };
