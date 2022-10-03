@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "export NODE_ENV='development' &&vue-cli-service serve",
+    "dev": "export NODE_ENV='development' &&vue-cli-service serve",
     "build:mac": "export NODE_ENV='production' && vue-cli-service build && rm -rf ../utools/main && mv dist ../utools/main",
     "build:win": "set NODE_ENV='production' && vue-cli-service build && rm -rf ../utools/main && mv dist ../utools/main",
     "lint": "vue-cli-service lint"

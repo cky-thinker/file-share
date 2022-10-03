@@ -56,8 +56,8 @@ const initApp = () => {
         res.json({code: 200, data: FileDb.listFiles()});
     });
     // download
-    app.get('/api/download/:name', function (req, res) {
-        let filename = req.params.name
+    app.get('/api/download', function (req, res) {
+        let filename = req.params.fileName
         let filePath = FileDb.getFile(filename).path;
         console.log("send file: " + filePath);
         res.download(filePath)
