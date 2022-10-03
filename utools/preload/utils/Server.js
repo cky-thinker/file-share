@@ -57,8 +57,14 @@ const initApp = () => {
     });
     // download
     app.get('/api/download', function (req, res) {
-        let filename = req.params.fileName
-        let filePath = FileDb.getFile(filename).path;
+        let filename = req.query.filename
+        console.log('/api/download', filename)
+        let file = FileDb.getFile(filename);
+        if (!file) {
+            res.sendStatus(404);
+            return;
+        }
+        let filePath = file.path;
         console.log("send file: " + filePath);
         res.download(filePath)
     });
@@ -77,7 +83,8 @@ const initApp = () => {
         }
         // update auth
         let md5 = crypto.createHash('md5');
-        let token = md5.update(password).digest('hex');l
+        let token = md5.update(password).digest('hex');
+        l
         session.add(token)
         res.json({code: 200, data: {Authorization: token}, message: 'success'})
     });
