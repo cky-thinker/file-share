@@ -1,10 +1,12 @@
 // ----- 配置管理 -----
 const path = require('path')
 const fs = require("fs")
+const os = require('os');
 
 const AppDatabase = require('./Database')
 const IpUtil = require("./IpUtil");
-const uploadPathKey = 'uploadPath' // 上传路径
+
+const uploadPathKey = 'uploadPath' + ":" + os.platform() // 上传路径
 const portKey = 'port' // 端口号
 const ipKey = 'ip' // 端口号
 const AuthEnable = 'authEnable' // 是否开启密码校验

@@ -15,20 +15,20 @@
                             </div>
                         </template>
                         <el-row class="row-bg">
-                            <el-col :span="18">分享链接：{{ settingForm.url }}</el-col>
-                            <el-col :span="3">
+                            <el-col :span="12">分享链接：{{ settingForm.url }}</el-col>
+                            <el-col :span="4">
                                 <el-popover placement="left" :width="100" trigger="hover">
                                     <template #reference>
                                         <el-button type="default" size="mini" icon="el-icon-document-copy"
-                                            title="复制链接到剪切板" @click="handleClipboard(settingForm.url, $event)">
+                                            title="复制链接到剪切板" @click="handleClipboard(settingForm.url, $event)">复制链接
                                         </el-button>
                                     </template>
                                     <qrcode-vue :value="settingForm.url"></qrcode-vue>
                                 </el-popover>
                             </el-col>
-                            <el-col :span="3">
+                            <el-col :span="4">
                                 <el-button v-if="netInterfaceNames.length > 1" type="default" size="mini"
-                                    icon="el-icon-sort" title="切换网卡" @click="changeNetInterface()"></el-button>
+                                    icon="el-icon-sort" title="切换网卡" @click="changeNetInterface()">切换网卡</el-button>
                             </el-col>
                         </el-row>
                     </el-card>
@@ -72,22 +72,22 @@
 
                             <div class="card-header">
                                 <el-row class="row-bg">
-                                    <el-col :span="15">分享列表</el-col>
-                                    <el-col :span="3">
+                                    <el-col :span="12">分享列表</el-col>
+                                    <el-col :span="4">
                                         <el-button @click="dialogFormVisible = true" type="default" size="mini"
-                                            icon="el-icon-message" title="分享一段文本"></el-button>
+                                            icon="el-icon-message" title="分享一段文本">分享文本</el-button>
                                     </el-col>
-                                    <el-col :span="3">
+                                    <el-col :span="4">
                                         <el-popconfirm @confirm="removeFileAll()" title="确定要清空所有文件吗？">
                                             <template #reference>
                                                 <el-button type="default" size="mini" icon="el-icon-delete"
-                                                    title="清空列表"></el-button>
+                                                    title="清空列表">清空列表</el-button>
                                             </template>
                                         </el-popconfirm>
                                     </el-col>
-                                    <el-col :span="3">
+                                    <el-col :span="4">
                                         <el-button @click="onHandlerSetting()" type="default" size="mini"
-                                            icon="el-icon-setting" title="设置"></el-button>
+                                            icon="el-icon-setting" title="设置">设置</el-button>
                                     </el-col>
                                 </el-row>
                             </div>
@@ -316,7 +316,7 @@ body {
 }
 
 .container {
-    max-width: 500px;
+    max-width: 700px;
     margin: 0 auto;
     padding-top: 18px;
 }
@@ -334,7 +334,7 @@ body {
 
 .el-upload-dragger {
     height: 90px !important;
-    width: 457px !important;
+    width: 500px !important;
     margin-bottom: 16px;
 }
 
@@ -343,7 +343,7 @@ body {
 }
 
 .box-card {
-    width: 500px;
+    width: 700px;
 }
 
 .row-bg {

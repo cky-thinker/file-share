@@ -9,13 +9,19 @@
 
     <el-card class="file-list">
       <div slot="header" class="clearfix">
-        <span style="margin-right: 32px">分享列表</span>
-        <el-button @click="fileFormVisible= true">
-          <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
-          <span>上传文件</span></el-button>
-        <el-button @click="showMsgForm">
-          <svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/>
-          <span>上传消息</span></el-button>
+        <el-row class="row-bg">
+          <el-col :span="12">分享列表</el-col>
+          <el-col :span="4">
+            <el-button @click="fileFormVisible= true" size="mini">
+              <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
+              <span>分享文件</span></el-button>
+          </el-col>
+          <el-col :span="4">
+            <el-button @click="showMsgForm" type="default" size="mini"
+                       icon="el-icon-message" title="分享一段文本">分享文本
+            </el-button>
+          </el-col>
+        </el-row>
       </div>
       <div style="padding-left: 16px; padding-right: 16px; margin-bottom: 8px;">
         <el-breadcrumb separator="/">
@@ -75,7 +81,7 @@
       </div>
     </el-card>
     <el-dialog
-      title="选取文件"
+      title="分享文件"
       name="file"
       customClass="dialog"
       :visible.sync="fileFormVisible">
@@ -94,24 +100,24 @@
       </div>
     </el-dialog>
     <el-dialog
-      title="上传文本"
+      title="分享文本"
       customClass="dialog"
       :visible.sync="msgFormVisible">
-      <el-form ref="form" :model="msgForm" label-width="80px">
+      <el-form ref="form" :model="msgForm" label-width="80px" @key.enter.native="submitMsgForm">
         <el-form-item label="文本内容">
           <el-input type="textarea" :rows="5" v-model="msgForm.message"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="msgFormVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitMsgForm">提 交</el-button>
+        <el-button @click="msgFormVisible = false">取 消</el-button>
       </span>
     </el-dialog>
     <el-dialog
       title="身份校验"
       customClass="dialog"
       :visible.sync="loginFormVisible">
-      <el-form ref="loginForm" :model="loginForm" label-width="80px">
+      <el-form ref="loginForm" :model="loginForm" label-width="80px" @submit.native.prevent="submitLoginForm">
         <el-form-item label="密码">
           <el-input v-model="loginForm.password"></el-input>
         </el-form-item>
@@ -197,6 +203,7 @@
         this.headers = {Authorization: getToken()}
       },
       submitLoginForm() {
+        console.log("---submitLoginForm--")
         login(this.loginForm).then(res => {
           Message({message: '登录成功', type: 'success'})
           setToken(res.data.Authorization)
@@ -299,6 +306,10 @@
     margin-inline-start: 0;
     margin-inline-end: 0;
     font-weight: bold;
+  }
+
+  .row-bg {
+    align-items: center;
   }
 
   .button-group {

@@ -80,7 +80,7 @@ function parsePath(filename) {
 const initApp = () => {
     let app = express();
     app.use(cookieParser());
-    app.use(authFilter);
+    app.all("/api/*", authFilter);
     let rootPath = path.resolve(__dirname, '..')
     app.use(express.static(path.join(rootPath, 'web'), {index: 'index.html'}))
     // file list
@@ -181,6 +181,10 @@ const initApp = () => {
         }
         FileDb.addText(text)
         res.json({code: 200, message: '添加成功'})
+    })
+
+    app.use((req, res, next) => {
+        res.redirect('/')
     })
 
     return app;
