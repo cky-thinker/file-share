@@ -11,14 +11,16 @@
       <div slot="header" class="clearfix">
         <el-row class="row-bg">
           <el-col :span="12">分享列表</el-col>
-          <el-col :span="4">
+          <el-col :span="6">
             <el-button @click="fileFormVisible= true" size="mini">
               <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
-              <span>分享文件</span></el-button>
+              {{isPC ? "上传文件" : ""}}
+            </el-button>
           </el-col>
-          <el-col :span="4">
-            <el-button @click="showMsgForm" type="default" size="mini"
-                       icon="el-icon-message" title="分享一段文本">分享文本
+          <el-col :span="6">
+            <el-button @click="showMsgForm" type="default" size="mini" title="分享一段文本">
+              <svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/>
+              {{isPC ?  "上传文本" : ""}}
             </el-button>
           </el-col>
         </el-row>
@@ -251,9 +253,8 @@
       }
     },
     computed: {
-      dialogWidth() {
-        let width = window.innerWidth > 500 ? Math.min(window.innerWidth * 0.5, 700) : window.innerWidth * 0.95;
-        return String(width);
+      isPC() {
+        return window.innerWidth > 500;
       },
       listHeight() {
         return window.innerHeight - 260;
@@ -338,27 +339,35 @@
     justify-content: flex-start;
     align-items: center;
   }
+</style>
 
+<style>
   /** ------- pc端 --------- **/
   @media only screen and (min-width: 500px) {
+    .el-upload-dragger .el-icon-upload {
+      font-size: 46px !important;
+      margin: 0 !important;
+    }
 
+    .el-upload-dragger {
+      height: 90px !important;
+      width: 500px !important;
+      margin-bottom: 16px;
+    }
   }
 
   /** ------- 移动端 ---------- **/
   @media only screen and (max-width: 500px) {
+    .el-upload-dragger .el-icon-upload {
+      font-size: 46px !important;
+      margin: 0 !important;
+    }
 
-  }
-</style>
-
-<style>
-  .el-upload-dragger .el-icon-upload {
-    font-size: 46px !important;
-    margin: 0 !important;
+    .el-upload-dragger {
+      height: 90px !important;
+      width: 300px !important;
+      margin-bottom: 16px;
+    }
   }
 
-  .el-upload-dragger {
-    height: 90px !important;
-    width: 500px !important;
-    margin-bottom: 16px;
-  }
 </style>
