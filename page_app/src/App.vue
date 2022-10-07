@@ -97,7 +97,7 @@
                             <el-upload ref="uploadFile" accept="" drag multiple :show-file-list="false" action="" :http-request="addFiles">
                                 <i class="el-icon-upload"></i>
                                 <div class="el-upload__text">
-                                    拖拽文件到此处或点击<em>选择文件</em>，进行分享~
+                                    拖拽<b>文件</b>或<b>文件夹</b>到此处或点击<em>选择文件</em>，进行分享~
                                 </div>
                             </el-upload>
                         </div>
