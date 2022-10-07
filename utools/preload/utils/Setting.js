@@ -6,7 +6,7 @@ const os = require('os');
 const AppDatabase = require('./Database')
 const IpUtil = require("./IpUtil");
 
-const uploadPathKey = 'uploadPath' + ":" + os.platform() // 上传路径
+const uploadPathKey = 'uploadPath' // 上传路径
 const portKey = 'port' // 端口号
 const ipKey = 'ip' // 端口号
 const AuthEnable = 'authEnable' // 是否开启密码校验
@@ -21,7 +21,7 @@ function getDefaultUploadPath() {
 }
 
 function getUploadPath() {
-    return AppDatabase.getStorageItem(uploadPathKey, getDefaultUploadPath);
+    return AppDatabase.getStorageItem(uploadPathKey + ":" + os.platform(), getDefaultUploadPath);
 }
 
 /**
@@ -45,7 +45,7 @@ function updateUploadPath(path) {
         if (!fs.lstatSync(path).isDirectory()) {
             return reject({ success: false, message: '上传路径必须为文件夹' })
         }
-        AppDatabase.setStorageItem(uploadPathKey, path);
+        AppDatabase.setStorageItem(uploadPathKey + ":" + os.platform(), path);
         resolve({ success: true, message: '修改成功' })
     })
 }
