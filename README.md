@@ -1,12 +1,19 @@
 ## 简介
-### 经历过500M以上的大文件传输吗？紧急要用，然后文件传输要N小时!
+### 经历过500M以上的大文件传输吗？紧急要用，然后文件传输要N小时！
+### 经历过跨平台的文件传输的痛苦吗？你的mac电脑要传一个大文件给同事的windows电脑，过程一言难尽....
+### file-share的诞生就是终结这个噩梦！
+
+#### 优点
 下载速度：带宽直接打满，支持断点续传，结合Neat Download Manager之类的多线程下载器，下载速度完全取决于你的路由器和电脑有多强，下载速度就有多快！
 
-安全隐私：很多公司软件使用还要把你文件上传他们服务器，简直流氓！本服务基于本地共享，而且代码开源，源码开放随便看！
+跨平台：支持Windows，MacOS，Linux等，Android，IOS等移动端可以通过网页上传或下载文件
 
-跨平台：支持Windows，MacOS，Linux
+安全隐私：本服务基于本地共享，代码开源，源码开放随便看！
 
-### 同事之间传输大文件简直噩梦，file-share的诞生就是终结这个噩梦！
+## 开源地址：
+https://gitee.com/yuDeJiJie/file-share
+
+https://github.com/cky-thinker/file-share
 
 ## 安装指南
 step1：安装utools工具箱，地址： https://u.tools/
@@ -15,39 +22,37 @@ step2：在utools插件商店搜索"文件共享"安装插件
 
 ## 使用指南
 
+前置设置（重要）：在"我的插件应用-FileShare文件共享-设置"选择，启用“开启自动分离窗口”；见图2
+
 step1：在utools输入框输入"文件共享"、"FS"、"FileShare"等关键词，打开文件共享工具
 
-step2（重要）：点击 alt + D 或 command + D 分离窗口，如果不分离窗口，窗口自动关闭后，文件共享功能也会失效
+step2（开启“自动分离窗口”配置后可以跳过此步骤）：点击 alt + D 或 command + D 分离窗口，如果不分离窗口，窗口自动关闭后，文件共享功能也会失效
 
-step3：点击开启服务，并添加要共享的文件
+step3：点击开启服务，并添加要共享的文件，支持文件、文件夹
 
 step4：将分享链接发送给你的朋友，下载文件
 
 ## 开发相关
 
-main文件夹：生成main对应的应用页面
+page_app文件夹：应用页面
 
-preload文件夹：生成preload.js文件
+page_web文件夹：下载页面
 
-utools文件夹：main和preload的build输出路径，插件最终基于该目录运行与打包
+utools文件夹：插件最终基于该目录运行与打包
+
+## 前置设置
+![前置设置](wiki/asserts/images/前置设置.png)
 
 ## 开始界面
 ![开始界面](wiki/asserts/images/1.png)
 
-## 运行界面
-![运行界面](wiki/asserts/images/2.png)
+## 主界面
+![主界面](wiki/asserts/images/主界面.png)
 
-## 添加分享文件
-![添加共享文件](wiki/asserts/images/3.png)
 
-## 通过网址下载文件
-![通过网址下载文件](wiki/asserts/images/4.png)
+## 下载界面
+![下载界面](wiki/asserts/images/下载界面.png)
 
-## 版本
-v1.0.0功能实现：
-1. 开启文件共享服务器
-2. 选择共享文件
-3. 根据下载链接，下载共享文件
+## 版本历史
 
-v1.0.3功能实现：
-1. 移除preload.js webpack打包逻辑，使用原生js，方便插件商店审核
+[版本历史](wiki/releases.md)

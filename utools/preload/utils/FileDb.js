@@ -1,4 +1,5 @@
 const fs = require("fs")
+const path = require("path")
 const EventDispatcher = require('./EventDispatcher')
 
 let fileDb = new Map();
@@ -6,9 +7,18 @@ let fileDb = new Map();
 const addFile = (file) => {
     console.log("--- addFile ---", file);
     if (fs.lstatSync(file.path).isDirectory()) {
-        return {success: false, message: '不能选择文件夹'}
+        let filename = file.path.substr(file.path.lastIndexOf(path.sep) + 1)
+        let finalFilename = filename
+        // 文件名称重复的，添加后缀去重
+        let suffix = 1
+        while (fileDb.get(finalFilename) && fileDb.get(finalFilename).path !== file.path) {
+            finalFilename = filename + '_' + suffix++
+        }
+        console.log(finalFilename, "finalFilename")
+        fileDb.set(finalFilename, {type: 'directory', name: finalFilename, path: file.path})
+    } else {
+        fileDb.set(file.name, {type: 'file', name: file.name, path: file.path})
     }
-    fileDb.set(file.name, {type: 'file', name: file.name, path: file.path})
     EventDispatcher.triggerEvent({type: 'fileDb.listChange'})
     return {success: true};
 }

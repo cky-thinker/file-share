@@ -9,7 +9,7 @@ const FileDb = require('./utils/FileDb')
 const EventDispatcher = require('./utils/EventDispatcher')
 
 // 进入插件
-utools.onPluginEnter(({code, type, payload}) => {
+utools.onPluginEnter(({ code, type, payload }) => {
     if (type === 'files' && !!payload) {
         console.log("快捷方式进入插件", payload)
         payload.forEach((toAddFile) => {
@@ -38,17 +38,24 @@ utools.onPluginReady(() => {
 const updateSetting = (setting) => {
     return new Promise((resolve, reject) => {
         let updateUploadPath = Setting.updateUploadPath(setting[Setting.uploadPathKey]);
-        let updatePort = Setting.updatePort(setting[Setting.portKey]).then(() => {
+        let updatePort = Setting.updatePort(setting[Setting.portKey]).then((result) => {
+            if (result.message === 'ValueNotChange') {
+                console.log("端口未变更")
+                return;
+            }
             // 端口更新成功后重启服务
-            Server.stopServer()
+            Server.stopServer();
             Server.startServer()
         })
-        Promise.all([updateUploadPath, updatePort])
+        let password = Setting.updatePassword(setting[Setting.Password])
+        let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable])
+        Promise.all([updateUploadPath, updatePort, password, authEnable])
             .then((msg) => {
                 resolve(msg)
             })
-            .catch((msg) => {
-                reject(msg)
+            .catch((e) => {
+                console.log(e)
+                reject(e)
             })
     })
 }

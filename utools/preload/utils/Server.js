@@ -1,13 +1,20 @@
 const path = require('path')
+const fs = require('fs')
+const crypto = require('crypto');
 const express = require('express') // http://expressjs.com/
+const cookieParser = require('cookie-parser');
 const multer = require('multer')
 const bodyParser = require("body-parser");
+const urlencodedParser = bodyParser.urlencoded({extended: false});
+const jsonParser = bodyParser.json()
 
 const Setting = require('./Setting')
 const EventDispatcher = require('./EventDispatcher')
 const FileDb = require('./FileDb')
+const FileUtil = require('./FileUtil')
 
-// ·þÎñ×´Ì¬
+let session = new Set()
+
 const StatusStart = "start"
 const StatusStop = "stop"
 
@@ -15,54 +22,174 @@ let server;
 let status = StatusStop;
 
 
-// ·þÎñ³õÊ¼»¯
+function authFilter(req, res, next) {
+    console.log('authFilter', req)
+    // no auth
+    if (!Setting.getAuthEnable()) {
+        console.log('no auth')
+        next()
+        return;
+    }
+    // white list
+    if (req.url === '/' ||
+        req.url === '/index.html' ||
+        req.url === '/favicon.ico' ||
+        req.url === '/api/login' ||
+        req.url.startsWith('/api/download') ||
+        req.url.startsWith('/static')) {
+        next()
+        return;
+    }
+    // validate
+    if (session.has(req.get('Authorization'))) {
+        next()
+    } else {
+        res.json({code: 401, message: 'è®¤è¯å¤±è´¥'})
+        res.end();
+    }
+}
+
+/**
+ * æ ¹æ®æ–‡ä»¶è·¯å¾„ï¼ŒæŸ¥è¯¢èµ·å§‹çš„åˆ†äº«æ–‡ä»¶ï¼Œå¹¶ä¸”æ‹¼æŽ¥è¯¥æ–‡ä»¶çš„è·¯å¾„
+ */
+function parsePath(filename) {
+    if (!filename) {
+        return {finalPath: '', filePaths: []}
+    }
+    // æŸ¥è¯¢èµ·å§‹åˆ†äº«æ–‡ä»¶
+    let filePaths = filename.split('/').filter(p => !!p && p !== '')
+    let startPath = filePaths[0]
+    let startFile = FileDb.getFile(startPath);
+    if (!startFile) {
+        throw new Error("åˆ†äº«åˆ—è¡¨æœªæ‰¾åˆ°è¯¥æ–‡ä»¶")
+    }
+    let filePath = startFile.path;
+    console.log('filePath', filePath)
+    console.log('filePaths', filePaths)
+    // æ‹¼æŽ¥è·¯å¾„
+    let dirname = path.dirname(filePath)
+    console.log('prefix', dirname)
+    let fullPath = [...filePaths]
+    fullPath.unshift(dirname)
+    console.log('fullPath', fullPath)
+    let finalPath = fullPath.join(path.sep)
+    console.log('finalPath', finalPath)
+    return {finalPath, filePaths};
+}
+
 const initApp = () => {
     let app = express();
+    app.use(cookieParser());
+    app.all("/api/*", authFilter);
     let rootPath = path.resolve(__dirname, '..')
-    app.use(express.static(path.join(rootPath, 'web'), {index: 'download.html'}))
-    // »ñÈ¡ÎÄ¼þÁÐ±í
-    app.get('/files', function (req, res) {
-        res.json({files: FileDb.listFiles()});
+    app.use(express.static(path.join(rootPath, 'web'), {index: 'index.html'}))
+    // file list
+    app.get('/api/files', function (req, res) {
+        let path = req.query.path
+        console.log('/api/files', path)
+        let finalPath, filePaths;
+        try {
+            let result = parsePath(path)
+            finalPath = result.finalPath
+            filePaths = result.filePaths
+        } catch (e) {
+            res.json({code: 500, message: e.message});
+            return;
+        }
+
+        if (finalPath.length === 0) {
+            res.json({code: 200, data: {path: [], files: FileDb.listFiles()}});
+            return;
+        }
+        return res.json({code: 200, data: {path: filePaths, files: FileUtil.listFiles(finalPath)}});
     });
-    // ÏÂÔØÎÄ¼þ
-    app.get('/download/:name', function (req, res) {
-        let filename = req.params.name
-        let filePath = FileDb.getFile(filename).path;
-        console.log("send file: " + filePath);
-        res.download(filePath)
+    // download
+    app.get('/api/download', function (req, res) {
+        let token = req.query.token
+        console.log('/api/download token', token)
+        if (Setting.getAuthEnable() && (!token || !session.has(token))) {
+            res.sendStatus(403)
+            return;
+        }
+
+        let filename = req.query.filename
+        console.log('/api/download filename', filename)
+
+        let finalPath;
+        try {
+            finalPath = parsePath(filename).finalPath
+            if (!finalPath) {
+                console.log("æ–‡ä»¶è·¯å¾„è§£æžä¸ºç©º")
+                res.sendStatus(400);
+                return;
+            }
+        } catch (e) {
+            res.sendStatus(404);
+            return;
+        }
+        console.log('finalPath', finalPath)
+        if (!fs.existsSync(finalPath)) {
+            res.sendStatus(404);
+        }
+
+        console.log("send file: " + finalPath);
+        res.download(finalPath)
     });
 
-    // Í¨¹ý filename ÊôÐÔ¶¨ÖÆ
+    app.post('/api/login', urlencodedParser, jsonParser, function (req, res) {
+        // no auth
+        if (!Setting.getAuthEnable()) {
+            res.json({code: 200, message: 'success'})
+            return;
+        }
+        // password error
+        let password = req.body.password
+        if (Setting.getPassword() !== password) {
+            res.json({code: 403, message: 'å¯†ç é”™è¯¯'})
+            return;
+        }
+        // update auth
+        let md5 = crypto.createHash('md5');
+        let token = md5.update(password).digest('hex');
+        session.add(token)
+        res.json({code: 200, data: {Authorization: token}, message: 'success'})
+    });
+
+    //filename
     let storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, Setting.getUploadPath());    // ±£´æµÄÂ·¾¶£¬±¸×¢£ºÐèÒª×Ô¼º´´½¨
+            cb(null, Setting.getUploadPath());
         },
         filename: function (req, file, cb) {
-            // ½«±£´æÎÄ¼þÃûÉèÖÃÎª ×Ö¶ÎÃû + Ê±¼ä´Á£¬±ÈÈç logo-1478521468943
             cb(null, file.originalname);
         }
     });
 
-    // ÉÏ´«ÎÄ¼þapi
     let upload = multer({storage: storage});
-    app.post('/addFile', upload.single('file'), function (req, res, next) {
+    app.post('/api/addFile', upload.single('file'), function (req, res, next) {
         let file = req.file;
         FileDb.addFile({name: file.originalname, path: file.path})
-        res.redirect('/')
+        res.json({code: 200, message: 'æ·»åŠ æˆåŠŸ'})
     })
 
-    // ÉÏ´«ÎÄ±¾
-    const urlencodedParser = bodyParser.urlencoded({extended: false});
-    app.post('/addText', urlencodedParser, function (req, res, next) {
+    app.post('/api/addText', jsonParser, function (req, res, next) {
+        console.log(req)
         let text = req.body.message
+        if (!text) {
+            res.json({code: 500, message: 'æ¶ˆæ¯ä¸èƒ½ä¸ºç©º'})
+            return;
+        }
         FileDb.addText(text)
+        res.json({code: 200, message: 'æ·»åŠ æˆåŠŸ'})
+    })
+
+    app.use((req, res, next) => {
         res.redirect('/')
     })
 
     return app;
 }
 
-// ¿ªÆô·þÎñ
 const startServer = () => {
     let port = Setting.getPort();
     const app = initApp()
@@ -72,10 +199,9 @@ const startServer = () => {
         status = StatusStart;
         EventDispatcher.triggerEvent({type: 'server.statusChange', data: {status: StatusStart}})
     });
-    return {success: true, message: "Æô¶¯³É¹¦", url: Setting.getUrl()};
+    return {success: true, message: "æœåŠ¡å¯åŠ¨æˆåŠŸ", url: Setting.getUrl()};
 }
 
-// ¹Ø±Õ·þÎñ
 const stopServer = () => {
     server.close();
     status = StatusStop;

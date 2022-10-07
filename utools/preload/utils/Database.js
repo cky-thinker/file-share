@@ -10,7 +10,7 @@ function getStorageItem(key, defaultValue = null) {
         return value;
     }
     // 不存在且没有默认值
-    if (!defaultValue) {
+    if (defaultValue == null) {
         return null;
     }
     // 使用默认值
