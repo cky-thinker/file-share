@@ -15,23 +15,24 @@ const addFile = (file) => {
             finalFilename = filename + '_' + suffix++
         }
         console.log(finalFilename, "finalFilename")
-        fileDb.set(finalFilename, {type: 'directory', name: finalFilename, path: file.path})
+        fileDb.set(finalFilename, {type: 'directory', name: finalFilename, path: file.path, username: file.username})
     } else {
-        fileDb.set(file.name, {type: 'file', name: file.name, path: file.path})
+        fileDb.set(file.name, {type: 'file', name: file.name, path: file.path, username: file.username})
     }
     EventDispatcher.triggerEvent({type: 'fileDb.listChange'})
     return {success: true};
 }
 
-const addText = (text) => {
+const addText = (text, username) => {
     console.log("--- addText ---", text);
+    console.log("--- username ---", username);
     // 取文本前10位为名称
     let name = text.substring(0, Math.min(20, text.length));
     let intro = text.substring(0, Math.min(100, text.length));
     if (text.length > 20) {
         name += '...'
     }
-    let textBody = {type: 'text', name: name, content: text, intro}
+    let textBody = {type: 'text', name: name, content: text, intro, username: username}
     fileDb.set(textBody.name, textBody)
     EventDispatcher.triggerEvent({type: 'fileDb.listChange'})
     return {success: true};

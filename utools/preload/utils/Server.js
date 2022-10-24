@@ -77,6 +77,15 @@ function parsePath(filename) {
     return {finalPath, filePaths};
 }
 
+/**
+ * 获取客户端IP
+ */
+function getClientIp(req) {
+    let sourceip = req.ip.match(/\d+\.\d+\.\d+\.\d+/).toString()
+    console.log('sourceip %s', sourceip)
+    return sourceip;
+}
+
 const initApp = () => {
     let app = express();
     app.use(cookieParser());
@@ -168,18 +177,20 @@ const initApp = () => {
     let upload = multer({storage: storage});
     app.post('/api/addFile', upload.single('file'), function (req, res, next) {
         let file = req.file;
-        FileDb.addFile({name: file.originalname, path: file.path})
+        let sourceip = getClientIp(req)
+        FileDb.addFile({name: file.originalname, path: file.path, username: sourceip})
         res.json({code: 200, message: '添加成功'})
     })
 
     app.post('/api/addText', jsonParser, function (req, res, next) {
         console.log(req)
+        let sourceip = getClientIp(req)
         let text = req.body.message
         if (!text) {
             res.json({code: 500, message: '消息不能为空'})
             return;
         }
-        FileDb.addText(text)
+        FileDb.addText(text, sourceip)
         res.json({code: 200, message: '添加成功'})
     })
 
