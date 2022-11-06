@@ -104,7 +104,13 @@
 
                         <div v-for="file in files" :key="file" class="text item file-item">
                             <el-row class="row-bg" justify="space-between">
-                                <el-col :span="18">
+                                <el-col :span="5">
+                                    <el-tooltip effect="light" placement="top">
+                                        <template #content>{{ `由【${file.username}】分享` }}</template>
+                                        <span>@{{ file.username }}</span>
+                                    </el-tooltip>
+                                </el-col>
+                                <el-col :span="13">
                                     <el-tooltip v-if="file.type === 'text'" effect="light" placement="top">
                                         <template #content>{{ file.intro }}</template>
                                         <span>{{ file.name }}</span>
@@ -215,7 +221,7 @@ export default {
         },
         formSubmit: function () {
             let text = this.form.text;
-            api.addText(text);
+            api.addText(text, this.settingForm.ip);
             this.files = api.listFiles();
             this.form.text = '';
             this.dialogFormVisible = false;
@@ -229,7 +235,7 @@ export default {
         },
         addFiles: function (params) {
             console.log("addFiles", params)
-            let file = { name: params.file.name, path: params.file.path };
+            let file = { name: params.file.name, path: params.file.path, username: this.settingForm.ip };
             let { success, message } = api.addFile(file);
             if (success) {
                 this.files = api.listFiles();

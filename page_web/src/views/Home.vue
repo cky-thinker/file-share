@@ -46,6 +46,15 @@
           :data="files"
           row-key="id"
         >
+          <el-table-column v-if="path.length === 0" width="140">
+            <template slot-scope="scope">
+              <el-tooltip class="item" effect="dark"
+                          :content="`由【${scope.row.username}】分享`"
+                          placement="right">
+                <div>@{{scope.row.username}}</div>
+              </el-tooltip>
+            </template>
+          </el-table-column>
           <el-table-column width="50">
             <template slot-scope="scope">
               <div class="pointer" @click="handleItemClick(scope.row, $event)">
