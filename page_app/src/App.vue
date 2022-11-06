@@ -107,7 +107,7 @@
                                 <el-col :span="5">
                                     <el-tooltip effect="light" placement="top">
                                         <template #content>{{ `由【${file.username}】分享` }}</template>
-                                        <span>@{{ file.username }}</span>
+                                        <span class="username">{{ file.username }}</span>
                                     </el-tooltip>
                                 </el-col>
                                 <el-col :span="13">
@@ -346,6 +346,12 @@ body {
 
 .file-item {
     margin-bottom: 10px;
+}
+
+.username {
+    font-size: 12px;
+    margin-left: 2px;
+    color: #909399;
 }
 
 .box-card {

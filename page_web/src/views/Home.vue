@@ -46,21 +46,21 @@
           :data="files"
           row-key="id"
         >
-          <el-table-column v-if="path.length === 0" width="140">
+          <el-table-column width="130">
             <template slot-scope="scope">
-              <el-tooltip class="item" effect="dark"
-                          :content="`由【${scope.row.username}】分享`"
-                          placement="right">
-                <div>@{{scope.row.username}}</div>
-              </el-tooltip>
-            </template>
-          </el-table-column>
-          <el-table-column width="50">
-            <template slot-scope="scope">
-              <div class="pointer" @click="handleItemClick(scope.row, $event)">
-                <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
-                <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
-                <svg-icon v-if="scope.row.type === 'text'" name="message"/>
+              <div class="pointer item-label" @click="handleItemClick(scope.row, $event)">
+                <div>
+                  <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
+                  <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
+                  <svg-icon v-if="scope.row.type === 'text'" name="message"/>
+                </div>
+                <div>
+                  <el-tooltip class="item" effect="dark"
+                              :content="`由【${scope.row.username}】分享`"
+                              placement="right">
+                    <div class="username">{{scope.row.username}}</div>
+                  </el-tooltip>
+                </div>
               </div>
             </template>
           </el-table-column>
@@ -297,6 +297,18 @@
     height: 100%;
     padding: 8px;
     color: #FFF;
+  }
+
+  .item-label {
+    display: flex;
+    justify-content: left;
+    align-items: flex-start;
+  }
+
+  .username {
+    font-size: 12px;
+    margin-left: 2px;
+    color: #909399;
   }
 
   h1 {
