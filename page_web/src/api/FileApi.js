@@ -28,3 +28,11 @@ export function uploadMsg(data) {
     data: data
   })
 }
+
+export function renameFile(oldname,newname) {
+  return request({
+    url: '/renameFile',
+    method: 'post',
+    data: {oldname,newname}
+  })
+}

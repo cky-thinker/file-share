@@ -4,6 +4,7 @@
     "cookie-parser": "^1.4.6",
     "express": "^4.17.1",
     "multer": "^1.4.3",
-    "open-file-explorer": "^1.0.2"
+    "open-file-explorer": "^1.0.2",
+    "tus-node-server": "^0.8.1"
   }
 }
