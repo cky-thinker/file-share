@@ -18,7 +18,7 @@ function createWithTokenHeaders() {
 }
 
 function handleError(error) {
-  if (`${error}`.indexOf('"code":401')) {
+  if (`${error}`.indexOf('"code":401') > 0) {
     logout();
     throw "登录状态无效，请重新登录";
   }

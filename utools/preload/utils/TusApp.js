@@ -41,7 +41,7 @@ function createStore() {
 function createTusApp() {
   let uploadPath = Setting.getUploadPath()
 
-  const server = new tus.Server({ path: "/" })
+  const server = new tus.Server({ path: "/files" })
   const store = createStore()
   server.datastore = store.datastore
 
