@@ -193,7 +193,12 @@ const initApp = () => {
         let newname = req.body.newname
         let oldFilePath = path.join(Setting.getUploadPath(),oldname)
         let newFilePath = path.join(Setting.getUploadPath(),newname)
-        fs.renameSync(oldFilePath,newFilePath)
+        try {
+            fs.renameSync(oldFilePath,newFilePath)
+        } catch (error) {
+            res.json({code: 500, message: '添加失败'})
+            return;
+        }
         FileDb.addFile({name: newname, path: newFilePath, username: sourceip})
         FileDb.removeFile({name:oldname})
         tusApp.store.configstore.delete(oldname)

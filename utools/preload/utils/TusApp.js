@@ -53,6 +53,7 @@ function createTusApp() {
       store.datastore = _store.datastore
       store.configstore = _store.configstore
       server.datastore = _store.datastore
+      uploadPath = newPath
     }
     server.handle(req, res, next)
   })
