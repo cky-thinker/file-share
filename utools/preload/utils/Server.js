@@ -82,8 +82,11 @@ function parsePath(filename) {
  */
 function getClientIp(req) {
     let sourceip = req.ip.match(/\d+\.\d+\.\d+\.\d+/).toString()
-    console.log('sourceip %s', sourceip)
-    return sourceip;
+    // 获取反向代理记录的真实客户端IP
+    let realip = req.headers['x-real-ip']
+    let clientip = realip || sourceip
+    console.log('sourceip %s, realip %s, clientip %s', sourceip,realip,clientip)
+    return clientip;
 }
 
 const initApp = () => {
