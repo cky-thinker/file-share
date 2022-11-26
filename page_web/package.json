@@ -16,7 +16,6 @@
     "element-ui": "^2.15.9",
     "file-saver": "^2.0.5",
     "js-cookie": "^3.0.1",
-    "tus-js-client": "^3.0.1",
     "vue": "^2.6.14",
     "vue-router": "^3.5.1"
   },

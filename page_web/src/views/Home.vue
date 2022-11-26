@@ -104,7 +104,6 @@
           :on-error="uploadError"
           :file-list="fileList"
           :headers="headers"
-          :http-request="uploadRequest"
           multiple>
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -145,7 +144,7 @@
   import FileIcon from "@/components/FileIcon";
   import SvgIcon from "@/components/SvgIcon";
   import FileUpload from "@/components/FileUpload";
-  import {listFiles, uploadMsg, renameFile} from "@/api/FileApi";
+  import {listFiles, uploadMsg} from "@/api/FileApi";
   import {login} from "@/api/UserApi";
   import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
   import {Message} from "element-ui";
@@ -241,11 +240,6 @@
           return f.name !== file.name;
         })
         this.fileFormVisible = false
-      },
-      async uploadRequest(options) {
-        const client = this.$createTusClient(options.file,options.onProgress);
-        const fileid = await client.upload()
-        return renameFile(fileid,options.file.name);
       },
       downloadFile(filename) {
         window.location.href = `/api/download?filename=${encodeURI(this.path.join('/') + '/' + filename)}&token=${getToken()}`

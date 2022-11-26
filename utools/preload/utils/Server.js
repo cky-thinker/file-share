@@ -12,7 +12,6 @@ const Setting = require('./Setting')
 const EventDispatcher = require('./EventDispatcher')
 const FileDb = require('./FileDb')
 const FileUtil = require('./FileUtil')
-const { createTusApp } = require('./TusApp')
 
 let session = new Set()
 
@@ -183,28 +182,6 @@ const initApp = () => {
         let file = req.file;
         let sourceip = getClientIp(req)
         FileDb.addFile({name: file.originalname, path: file.path, username: sourceip})
-        res.json({code: 200, message: '添加成功'})
-    })
-
-    let tusApp = createTusApp()
-    app.use('/api/tus', tusApp.app)
-
-    app.post('/api/renameFile',jsonParser,function (req, res, next){
-        console.log("renameFile",req)
-        let sourceip = getClientIp(req)
-        let oldname = req.body.oldname
-        let newname = req.body.newname
-        let oldFilePath = path.join(Setting.getUploadPath(),oldname)
-        let newFilePath = path.join(Setting.getUploadPath(),newname)
-        try {
-            fs.renameSync(oldFilePath,newFilePath)
-        } catch (error) {
-            res.json({code: 500, message: '添加失败'})
-            return;
-        }
-        FileDb.addFile({name: newname, path: newFilePath, username: sourceip})
-        FileDb.removeFile({name:oldname})
-        tusApp.store.configstore.delete(oldname)
         res.json({code: 200, message: '添加成功'})
     })
 
