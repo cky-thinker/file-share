@@ -61,6 +61,15 @@
                                             <el-form-item v-if="settingForm.authEnable" label="校验密码">
                                                 <el-input v-model="settingForm.password" show-password></el-input>
                                             </el-form-item>
+                                            <el-form-item label="启用续传">
+                                                <el-switch v-model="settingForm.tusEnable" >
+                                                </el-switch>
+                                            </el-form-item>
+                                            <el-form-item v-if="settingForm.tusEnable" label="分片大小">
+                                                <el-input v-model="settingForm.chunkSize">
+                                                    <template #append><span>M</span></template>
+                                                </el-input>
+                                            </el-form-item>
                                         </el-form>
                                     </el-col>
                                 </el-row>
