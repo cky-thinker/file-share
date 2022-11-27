@@ -29,8 +29,8 @@ let getIpAddresses = function (netInterfaceName) {
     }
 
     return interfaces[netInterfaceName].filter(function (ipAddress) {
-        let {family, address, internal} = ipAddress;
-        return family.toLowerCase() === 'ipv4' && !isLoopback(address) && !internal;
+        let {family, address} = ipAddress;
+        return family.toLowerCase() === 'ipv4' && !isLoopback(address);
     });
 }
 
