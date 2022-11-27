@@ -5,7 +5,10 @@
 import { Upload } from "tus-js-client";
 import { getToken, logout } from "@/utils/auth";
 
-const chunkSize = 1.5 * 1024 * 1024;
+/**
+ * 如果局域网带宽比较大可以将chunkSize设置大些，直接将路由器带宽拉满
+ */
+const defaultChunkSize = 20 * 1024 * 1024;
 
 function createWithTokenHeaders() {
   const headers = {};
@@ -25,13 +28,13 @@ function handleError(error) {
   throw "上传失败";
 }
 
-export function createTusClient(file, onProgress) {
+export function createTusClient(file, onProgress, chunkSize) {
   let upload;
   let task = new Promise((resolve, reject) => {
     upload = new Upload(file, {
       endpoint: "/api/tus",
       headers: createWithTokenHeaders(),
-      chunkSize: chunkSize,
+      chunkSize: chunkSize || defaultChunkSize,
       metadata: {
         filename: file.name,
         filetype: file.type,

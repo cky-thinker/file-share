@@ -36,3 +36,13 @@ export function renameFile(oldname,newname) {
     data: {oldname,newname}
   })
 }
+
+/**
+ * @returns { import('axios').AxiosPromise<{enable:boolean,chunkSize:number}>}
+ */
+export function getTusConfig() {
+  return request({
+    url: '/tusConfig',
+    method: 'get',
+  })
+}

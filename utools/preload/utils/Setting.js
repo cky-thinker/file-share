@@ -11,6 +11,8 @@ const portKey = 'port' // 端口号
 const ipKey = 'ip' // 端口号
 const AuthEnable = 'authEnable' // 是否开启密码校验
 const Password = 'password' // 密码
+const tusEnableKey = 'tusEnable' // 是否启用续传功能
+const chunkSizeKey = 'chunkSize' // 上传文件的分片大小
 
 let curIp = IpUtil.getIpAddress();
 
@@ -129,6 +131,60 @@ function getPassword() {
     return AppDatabase.getStorageItem(Password, 'password')
 }
 
+function getTusEnable() {
+    return AppDatabase.getStorageItem(tusEnableKey, false)
+}
+
+function updateTusEnable(value) {
+    return new Promise((resolve, reject) => {
+        if (value == null) {
+            return reject({ success: false, message: '更新失败，值为空' });
+        }
+        console.log('--updateTusEnable--', value)
+        AppDatabase.setStorageItem(tusEnableKey, value)
+        return resolve({ success: true, message: '修改成功' });
+    })
+}
+
+function getChunkSize() {
+    return AppDatabase.getStorageItem(chunkSizeKey, 20)
+}
+
+/**
+ * 更新分片大小
+ * @param chunkSize
+ * @returns {Promise<{ success:boolean, message:string }>}
+ */
+function updateChunkSize(chunkSize) {
+    const isNumber = (value) => {
+        if (typeof value == 'number'){
+            return true
+        }
+        if (typeof value == 'string'){
+            return !!value && !isNaN(value)
+        }
+        return false
+    }
+    return new Promise((resolve, reject) => {
+        if (!chunkSize) {
+            return reject({ success: false, message: '更新分片大小失败，值为空' })
+        }
+        if (!isNumber(chunkSize)) {
+            return reject({ success: false, message: '更新分片大小失败，值不是数字' } )
+        }
+        if (chunkSize <= 0){
+            return reject({ success: false, message: '更新分片大小失败，值应该大于0' } )
+        }
+        // 值没变，不更新
+        if (getChunkSize() === chunkSize) {
+            console.log("chunkSize 值没变，不更新")
+            return resolve({ success: true, message: 'ValueNotChange' })
+        }
+        AppDatabase.setStorageItem(chunkSizeKey, chunkSize)
+        return  resolve({ success: true, message: '修改成功' })
+    });
+}
+
 function getSetting() {
     return {
         uploadPath: getUploadPath(),
@@ -136,7 +192,9 @@ function getSetting() {
         ip: getIp(),
         url: getUrl(),
         authEnable: getAuthEnable(),
-        password: getPassword()
+        password: getPassword(),
+        tusEnable: getTusEnable(),
+        chunkSize: getChunkSize()
     }
 }
 
@@ -165,12 +223,25 @@ function updateSetting(setting) {
     updatePassword(setting[Password]).then((e) => {
         console.log(e)
     })
+
+    updateTusEnable(setting[tusEnableKey]).then((e) => {
+        console.log(e)
+    }).catch((e) => {
+        console.log(e)
+    })
+    updateChunkSize(setting[chunkSizeKey]).then((e) => {
+        console.log(e)
+    }).catch((e) => {
+        console.log(e)
+    })
 }
 
 exports.uploadPathKey = uploadPathKey
 exports.portKey = portKey
 exports.Password = Password
 exports.AuthEnable = AuthEnable
+exports.tusEnableKey = tusEnableKey
+exports.chunkSizeKey = chunkSizeKey
 exports.getUploadPath = getUploadPath
 exports.updateUploadPath = updateUploadPath
 exports.getPort = getPort
@@ -184,3 +255,7 @@ exports.updateAuthEnable = updateAuthEnable
 exports.getAuthEnable = getAuthEnable
 exports.updatePassword = updatePassword
 exports.getPassword = getPassword
+exports.getTusEnable = getTusEnable
+exports.updateTusEnable = updateTusEnable
+exports.getChunkSize = getChunkSize
+exports.updateChunkSize = updateChunkSize

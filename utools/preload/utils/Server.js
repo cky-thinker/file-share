@@ -205,6 +205,17 @@ const initApp = () => {
         res.json({code: 200, message: '添加成功'})
     })
 
+    app.get('/api/tusConfig', function (req, res) {
+        return res.json({
+          code: 200,
+          data: {
+            enable: Setting.getTusEnable(),
+            // 由于存储的值单位是M,所以需要转化
+            chunkSize: Setting.getChunkSize() * 1024 * 1024,
+          },
+        })
+    })
+
     app.post('/api/addText', jsonParser, function (req, res, next) {
         console.log(req)
         let sourceip = getClientIp(req)

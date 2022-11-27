@@ -49,7 +49,9 @@ const updateSetting = (setting) => {
         })
         let password = Setting.updatePassword(setting[Setting.Password])
         let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable])
-        Promise.all([updateUploadPath, updatePort, password, authEnable])
+        let tusEnable = Setting.updateTusEnable(setting[Setting.tusEnableKey])
+        let chunkSize = Setting.updateChunkSize(setting[Setting.chunkSizeKey])
+        Promise.all([updateUploadPath, updatePort, password, authEnable, tusEnable, chunkSize])
             .then((msg) => {
                 resolve(msg)
             })
