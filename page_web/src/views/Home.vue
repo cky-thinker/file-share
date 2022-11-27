@@ -46,31 +46,23 @@
           :data="files"
           row-key="id"
         >
-          <el-table-column width="130">
+          <el-table-column>
             <template slot-scope="scope">
-              <div class="pointer item-label" @click="handleItemClick(scope.row, $event)">
+              <div class="pointer file-desc" @click="handleItemClick(scope.row, $event)">
                 <div>
                   <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
                   <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
                   <svg-icon v-if="scope.row.type === 'text'" name="message"/>
                 </div>
-                <div>
-                  <el-tooltip class="item" effect="dark"
-                              :content="`由【${scope.row.username}】分享`"
-                              placement="right">
-                    <div class="username">{{scope.row.username}}</div>
-                  </el-tooltip>
-                </div>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column class-name="pointer" @click="handleItemClick(scope.row, $event)">
-            <template slot-scope="scope">
-              <div class="pointer" @click="handleItemClick(scope.row, $event)">
-                <el-tooltip class="item" effect="dark"
+                <el-tooltip class="filename" effect="light"
                             :content="scope.row.type === 'text' ? scope.row.content : scope.row.name"
                             placement="right">
                   <div>{{scope.row.name}}</div>
+                </el-tooltip>
+                <el-tooltip v-show="!!scope.row.username" effect="light"
+                            :content="`由【${scope.row.username}】分享`"
+                            placement="top">
+                  <div class="username">{{scope.row.username}}</div>
                 </el-tooltip>
               </div>
             </template>
@@ -143,16 +135,16 @@
 </template>
 
 <script>
-  import FileIcon from "@/components/FileIcon";
-  import SvgIcon from "@/components/SvgIcon";
-  import FileUpload from "@/components/FileUpload";
-  import {listFiles, uploadMsg, renameFile, getTusConfig} from "@/api/FileApi";
-  import {login} from "@/api/UserApi";
-  import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
-  import {Message} from "element-ui";
-  import {copyClipboard} from '@/utils/clipboard'
+import FileIcon from "@/components/FileIcon";
+import SvgIcon from "@/components/SvgIcon";
+import FileUpload from "@/components/FileUpload";
+import {getTusConfig, listFiles, renameFile, uploadMsg} from "@/api/FileApi";
+import {login} from "@/api/UserApi";
+import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
+import {Message} from "element-ui";
+import {copyClipboard} from '@/utils/clipboard'
 
-  export default {
+export default {
     name: 'HomeView',
     data() {
       return {
@@ -314,15 +306,27 @@
     color: #FFF;
   }
 
-  .item-label {
+  .file-desc {
     display: flex;
-    justify-content: left;
-    align-items: flex-start;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .file {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .filename {
+    margin-left: 8px;
   }
 
   .username {
     font-size: 12px;
-    margin-left: 2px;
+    margin-left: 12px;
     color: #909399;
   }
 
