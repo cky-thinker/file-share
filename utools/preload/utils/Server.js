@@ -146,7 +146,11 @@ const initApp = () => {
         }
 
         console.log("send file: " + finalPath);
-        res.download(finalPath)
+        res.download(finalPath, null, {dotfiles: 'allow'}, function (err) {
+            if (err) {
+                console.log(err);
+            }
+        })
     });
 
     app.post('/api/login', urlencodedParser, jsonParser, function (req, res) {
