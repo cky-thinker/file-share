@@ -87,7 +87,7 @@ function parsePath(filename) {
  * 获取客户端IP
  */
 function getClientIp(req) {
-    let sourceip = req.ip.match(/\d+\.\d+\.\d+\.\d+/).toString()
+    let sourceip = `${req.ip.match(/\d+\.\d+\.\d+\.\d+/) || req.ip}`
     // 获取反向代理记录的真实客户端IP
     let realip = req.headers['x-real-ip']
     let clientip = realip || sourceip
