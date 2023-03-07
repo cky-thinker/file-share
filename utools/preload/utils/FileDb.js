@@ -1,8 +1,38 @@
 const fs = require("fs")
 const path = require("path")
-const EventDispatcher = require('./EventDispatcher')
+const nodeMachine = require('node-machine-id');
 
-let fileDb = new Map();
+const EventDispatcher = require('./EventDispatcher')
+const AppDatabase = require('./Database')
+
+let machineId = null;
+function getMachineId() {
+    if (machineId == null) {
+        machineId = nodeMachine.machineIdSync();
+    }
+    return machineId;
+}
+
+function getFileDBKey() {
+    return "FileDb:" + getMachineId();
+}
+
+const addFileToDb = (fileName, fileInfo) => {
+    let fileDb = getFileDb();
+    fileDb[fileName] = fileInfo
+    AppDatabase.setStorageItem(getFileDBKey(), JSON.stringify(fileDb))
+}
+
+const removeFileToDb = (fileName) => {
+    let fileDb = getFileDb();
+    delete fileDb[fileName]
+    AppDatabase.setStorageItem(getFileDBKey(), JSON.stringify(fileDb))
+}
+
+const getFileDb = () => {
+    let fileDbStr = AppDatabase.getStorageItem(getFileDBKey(), "{}")
+    return JSON.parse(fileDbStr);
+}
 
 const addFile = (file) => {
     console.log("--- addFile ---", file);
@@ -11,13 +41,14 @@ const addFile = (file) => {
         let finalFilename = filename
         // 文件名称重复的，添加后缀去重
         let suffix = 1
-        while (fileDb.get(finalFilename) && fileDb.get(finalFilename).path !== file.path) {
+        let fileDb = getFileDb();
+        while (fileDb[finalFilename] && fileDb[finalFilename].path !== file.path) {
             finalFilename = filename + '_' + suffix++
         }
         console.log(finalFilename, "finalFilename")
-        fileDb.set(finalFilename, {type: 'directory', name: finalFilename, path: file.path, username: file.username})
+        addFileToDb(finalFilename, {type: 'directory', name: finalFilename, path: file.path, username: file.username})
     } else {
-        fileDb.set(file.name, {type: 'file', name: file.name, path: file.path, username: file.username})
+        addFileToDb(file.name, {type: 'file', name: file.name, path: file.path, username: file.username})
     }
     EventDispatcher.triggerEvent({type: 'fileDb.listChange'})
     return {success: true};
@@ -33,22 +64,22 @@ const addText = (text, username) => {
         name += '...'
     }
     let textBody = {type: 'text', name: name, content: text, intro, username: username}
-    fileDb.set(textBody.name, textBody)
+    addFileToDb(textBody.name, textBody)
     EventDispatcher.triggerEvent({type: 'fileDb.listChange'})
     return {success: true};
 }
 
 const removeFile = (file) => {
     console.log("removeFile: " + file);
-    fileDb.delete(file.name)
+    removeFileToDb(file.name)
 }
 
 const listFiles = () => {
-    return Array.from(fileDb.values());
+    return Object.values(getFileDb());
 }
 
 const getFile = (fileName) => {
-    return fileDb.get(fileName)
+    return getFileDb()[fileName]
 }
 
 exports.addFile = addFile
