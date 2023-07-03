@@ -249,7 +249,8 @@ export default {
         this.tusConfig = res.data
       },
       downloadFile(filename) {
-        window.location.href = `/api/download?filename=${encodeURI(this.path.join('/') + '/' + filename)}&token=${getToken()}`
+        let url = `/api/download?filename=${encodeURIComponent(this.path.join('/') + '/' + filename)}&token=${getToken()}`
+        window.location.href = url
       },
       copyMsg(data, event) {
         console.log(data)
