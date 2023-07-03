@@ -36,11 +36,13 @@ let getIpAddresses = function (netInterfaceName, ipFamily = "ipv4") {
 
 let getNetInterfaceNames = function (ipFamily = "ipv4") {
     let interfaces = networkInterfaces();
-    return Object.keys(interfaces).filter(function (name) {
+    let ipNames = Object.keys(interfaces).filter(function (name) {
+            return getIpAddresses(name, ipFamily).length > 0;
+        })
+    let finalNames = ipNames.filter(function (name) {
         return !/(loopback|vmware|internal|lo|vEthernet)/gi.test(name);
-    }).filter(function (name) {
-        return getIpAddresses(name, ipFamily).length > 0;
-    })
+    });
+    return finalNames.length === 0 ? (ipNames.length === 0 ? [] : ipNames) : finalNames;
 }
 
 let getIpAddress = function (idx = 0, ipFamily = 'ipv4') {

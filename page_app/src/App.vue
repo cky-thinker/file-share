@@ -289,7 +289,7 @@ export default {
       this.ipFamily = this.ipFamily === 'ipv4' ? 'ipv6' : 'ipv4';
       this.currentNetInterfaceIdx = 0;
       this.netInterfaceNames = api.getNetInterfaceNames(this.ipFamily);
-      this.currentInterfaceName = this.netInterfaceNames[0];
+      this.currentInterfaceName = this.netInterfaceNames[0] || "";
       this.updateIp();
     },
     changeNetInterface: function () {
@@ -314,7 +314,7 @@ export default {
     updatePage() {
       this.serverStatus = api.getServerStatus();
       this.netInterfaceNames = api.getNetInterfaceNames(this.ipFamily);
-      this.currentInterfaceName = this.netInterfaceNames[0];
+      this.currentInterfaceName = this.netInterfaceNames[0] || "";
       this.files = api.listFiles();
       this.settingForm = api.getSetting()
       console.log("---settingForm--", this.settingForm)
