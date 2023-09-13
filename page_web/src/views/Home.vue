@@ -14,13 +14,13 @@
           <el-col :span="6">
             <el-button @click="fileFormVisible= true" size="mini">
               <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
-              {{isPC ? "上传文件" : ""}}
+              {{ isPC ? "上传文件" : "" }}
             </el-button>
           </el-col>
           <el-col :span="6">
             <el-button @click="showMsgForm" type="default" size="mini" title="分享一段文本">
               <svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/>
-              {{isPC ?  "上传文本" : ""}}
+              {{ isPC ? "上传文本" : "" }}
             </el-button>
           </el-col>
         </el-row>
@@ -34,7 +34,7 @@
           </el-breadcrumb-item>
           <el-breadcrumb-item v-for="(p, idx) in path">
             <el-link :underline="false" @click="skipPath(idx + 1)">
-              {{p}}
+              {{ p }}
             </el-link>
           </el-breadcrumb-item>
         </el-breadcrumb>
@@ -44,7 +44,6 @@
           :max-height="listHeight"
           :show-header="false"
           :data="files"
-          row-key="id"
         >
           <el-table-column>
             <template slot-scope="scope">
@@ -57,12 +56,12 @@
                 <el-tooltip class="filename" effect="light"
                             :content="scope.row.type === 'text' ? scope.row.content : scope.row.name"
                             placement="right">
-                  <div>{{scope.row.name}}</div>
+                  <div>{{ scope.row.name }}</div>
                 </el-tooltip>
                 <el-tooltip v-show="!!scope.row.username" effect="light"
                             :content="`由【${scope.row.username}】分享`"
                             placement="top">
-                  <div class="username">{{scope.row.username}}</div>
+                  <div class="username">{{ scope.row.username }}</div>
                 </el-tooltip>
               </div>
             </template>
@@ -95,9 +94,6 @@
           :on-success="uploadSuccess"
           :on-error="uploadError"
           :file-list="fileList"
-          :headers="headers"
-          :http-request="createUploadRequest()"
-          :before-upload="loadTusConfig"
           multiple>
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -145,269 +141,259 @@ import {Message} from "element-ui";
 import {copyClipboard} from '@/utils/clipboard'
 
 export default {
-    name: 'HomeView',
-    data() {
-      return {
-        // 文件表单
-        fileFormVisible: false,
-        fileForm: {},
-        fileList: [],
-        // 消息表单
-        msgFormVisible: false,
-        msgForm: {
-          message: ''
-        },
-        // 登录表单
-        loginFormVisible: false,
-        loginForm: {
-          password: ''
-        },
-        // 共享文件列表
-        path: [],
-        files: [],
-        headers: {
-          Authorization: ''
-        },
-        tusConfig: {},
+  name: 'HomeView',
+  data() {
+    return {
+      // 文件表单
+      fileFormVisible: false,
+      fileForm: {},
+      fileList: [],
+      // 消息表单
+      msgFormVisible: false,
+      msgForm: {
+        message: ''
+      },
+      // 登录表单
+      loginFormVisible: false,
+      loginForm: {
+        password: ''
+      },
+      // 共享文件列表
+      path: [],
+      files: [],
+      tusConfig: {},
+    }
+  },
+  created() {
+    this.showFiles()
+    // 3s更新一下列表
+    setInterval(this.showFiles, 3000)
+    addAuthInvalidCallback(() => {
+      this.loginFormVisible = true;
+    })
+  },
+  methods: {
+    handleItemClick(item, event) {
+      if (item.type === 'directory') {
+        this.openDirectory(item.name)
+      } else if (item.type === 'file') {
+        this.downloadFile(item.name)
+      } else if (item.type === 'text') {
+        this.copyMsg(item.content, event)
       }
     },
-    mounted() {
+    openDirectory(name) {
+      this.path.push(name)
       this.showFiles()
-      // 3s更新一下列表
-      setInterval(this.showFiles, 3000)
-      addAuthInvalidCallback(() => {
-        this.loginFormVisible = true;
+    },
+    skipPath(idx) {
+      this.path = this.path.slice(0, idx);
+      this.showFiles()
+    },
+    showFiles() {
+      listFiles({path: this.path.join('/')}).then(res => {
+        this.files = res.data.files
+        this.path = res.data.path ?? []
       })
-      // 更新请求头内容
-      this.updateHeaders()
     },
-    methods: {
-      handleItemClick(item, event) {
-        if (item.type === 'directory') {
-          this.openDirectory(item.name)
-        } else if (item.type === 'file') {
-          this.downloadFile(item.name)
-        } else if (item.type === 'text') {
-          this.copyMsg(item.content, event)
-        }
-      },
-      openDirectory(name) {
-        this.path.push(name)
+    submitLoginForm() {
+      console.log("---submitLoginForm--")
+      login(this.loginForm).then(res => {
+        Message({message: '登录成功', type: 'success'})
+        setToken(res.data.Authorization)
+        this.loginFormVisible = false
+        // 更新列表
         this.showFiles()
-      },
-      skipPath(idx) {
-        this.path = this.path.slice(0, idx);
+      })
+    },
+    uploadSuccess(response, file, fileList) {
+      console.log('---uploadSuccess---', response, file, fileList)
+      Message({message: '上传成功', type: 'success'})
+      this.fileList = fileList.filter((f) => {
+        return f.name !== file.name;
+      })
+      this.fileFormVisible = false
+    },
+    uploadError(err, file, fileList) {
+      console.log('---uploadError---', err, file, fileList)
+      Message({message: '上传失败', type: 'success'})
+      this.fileList = fileList.filter((f) => {
+        return f.name !== file.name;
+      })
+      this.fileFormVisible = false
+    },
+    // createUploadRequest() {
+    //   const chunkUpload = async (options) => {
+    //     const client = this.$createTusClient(options.file,options.onProgress,this.tusConfig.chunkSize);
+    //     const fileid = await client.upload()
+    //     return renameFile(fileid,options.file.name);
+    //   }
+    //   return this.tusConfig.enable ? chunkUpload : undefined;
+    // },
+    // async loadTusConfig() {
+    //   const res = await getTusConfig()
+    //   this.tusConfig = res.data
+    // },
+    downloadFile(filename) {
+      window.location.href = `/download-internal${encodeURI(this.path.join('/') + '/' + filename)}`
+    },
+    copyMsg(data, event) {
+      console.log(data)
+      console.log(event)
+      copyClipboard(data, event)
+    },
+    showMsgForm() {
+      this.msgFormVisible = true
+      this.msgForm = {message: ''}
+    },
+    submitMsgForm() {
+      this.msgFormVisible = false
+      uploadMsg(this.msgForm).then(res => {
+        Message({message: '发送成功', type: 'success'})
         this.showFiles()
-      },
-      showFiles() {
-        listFiles({path: this.path.join('/')}).then(res => {
-          this.files = res.data.files
-          this.path = res.data.path
-        })
-      },
-      updateHeaders() {
-        this.headers = {Authorization: getToken()}
-      },
-      submitLoginForm() {
-        console.log("---submitLoginForm--")
-        login(this.loginForm).then(res => {
-          Message({message: '登录成功', type: 'success'})
-          setToken(res.data.Authorization)
-          this.loginFormVisible = false
-          // 更新请求头内容
-          this.updateHeaders()
-          // 更新列表
-          this.showFiles()
-        })
-      },
-      uploadSuccess(response, file, fileList) {
-        console.log('---uploadSuccess---', response, file, fileList)
-        Message({message: '上传成功', type: 'success'})
-        this.fileList = fileList.filter((f) => {
-          return f.name !== file.name;
-        })
-        this.fileFormVisible = false
-      },
-      uploadError(err, file, fileList) {
-        console.log('---uploadError---', err, file, fileList)
-        Message({message: '上传失败', type: 'success'})
-        this.fileList = fileList.filter((f) => {
-          return f.name !== file.name;
-        })
-        this.fileFormVisible = false
-      },
-      createUploadRequest() {
-        const chunkUpload = async (options) => {
-          const client = this.$createTusClient(options.file,options.onProgress,this.tusConfig.chunkSize);
-          const fileid = await client.upload()
-          return renameFile(fileid,options.file.name);
-        }
-        return this.tusConfig.enable ? chunkUpload : undefined;
-      },
-      async loadTusConfig() {
-        const res = await getTusConfig()
-        this.tusConfig = res.data
-      },
-      downloadFile(filename) {
-        window.location.href = `/api/download?filename=${encodeURI(this.path.join('/') + '/' + filename)}&token=${getToken()}`
-      },
-      copyMsg(data, event) {
-        console.log(data)
-        console.log(event)
-        copyClipboard(data, event)
-      },
-      showMsgForm() {
-        this.msgFormVisible = true
-        this.msgForm = {message: ''}
-      },
-      submitMsgForm() {
-        this.msgFormVisible = false
-        uploadMsg(this.msgForm).then(res => {
-          Message({message: '发送成功', type: 'success'})
-          this.showFiles()
-        })
-      }
+      })
+    }
+  },
+  computed: {
+    isPC() {
+      return window.innerWidth > 500;
     },
-    computed: {
-      isPC() {
-        return window.innerWidth > 500;
-      },
-      listHeight() {
-        return window.innerHeight - 260;
-      }
-    },
-    components: {
-      FileIcon, SvgIcon, FileUpload
-    },
-  }
+    listHeight() {
+      return window.innerHeight - 260;
+    }
+  },
+  components: {
+    FileIcon, SvgIcon, FileUpload
+  },
+}
 </script>
 <style lang="scss">
-  @import '../assets/font/DancingScript.css';
+@import '../assets/font/DancingScript.css';
 
-  .pointer {
-    cursor: pointer;
-  }
+.pointer {
+  cursor: pointer;
+}
 
-  .body {
-    max-width: 750px;
-    margin: 0 auto;
-  }
+.body {
+  max-width: 750px;
+  margin: 0 auto;
+}
 
-  .header {
-    text-align: center;
-    margin-bottom: 16px;
-  }
+.header {
+  text-align: center;
+  margin-bottom: 16px;
+}
 
-  .header .overlay {
-    width: 100%;
-    margin: 0 auto;
-    height: 100%;
-    padding: 8px;
-    color: #FFF;
-  }
+.header .overlay {
+  width: 100%;
+  margin: 0 auto;
+  height: 100%;
+  padding: 8px;
+  color: #FFF;
+}
 
-  .file-desc {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
+.file-desc {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
 
-  .file {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
+.file {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
 
-  .filename {
-    margin-left: 10px;
-  }
+.filename {
+  margin-left: 10px;
+}
 
-  .username {
-    font-size: 12px;
-    margin-left: 12px;
-    color: #909399;
-  }
+.username {
+  font-size: 12px;
+  margin-left: 12px;
+  color: #909399;
+}
 
-  h1 {
-    font-family: 'DancingScript', cursive;
-    font-size: 60px;
-    margin-bottom: 15px;
-    margin-top: 8px;
-  }
+h1 {
+  font-family: 'DancingScript', cursive;
+  font-size: 60px;
+  margin-bottom: 15px;
+  margin-top: 8px;
+}
 
-  h3 {
-    font-family: 'Open Sans', sans-serif;
-    margin-bottom: 30px;
-    display: block;
-    font-size: 1em;
-    margin-block-start: 1em;
-    margin-block-end: 1em;
-    margin-inline-start: 0;
-    margin-inline-end: 0;
-    font-weight: bold;
-  }
+h3 {
+  font-family: 'Open Sans', sans-serif;
+  margin-bottom: 30px;
+  display: block;
+  font-size: 1em;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  font-weight: bold;
+}
 
-  .row-bg {
-    align-items: center;
-  }
+.row-bg {
+  align-items: center;
+}
 
-  .button-group {
-    margin-bottom: 32px;
-  }
+.button-group {
+  margin-bottom: 32px;
+}
 
-  .list-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
+.list-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
 
-  .file-list {
-    max-width: 750px;
-    width: 95%;
-    margin: 0 auto;
-  }
+.file-list {
+  max-width: 750px;
+  width: 95%;
+  margin: 0 auto;
+}
 
-  .dialog {
-    max-width: 700px;
-    width: 95%;
-  }
+.dialog {
+  max-width: 700px;
+  width: 95%;
+}
 
-  .cell {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-  }
+.cell {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
 </style>
 
 <style>
-  /** ------- pc端 --------- **/
-  @media only screen and (min-width: 500px) {
-    .el-upload-dragger .el-icon-upload {
-      font-size: 46px !important;
-      margin: 0 !important;
-    }
-
-    .el-upload-dragger {
-      height: 90px !important;
-      width: 500px !important;
-      margin-bottom: 16px;
-    }
+/** ------- pc端 --------- **/
+@media only screen and (min-width: 500px) {
+  .el-upload-dragger .el-icon-upload {
+    font-size: 46px !important;
+    margin: 0 !important;
   }
 
-  /** ------- 移动端 ---------- **/
-  @media only screen and (max-width: 500px) {
-    .el-upload-dragger .el-icon-upload {
-      font-size: 46px !important;
-      margin: 0 !important;
-    }
-
-    .el-upload-dragger {
-      height: 90px !important;
-      width: 300px !important;
-      margin-bottom: 16px;
-    }
+  .el-upload-dragger {
+    height: 90px !important;
+    width: 500px !important;
+    margin-bottom: 16px;
   }
+}
+
+/** ------- 移动端 ---------- **/
+@media only screen and (max-width: 500px) {
+  .el-upload-dragger .el-icon-upload {
+    font-size: 46px !important;
+    margin: 0 !important;
+  }
+
+  .el-upload-dragger {
+    height: 90px !important;
+    width: 300px !important;
+    margin-bottom: 16px;
+  }
+}
 
 </style>

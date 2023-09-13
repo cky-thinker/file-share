@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
+    id("com.yanzhenjie.andserver")
 }
 
 android {
@@ -36,6 +38,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    kotlin {
+        jvmToolchain(8)
+    }
     buildFeatures {
         compose = true
     }
@@ -45,6 +50,7 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/*"
         }
     }
 }
@@ -55,6 +61,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -74,15 +81,16 @@ dependencies {
 
     implementation("io.insert-koin:koin-android:3.1.2")
 
+    implementation("com.github.yizems.KUtil:comm:1.0.17")
+    implementation("com.github.yizems.KUtil:android-core:1.0.17")
+    implementation("com.github.yizems.KUtil:android-context:1.0.17")
 
-    val ktor_version = "2.3.4"
-    implementation("io.ktor:ktor-server-core:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
-    implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-forwarded-header-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-default-headers-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-host-common-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-resources:$ktor_version")
-    implementation("io.ktor:ktor-server-auto-head-response-jvm:$ktor_version")
+    implementation("com.yanzhenjie.andserver:api:2.1.12")
+    kapt("com.yanzhenjie.andserver:processor:2.1.12")
+
+    implementation("com.squareup.moshi:moshi-kotlin:1.13.0.14")
+    val moshiEx = "0.0.2"
+    implementation("com.github.yizems.MoshiEx:jobj:$moshiEx")
+    implementation("com.github.yizems.MoshiEx:moshi-android-ext:$moshiEx")
+    implementation("com.github.yizems.MoshiEx:moshi-ex:$moshiEx")
 }
