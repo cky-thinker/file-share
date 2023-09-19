@@ -29,14 +29,6 @@ export function uploadMsg(data) {
   })
 }
 
-export function renameFile(oldname,newname) {
-  return request({
-    url: '/renameFile',
-    method: 'post',
-    data: {oldname,newname}
-  })
-}
-
 /**
  * @returns { import('axios').AxiosPromise<{enable:boolean,chunkSize:number}>}
  */

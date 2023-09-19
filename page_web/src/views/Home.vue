@@ -96,7 +96,6 @@
           :on-error="uploadError"
           :file-list="fileList"
           :headers="headers"
-          :http-request="createUploadRequest()"
           :before-upload="loadTusConfig"
           multiple>
           <i class="el-icon-upload"></i>
@@ -138,7 +137,7 @@
 import FileIcon from "@/components/FileIcon";
 import SvgIcon from "@/components/SvgIcon";
 import FileUpload from "@/components/FileUpload";
-import {getTusConfig, listFiles, renameFile, uploadMsg} from "@/api/FileApi";
+import {getTusConfig, listFiles, uploadMsg} from "@/api/FileApi";
 import {login} from "@/api/UserApi";
 import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
 import {Message} from "element-ui";
@@ -235,14 +234,6 @@ export default {
           return f.name !== file.name;
         })
         this.fileFormVisible = false
-      },
-      createUploadRequest() {
-        const chunkUpload = async (options) => {
-          const client = this.$createTusClient(options.file,options.onProgress,this.tusConfig.chunkSize);
-          const fileid = await client.upload()
-          return renameFile(fileid,options.file.name);
-        }
-        return this.tusConfig.enable ? chunkUpload : undefined;
       },
       async loadTusConfig() {
         const res = await getTusConfig()
