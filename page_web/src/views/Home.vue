@@ -10,31 +10,38 @@
     <el-card class="file-list">
       <div slot="header" class="clearfix">
         <el-row class="row-bg">
-          <el-col :span="12">分享列表</el-col>
-          <el-col :span="6">
-            <el-button @click="fileFormVisible= true" size="mini">
-              <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
-              {{isPC ? "上传文件" : ""}}
+          <el-col :span="12">
+            <span style="margin-right: 20px">分享列表</span>
+            <el-button v-if="batchDownload" @click="fileFormVisible= true" size="mini">
+              <svg-icon name="批量下载" iconStyle="height: 1em; weight: 1em;"/>
+              {{ isPC ? "批量下载" : "" }}
             </el-button>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="4">
+            <el-button @click="fileFormVisible= true" size="mini">
+              <svg-icon name="发送文件" iconStyle="height: 1em; weight: 1em;"/>
+              {{ isPC ? "上传文件" : "" }}
+            </el-button>
+          </el-col>
+          <el-col :span="4">
             <el-button @click="showMsgForm" type="default" size="mini" title="分享一段文本">
               <svg-icon name="发送消息" iconStyle="height: 1em; weight: 1em;"/>
-              {{isPC ?  "上传文本" : ""}}
+              {{ isPC ? "上传文本" : "" }}
             </el-button>
           </el-col>
         </el-row>
       </div>
       <div style="padding-left: 16px; padding-right: 16px; margin-bottom: 8px;">
-        <el-breadcrumb separator="/">
+        <el-checkbox class="select-all-btn" @change="selectAll"></el-checkbox>
+        <el-breadcrumb class="header-breadcrumb" separator="/">
           <el-breadcrumb-item>
             <el-link :underline="false" @click="skipPath(0)">
               首页
             </el-link>
           </el-breadcrumb-item>
-          <el-breadcrumb-item v-for="(p, idx) in path">
+          <el-breadcrumb-item v-bind:key="idx" v-for="(p, idx) in path">
             <el-link :underline="false" @click="skipPath(idx + 1)">
-              {{p}}
+              {{ p }}
             </el-link>
           </el-breadcrumb-item>
         </el-breadcrumb>
@@ -46,6 +53,14 @@
           :data="files"
           row-key="id"
         >
+          <el-table-column width="30px" align="center">
+            <template slot-scope="scope">
+              <el-checkbox v-if="['directory', 'file'].includes(scope.row.type)"
+                           @change="onSelectHandler(scope.row.name)"
+                           :value="selectedFiles.has(scope.row.name)"
+                           :checked="selectedFiles.has(scope.row.name)"></el-checkbox>
+            </template>
+          </el-table-column>
           <el-table-column>
             <template slot-scope="scope">
               <div class="pointer file-desc" @click="handleItemClick(scope.row, $event)">
@@ -147,6 +162,8 @@ export default {
     name: 'HomeView',
     data() {
       return {
+        selectedFiles: new Set(),
+        batchDownload: false,
         // 文件表单
         fileFormVisible: false,
         fileForm: {},
@@ -181,6 +198,25 @@ export default {
       this.updateHeaders()
     },
     methods: {
+      selectAll(value) {
+        this.selectedFiles = new Set();
+        if (value) {
+          this.files.forEach(file => {
+            if (['directory', 'file'].includes(file.type)) {
+              this.selectedFiles.add(file.name);
+            }
+          })
+        }
+        this.batchDownload = this.selectedFiles.size > 0;
+      },
+      onSelectHandler(filename) {
+        if (this.selectedFiles.has(filename)) {
+          this.selectedFiles.delete(filename)
+        } else {
+          this.selectedFiles.add(filename)
+        }
+        this.batchDownload = this.selectedFiles.size > 0;
+      },
       handleItemClick(item, event) {
         if (item.type === 'directory') {
           this.openDirectory(item.name)
@@ -278,6 +314,17 @@ export default {
 
   .pointer {
     cursor: pointer;
+  }
+
+  .select-all-btn {
+    float: left;
+    margin-left: 10px;
+    margin-bottom: 4px;
+  }
+
+  .header-breadcrumb {
+    padding-top: 4px;
+    margin-left: 40px
   }
 
   .body {
