@@ -1,3 +1,7 @@
+let _setImmediate = setTimeout;
+process.once('loaded', function() {
+    global.setImmediate = _setImmediate;
+});
 const path = require('path')
 const fs = require("fs")
 

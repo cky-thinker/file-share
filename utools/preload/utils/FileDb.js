@@ -70,8 +70,9 @@ const addText = (text, username) => {
 }
 
 const removeFile = (file) => {
-    console.log("removeFile: " + file);
+    console.log("removeFile: " + file.name);
     removeFileToDb(file.name)
+    EventDispatcher.triggerEvent({type: 'fileDb.listChange'})
 }
 
 const listFiles = () => {

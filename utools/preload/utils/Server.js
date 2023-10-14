@@ -12,6 +12,7 @@ const Setting = require('./Setting')
 const EventDispatcher = require('./EventDispatcher')
 const FileDb = require('./FileDb')
 const FileUtil = require('./FileUtil')
+const ZipUtil = require('./ZipUtil')
 
 let session = new Set()
 
@@ -23,10 +24,10 @@ let status = StatusStop;
 
 
 function authFilter(req, res, next) {
-    console.log('authFilter', req)
+    // console.log('authFilter', req)
     // no auth
     if (!Setting.getAuthEnable()) {
-        console.log('no auth')
+        // console.log('no auth')
         next()
         return;
     }
@@ -54,7 +55,7 @@ function authFilter(req, res, next) {
  */
 function parsePath(filename) {
     if (!filename) {
-        return {finalPath: '', filePaths: []}
+        return {finalPath: '', filePaths: [], startPath: ''}
     }
     // 查询起始分享文件
     let filePaths = filename.split('/').filter(p => !!p && p !== '')
@@ -64,17 +65,17 @@ function parsePath(filename) {
         throw new Error("分享列表未找到该文件")
     }
     let filePath = startFile.path;
-    console.log('filePath', filePath)
-    console.log('filePaths', filePaths)
+    // console.log('filePath', filePath)
+    // console.log('filePaths', filePaths)
     // 拼接路径
     let dirname = path.dirname(filePath)
-    console.log('prefix', dirname)
+    // console.log('prefix', dirname)
     let fullPath = [...filePaths]
     fullPath.unshift(dirname)
-    console.log('fullPath', fullPath)
+    // console.log('fullPath', fullPath)
     let finalPath = fullPath.join(path.sep)
-    console.log('finalPath', finalPath)
-    return {finalPath, filePaths};
+    // console.log('finalPath', finalPath)
+    return {finalPath, filePaths, startPath};
 }
 
 /**
@@ -99,21 +100,27 @@ const initApp = () => {
     app.get('/api/files', function (req, res) {
         let path = req.query.path
         console.log('/api/files', path)
-        let finalPath, filePaths;
+        let sourceFilePath, filePaths;
         try {
-            let result = parsePath(path)
-            finalPath = result.finalPath
-            filePaths = result.filePaths
+            let parseResult = parsePath(path)
+            sourceFilePath = parseResult.finalPath
+            filePaths = parseResult.filePaths
+            if (sourceFilePath !== '' && !fs.existsSync(sourceFilePath)) {
+                console.log("文件在系统不存在，移除该记录", sourceFilePath)
+                FileDb.removeFile({name: parseResult.startPath})
+                res.sendStatus(404);
+                return;
+            }
         } catch (e) {
             res.json({code: 500, message: e.message});
             return;
         }
 
-        if (finalPath.length === 0) {
+        if (sourceFilePath.length === 0) {
             res.json({code: 200, data: {path: [], files: FileDb.listFiles()}});
             return;
         }
-        return res.json({code: 200, data: {path: filePaths, files: FileUtil.listFiles(finalPath)}});
+        return res.json({code: 200, data: {path: filePaths, files: FileUtil.listFiles(sourceFilePath)}});
     });
     // download
     app.get('/api/download', function (req, res) {
@@ -127,29 +134,54 @@ const initApp = () => {
         let filename = req.query.filename
         console.log('/api/download filename', filename)
 
-        let finalPath;
+        let sourceFilePath;
         try {
-            finalPath = parsePath(filename).finalPath
-            if (!finalPath) {
-                console.log("文件路径解析为空")
+            let parseResult = parsePath(filename)
+            sourceFilePath = parseResult.finalPath
+            if (!sourceFilePath) {
+                console.log("请求的文件在数据库不存在", filename)
                 res.sendStatus(400);
                 return;
             }
+            if (!fs.existsSync(sourceFilePath)) {
+                console.log("文件在系统不存在，移除该记录", sourceFilePath)
+                FileDb.removeFile({name: parseResult.filePaths[0]})
+                res.sendStatus(404);
+                return;
+            }
         } catch (e) {
+            console.log(e)
             res.sendStatus(404);
             return;
         }
-        console.log('finalPath', finalPath)
-        if (!fs.existsSync(finalPath)) {
-            res.sendStatus(404);
-        }
+        console.log('finalPath', sourceFilePath)
 
-        console.log("send file: " + finalPath);
-        res.download(finalPath, null, {dotfiles: 'allow'}, function (err) {
-            if (err) {
-                console.log(err);
-            }
-        })
+        if (fs.lstatSync(sourceFilePath).isDirectory()) {
+            console.log("send directory: " + sourceFilePath);
+            let fileName = FileUtil.parseFileName(sourceFilePath);
+            let destZipFile =  path.join(path.parse(sourceFilePath).dir, fileName) + ".zip"
+            ZipUtil.zipDirectory(sourceFilePath, destZipFile).then((event) => {
+                console.log(event)
+                let downloadName = FileUtil.parseFileName(destZipFile);
+                res.download(destZipFile, null, {dotfiles: 'allow', headers: {'download-filename': encodeURI(downloadName)}}, function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log("移除压缩包")
+                    fs.unlinkSync(destZipFile);
+                })
+            }).catch(error => {
+                console.log(error)
+            })
+        } else {
+            console.log("send file: " + sourceFilePath);
+            let downloadName = FileUtil.parseFileName(sourceFilePath);
+            res.download(sourceFilePath, null, {dotfiles: 'allow', headers: {'download-filename': encodeURI(downloadName)}}, function (err) {
+                if (err) {
+                    console.log(err);
+                }
+            })
+        }
     });
 
     app.post('/api/login', urlencodedParser, jsonParser, function (req, res) {

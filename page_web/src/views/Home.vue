@@ -63,7 +63,7 @@
           </el-table-column>
           <el-table-column>
             <template slot-scope="scope">
-              <div class="pointer file-desc" @click="handleItemClick(scope.row, $event)">
+              <div :class="`${scope.row.type === 'directory' ? 'pointer' : ''} file-desc`" @click="openDirectory(scope.row, $event)">
                 <div>
                   <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
                   <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
@@ -85,10 +85,10 @@
           <el-table-column width="70">
             <template slot-scope="scope">
               <el-button v-if="['file', 'directory'].includes(scope.row.type)"
-                         @click="handleItemClick(scope.row, $event)"
+                         @click="handleDownload(scope.row, $event)"
                          icon="el-icon-download"
                          size="mini" plain></el-button>
-              <el-button v-if="scope.row.type === 'text'" @click="handleItemClick(scope.row, $event)"
+              <el-button v-if="scope.row.type === 'text'" @click="handleDownload(scope.row, $event)"
                          icon="el-icon-document-copy"
                          size="mini" plain></el-button>
             </template>
@@ -152,6 +152,7 @@ import SvgIcon from "@/components/SvgIcon";
 import {getTusConfig, listFiles, uploadMsg} from "@/api/FileApi";
 import {login} from "@/api/UserApi";
 import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
+import {download} from "@/utils/download";
 import {Message} from "element-ui";
 import {copyClipboard} from '@/utils/clipboard'
 
@@ -210,7 +211,11 @@ export default {
       }
     },
     batchDownloadHandler() {
-
+      this.selectedFiles.forEach(file => {
+        if (['directory', 'file'].includes(file.type)) {
+          this.downloadFile(file.name)
+        }
+      })
     },
     selectAll(value) {
       this.selectedFiles = new Set();
@@ -231,21 +236,21 @@ export default {
       }
       this.batchDownload = this.selectedFiles.size > 0;
     },
-    handleItemClick(item, event) {
-      if (item.type === 'directory') {
-        this.openDirectory(item.name)
-      } else if (item.type === 'file') {
+    handleDownload(item, event) {
+      if (['directory', 'file'].includes(item.type)) {
         this.downloadFile(item.name)
       } else if (item.type === 'text') {
         this.copyMsg(item.content, event)
       }
     },
-    openDirectory(name) {
+    openDirectory(item) {
+      if (item.type !== 'directory') {
+        return;
+      }
+      let name = item.name;
       this.selectedFiles = new Set(); // 切换路径后,已选择文件清空
       this.path.push(name)
       this.showFiles()
-      // 路由更新
-      this.$router.push(this.path.join('/'))
     },
     skipPath(idx) {
       this.path = this.path.slice(0, idx);
@@ -255,6 +260,16 @@ export default {
       listFiles({path: this.path.join('/')}).then(res => {
         this.files = res.data.files
         this.path = res.data.path
+        // 更新路由
+        if (this.path.length > 0) {
+          console.log("this.path", this.path)
+          this.$router.push(this.path.join('/'))
+        }
+      }).catch(error => {
+        console.log("请求失败", error)
+        this.path = []
+        // 返回首页
+        window.history.go(-(window.history.length - 1));
       })
     },
     updateHeaders() {
@@ -293,8 +308,7 @@ export default {
       this.tusConfig = res.data
     },
     downloadFile(filename) {
-      let url = `/api/download?filename=${encodeURIComponent(this.path.join('/') + '/' + filename)}&token=${getToken()}`
-      window.location.href = url
+      download(this.path.join('/') + '/' + filename)
     },
     copyMsg(data, event) {
       console.log(data)
