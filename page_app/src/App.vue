@@ -1,6 +1,43 @@
 <template>
   <div class="body">
     <div class="container">
+      <el-button class="setting-btn" @click="onHandlerSetting()" type="default" size="mini"
+                 icon="el-icon-setting" title="设置">设置
+      </el-button>
+      <el-dialog v-model="settingFormVisible" title="设置" style="width: 70%;">
+        <el-row class="row-bg">
+          <el-col :span="24">
+            <el-form ref="form" :model="settingForm" label-width="80px">
+              <el-form-item label="上传路径">
+                <el-input v-model="settingForm.uploadPath"></el-input>
+              </el-form-item>
+              <el-form-item label="服务端口">
+                <el-input v-model="settingForm.port"></el-input>
+              </el-form-item>
+              <el-form-item label="密码认证">
+                <el-switch v-model="settingForm.authEnable">
+                </el-switch>
+              </el-form-item>
+              <el-form-item v-if="settingForm.authEnable" label="校验密码">
+                <el-input v-model="settingForm.password" show-password></el-input>
+              </el-form-item>
+              <el-form-item label="启用续传">
+                <el-switch v-model="settingForm.tusEnable">
+                </el-switch>
+              </el-form-item>
+              <el-form-item v-if="settingForm.tusEnable" label="分片大小">
+                <el-input v-model="settingForm.chunkSize">
+                  <template #append><span>M</span></template>
+                </el-input>
+              </el-form-item>
+            </el-form>
+          </el-col>
+        </el-row>
+        <template #footer>
+          <el-button type="primary" @click="updateSettingsForm">更新</el-button>
+          <el-button type="primary" @click="closeSettingsForm">取消</el-button>
+        </template>
+      </el-dialog>
       <div :style="serverStatus === 'start' ? '' : 'display:none'">
         <el-space size="large" direction="vertical">
           <el-card class="box-card">
@@ -50,41 +87,6 @@
                 </template>
               </el-dialog>
 
-              <el-dialog v-model="settingFormVisible" title="设置" style="width: 70%;">
-                <el-row class="row-bg">
-                  <el-col :span="24">
-                    <el-form ref="form" :model="settingForm" label-width="80px">
-                      <el-form-item label="上传路径">
-                        <el-input v-model="settingForm.uploadPath"></el-input>
-                      </el-form-item>
-                      <el-form-item label="服务端口">
-                        <el-input v-model="settingForm.port"></el-input>
-                      </el-form-item>
-                      <el-form-item label="密码认证">
-                        <el-switch v-model="settingForm.authEnable">
-                        </el-switch>
-                      </el-form-item>
-                      <el-form-item v-if="settingForm.authEnable" label="校验密码">
-                        <el-input v-model="settingForm.password" show-password></el-input>
-                      </el-form-item>
-                      <el-form-item label="启用续传">
-                        <el-switch v-model="settingForm.tusEnable">
-                        </el-switch>
-                      </el-form-item>
-                      <el-form-item v-if="settingForm.tusEnable" label="分片大小">
-                        <el-input v-model="settingForm.chunkSize">
-                          <template #append><span>M</span></template>
-                        </el-input>
-                      </el-form-item>
-                    </el-form>
-                  </el-col>
-                </el-row>
-                <template #footer>
-                  <el-button type="primary" @click="updateSettingsForm">更新</el-button>
-                  <el-button type="primary" @click="closeSettingsForm">取消</el-button>
-                </template>
-              </el-dialog>
-
               <div class="card-header">
                 <el-row class="row-bg">
                   <el-col :span="12">分享列表</el-col>
@@ -103,9 +105,7 @@
                     </el-popconfirm>
                   </el-col>
                   <el-col :span="4">
-                    <el-button @click="onHandlerSetting()" type="default" size="mini"
-                               icon="el-icon-setting" title="设置">设置
-                    </el-button>
+
                   </el-col>
                 </el-row>
               </div>
@@ -364,6 +364,12 @@ body {
   max-width: 700px;
   margin: 0 auto;
   padding-top: 18px;
+}
+
+.setting-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
 }
 
 .upload-box {
