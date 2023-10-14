@@ -57,8 +57,8 @@
             <template slot-scope="scope">
               <el-checkbox v-if="['directory', 'file'].includes(scope.row.type)"
                            @change="onSelectHandler(scope.row.name)"
-                           :value="selectedFiles.has(scope.row.name)"
-                           :checked="selectedFiles.has(scope.row.name)"></el-checkbox>
+                           :value="scope.row.selected"
+                           :checked="scope.row.selected"></el-checkbox>
             </template>
           </el-table-column>
           <el-table-column>
@@ -161,7 +161,7 @@ export default {
   data() {
     return {
       title: 'File Share',
-      selectedFiles: new Set(),
+      selectedFileNames: new Set(),
       batchDownload: false,
       // 文件表单
       fileFormVisible: false,
@@ -190,7 +190,7 @@ export default {
     this.refreshPath();
     this.showFiles()
     // 3s更新一下列表
-    setInterval(this.showFiles, 3000)
+    // setInterval(this.showFiles, 3000)
     addAuthInvalidCallback(() => {
       this.loginFormVisible = true;
     })
@@ -211,30 +211,30 @@ export default {
       }
     },
     batchDownloadHandler() {
-      this.selectedFiles.forEach(file => {
-        if (['directory', 'file'].includes(file.type)) {
-          this.downloadFile(file.name)
-        }
+      this.selectedFileNames.forEach(filename => {
+        this.downloadFile(filename)
       })
     },
     selectAll(value) {
-      this.selectedFiles = new Set();
+      this.selectedFileNames = new Set();
       if (value) {
         this.files.forEach(file => {
           if (['directory', 'file'].includes(file.type)) {
-            this.selectedFiles.add(file.name);
+            this.selectedFileNames.add(file.name);
           }
         })
       }
-      this.batchDownload = this.selectedFiles.size > 0;
+      this.batchDownload = this.selectedFileNames.size > 0;
+      this.files = [...this.markFileSelected(this.files)]
     },
     onSelectHandler(filename) {
-      if (this.selectedFiles.has(filename)) {
-        this.selectedFiles.delete(filename)
+      if (this.selectedFileNames.has(filename)) {
+        this.selectedFileNames.delete(filename)
       } else {
-        this.selectedFiles.add(filename)
+        this.selectedFileNames.add(filename)
       }
-      this.batchDownload = this.selectedFiles.size > 0;
+      this.batchDownload = this.selectedFileNames.size > 0;
+      this.files = [...this.markFileSelected(this.files)]
     },
     handleDownload(item, event) {
       if (['directory', 'file'].includes(item.type)) {
@@ -248,7 +248,7 @@ export default {
         return;
       }
       let name = item.name;
-      this.selectedFiles = new Set(); // 切换路径后,已选择文件清空
+      this.selectedFileNames = new Set(); // 切换路径后,已选择文件清空
       this.path.push(name)
       this.showFiles()
     },
@@ -256,9 +256,15 @@ export default {
       this.path = this.path.slice(0, idx);
       this.showFiles()
     },
+    markFileSelected(files) {
+      files.forEach(file => {
+        file.selected = this.selectedFileNames.has(file.name)
+      })
+      return files;
+    },
     showFiles() {
       listFiles({path: this.path.join('/')}).then(res => {
-        this.files = res.data.files
+        this.files = this.markFileSelected(res.data.files)
         this.path = res.data.path
         // 更新路由
         if (this.path.length > 0) {
