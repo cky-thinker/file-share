@@ -2,7 +2,7 @@ const uuid = require('uuid');
 
 let subscribers = [];
 
-function registry(request, response) {
+function registry(req, res) {
     const subscriberId = uuid.v4();
     console.log(`${subscriberId} Connection connected`);
     const headers = {
@@ -10,13 +10,13 @@ function registry(request, response) {
         'Connection': 'keep-alive',
         'Cache-Control': 'no-cache'
     };
-    response.writeHead(200, headers);
-    const data = JSON.stringify({type: 'registry', data: {id: subscriberId}});
-    response.write(data);
+    res.writeHead(200, headers);
+    const value = JSON.stringify({type: 'registry', data: {id: subscriberId}});
+    res.write(`data: ${value}\n\n`);
 
-    subscribers.push({id: subscriberId, response});
+    subscribers.push({id: subscriberId, res: res});
 
-    request.on('close', () => {
+    req.on('close', () => {
         console.log(`${subscriberId} Connection closed`);
         subscribers = subscribers.filter(sub => sub.id !== subscriberId);
     });
@@ -24,7 +24,8 @@ function registry(request, response) {
 
 async function sendEvent(data) {
     subscribers.forEach(subscriber => {
-        subscriber.response.write(JSON.stringify(data))
+        const value = JSON.stringify(data);
+        subscriber.res.write(`data: ${value}\n\n`);
     });
 }
 
