@@ -155,6 +155,7 @@ import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
 import {download} from "@/utils/download";
 import {Message} from "element-ui";
 import {copyClipboard} from '@/utils/clipboard'
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 export default {
   name: 'HomeView',
@@ -196,6 +197,14 @@ export default {
     })
     // 更新请求头内容
     this.updateHeaders()
+    fetchEventSource("/registrySSE", {
+      onmessage() {
+        console.log("update file list")
+        this.showFiles()
+      }
+    }).then((res) => {
+      console.log("registrySSE success", res)
+    })
   },
   watch: {
     $route: function () {

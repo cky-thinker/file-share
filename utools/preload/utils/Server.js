@@ -13,6 +13,7 @@ const EventDispatcher = require('./EventDispatcher')
 const FileDb = require('./FileDb')
 const FileUtil = require('./FileUtil')
 const ZipUtil = require('./ZipUtil')
+const SseUtil = require('./SseUtil')
 
 let session = new Set()
 
@@ -231,6 +232,16 @@ const initApp = () => {
         }
         FileDb.addText(text, sourceip)
         res.json({code: 200, message: '添加成功'})
+    })
+
+    // 注册SSE事件
+    app.get('/registrySSE', SseUtil.registry);
+    EventDispatcher.registryEventListener('fileDb.listChange', () => {
+        SseUtil.sendEvent({type: 'fileDb.listChange'}).then(() => {
+            console.log("send fileDb.listChange event")
+        }).catch(error => {
+            console.log("send fileDb.listChange error", error)
+        })
     })
 
     app.use((req, res, next) => {

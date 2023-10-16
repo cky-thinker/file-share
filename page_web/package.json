@@ -10,6 +10,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "@microsoft/fetch-event-source": "^2.0.1",
     "axios": "^0.27.2",
     "clipboard": "^2.0.8",
     "core-js": "^3.8.3",
