@@ -235,12 +235,10 @@ const initApp = () => {
     })
 
     // 注册SSE事件
-    app.get('/registrySSE', SseUtil.registry);
+    app.get('/api/registrySSE', SseUtil.registry);
     EventDispatcher.registryEventListener('fileDb.listChange', () => {
         SseUtil.sendEvent({type: 'fileDb.listChange'}).then(() => {
             console.log("send fileDb.listChange event")
-        }).catch(error => {
-            console.log("send fileDb.listChange error", error)
         })
     })
 

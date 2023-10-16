@@ -196,10 +196,12 @@ export default {
     // 更新请求头内容
     this.updateHeaders()
     if(EventSource) {
-      let sse = new EventSource("/registrySSE")
-      sse.onmessage = function(event) {
+      let sse = new EventSource("/api/registrySSE")
+      sse.onmessage = (event) => {
         console.log("update file list", event)
-        this.showFiles()
+        if (JSON.parse(event.data).type === 'fileDb.listChange') {
+          this.showFiles()
+        }
       };
     } else {
       setInterval(this.showFiles, 3000)
