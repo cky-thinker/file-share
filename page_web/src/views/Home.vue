@@ -155,7 +155,6 @@ import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
 import {download} from "@/utils/download";
 import {Message} from "element-ui";
 import {copyClipboard} from '@/utils/clipboard'
-import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 export default {
   name: 'HomeView',
@@ -191,20 +190,20 @@ export default {
     this.refreshPath();
     this.showFiles()
     // 3s更新一下列表
-    // setInterval(this.showFiles, 3000)
     addAuthInvalidCallback(() => {
       this.loginFormVisible = true;
     })
     // 更新请求头内容
     this.updateHeaders()
-    fetchEventSource("/registrySSE", {
-      onmessage() {
-        console.log("update file list")
+    if(EventSource) {
+      let sse = new EventSource("/registrySSE")
+      sse.onmessage = function(event) {
+        console.log("update file list", event)
         this.showFiles()
-      }
-    }).then((res) => {
-      console.log("registrySSE success", res)
-    })
+      };
+    } else {
+      setInterval(this.showFiles, 3000)
+    }
   },
   watch: {
     $route: function () {
