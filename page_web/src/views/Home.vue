@@ -63,7 +63,8 @@
           </el-table-column>
           <el-table-column>
             <template slot-scope="scope">
-              <div :class="`${scope.row.type === 'directory' ? 'pointer' : ''} file-desc`" @click="openDirectory(scope.row, $event)">
+              <div :class="`${scope.row.type === 'directory' ? 'pointer' : ''} file-desc`"
+                   @click="openDirectory(scope.row, $event)">
                 <div>
                   <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
                   <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
@@ -147,353 +148,367 @@
 </template>
 
 <script>
-import FileIcon from "@/components/FileIcon";
-import SvgIcon from "@/components/SvgIcon";
-import {getTusConfig, listFiles, uploadMsg} from "@/api/FileApi";
-import {login} from "@/api/UserApi";
-import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
-import {download} from "@/utils/download";
-import {Message} from "element-ui";
-import {copyClipboard} from '@/utils/clipboard'
+  import FileIcon from "@/components/FileIcon";
+  import SvgIcon from "@/components/SvgIcon";
+  import {getTusConfig, listFiles, uploadMsg} from "@/api/FileApi";
+  import {login} from "@/api/UserApi";
+  import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
+  import {Message, MessageBox} from "element-ui";
+  import {copyClipboard} from '@/utils/clipboard'
 
-export default {
-  name: 'HomeView',
-  data() {
-    return {
-      title: 'File Share',
-      selectedFileNames: new Set(),
-      batchDownload: false,
-      // 文件表单
-      fileFormVisible: false,
-      fileForm: {},
-      fileList: [],
-      // 消息表单
-      msgFormVisible: false,
-      msgForm: {
-        message: ''
-      },
-      // 登录表单
-      loginFormVisible: false,
-      loginForm: {
-        password: ''
-      },
-      // 共享文件列表
-      path: [],
-      files: [],
-      headers: {
-        Authorization: ''
-      },
-      tusConfig: {},
-    }
-  },
-  mounted() {
-    this.refreshPath();
-    this.showFiles()
-    // 3s更新一下列表
-    addAuthInvalidCallback(() => {
-      this.loginFormVisible = true;
-    })
-    // 更新请求头内容
-    this.updateHeaders()
-    if(EventSource) {
-      let sse = new EventSource("/api/registrySSE")
-      sse.onmessage = (event) => {
-        console.log("update file list", event)
-        if (JSON.parse(event.data).type === 'fileDb.listChange') {
-          this.showFiles()
-        }
-      };
-    } else {
-      setInterval(this.showFiles, 3000)
-    }
-  },
-  watch: {
-    $route: function () {
-      this.refreshPath();
-      this.showFiles();
-    }
-  },
-  methods: {
-    refreshPath() {
-      let pathUrl = window.location.pathname;
-      if (pathUrl) {
-        this.path = pathUrl.split("/").filter(word => word !== "").map(word => decodeURI(word));
+  export default {
+    name: 'HomeView',
+    data() {
+      return {
+        title: 'File Share',
+        selectedFileNames: new Set(),
+        batchDownload: false,
+        // 文件表单
+        fileFormVisible: false,
+        fileForm: {},
+        fileList: [],
+        // 消息表单
+        msgFormVisible: false,
+        msgForm: {
+          message: ''
+        },
+        // 登录表单
+        loginFormVisible: false,
+        loginForm: {
+          password: ''
+        },
+        // 共享文件列表
+        path: [],
+        files: [],
+        headers: {
+          Authorization: ''
+        },
+        tusConfig: {},
       }
     },
-    batchDownloadHandler() {
-      this.selectedFileNames.forEach(filename => {
-        this.downloadFile(filename)
+    mounted() {
+      this.refreshPath();
+      this.showFiles()
+      // 3s更新一下列表
+      addAuthInvalidCallback(() => {
+        this.loginFormVisible = true;
       })
-    },
-    selectAll(value) {
-      this.selectedFileNames = new Set();
-      if (value) {
-        this.files.forEach(file => {
-          if (['directory', 'file'].includes(file.type)) {
-            this.selectedFileNames.add(file.name);
+      // 更新请求头内容
+      this.updateHeaders()
+      if (EventSource) {
+        let sse = new EventSource("/api/registrySSE")
+        sse.onmessage = (event) => {
+          console.log("update file list", event)
+          if (JSON.parse(event.data).type === 'fileDb.listChange') {
+            this.showFiles()
           }
+        };
+      } else {
+        setInterval(this.showFiles, 3000)
+      }
+    },
+    watch: {
+      $route: function () {
+        this.refreshPath();
+        this.showFiles();
+      }
+    },
+    methods: {
+      refreshPath() {
+        let pathUrl = window.location.pathname;
+        if (pathUrl) {
+          this.path = pathUrl.split("/").filter(word => word !== "").map(word => decodeURI(word));
+        }
+      },
+      batchDownloadHandler() {
+        this.selectedFileNames.forEach(filename => {
+          this.downloadFile(filename)
+        })
+      },
+      selectAll(value) {
+        this.selectedFileNames = new Set();
+        if (value) {
+          this.files.forEach(file => {
+            if (['directory', 'file'].includes(file.type)) {
+              this.selectedFileNames.add(file.name);
+            }
+          })
+        }
+        this.batchDownload = this.selectedFileNames.size > 0;
+        this.files = [...this.markFileSelected(this.files)]
+      },
+      onSelectHandler(filename) {
+        if (this.selectedFileNames.has(filename)) {
+          this.selectedFileNames.delete(filename)
+        } else {
+          this.selectedFileNames.add(filename)
+        }
+        this.batchDownload = this.selectedFileNames.size > 0;
+        this.files = [...this.markFileSelected(this.files)]
+      },
+      handleDownload(item, event) {
+        if (['directory', 'file'].includes(item.type)) {
+          if ('directory' === item.type) {
+            MessageBox.confirm('下载文件夹时, 如果文件夹过大，可能会造成压缩超时或硬盘空间不足，是否继续?', '注意', {
+              confirmButtonText: '继续',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              this.downloadFile(item.name)
+            });
+          } else {
+            this.downloadFile(item.name)
+          }
+        } else if (item.type === 'text') {
+          this.copyMsg(item.content, event)
+        }
+      },
+      openDirectory(item) {
+        if (item.type !== 'directory') {
+          return;
+        }
+        let name = item.name;
+        this.selectedFileNames = new Set(); // 切换路径后,已选择文件清空
+        this.path.push(name)
+        this.showFiles()
+      },
+      skipPath(idx) {
+        this.path = this.path.slice(0, idx);
+        this.showFiles()
+      },
+      markFileSelected(files) {
+        files.forEach(file => {
+          file.selected = this.selectedFileNames.has(file.name)
+        })
+        return files;
+      },
+      showFiles() {
+        listFiles({path: this.path.join('/')}).then(res => {
+          this.files = this.markFileSelected(res.data.files)
+          this.path = res.data.path
+          // 更新路由
+          if (this.path.length > 0) {
+            console.log("this.path", this.path)
+            this.$router.push(this.path.join('/'))
+          }
+        }).catch(error => {
+          console.log("请求失败", error)
+          this.path = []
+          // 返回首页
+          window.history.go(-(window.history.length - 1));
+        })
+      },
+      updateHeaders() {
+        this.headers = {Authorization: getToken()}
+      },
+      submitLoginForm() {
+        console.log("---submitLoginForm--")
+        login(this.loginForm).then(res => {
+          Message({message: '登录成功', type: 'success'})
+          setToken(res.data.Authorization)
+          this.loginFormVisible = false
+          // 更新请求头内容
+          this.updateHeaders()
+          // 更新列表
+          this.showFiles()
+        })
+      },
+      uploadSuccess(response, file, fileList) {
+        console.log('---uploadSuccess---', response, file, fileList)
+        Message({message: '上传成功', type: 'success'})
+        this.fileList = fileList.filter((f) => {
+          return f.name !== file.name;
+        })
+        this.fileFormVisible = false
+      },
+      uploadError(err, file, fileList) {
+        console.log('---uploadError---', err, file, fileList)
+        Message({message: '上传失败', type: 'success'})
+        this.fileList = fileList.filter((f) => {
+          return f.name !== file.name;
+        })
+        this.fileFormVisible = false
+      },
+      async loadTusConfig() {
+        const res = await getTusConfig()
+        this.tusConfig = res.data
+      },
+      downloadFile(filename) {
+        let name = encodeURIComponent(filename);
+        let a = document.createElement('a');
+        a.href = `/api/download?filename=${name}&token=${getToken()}&timestamp=${new Date().getTime()}`;
+        a.download = name;
+        a.click()
+        a.remove();
+      },
+      copyMsg(data, event) {
+        console.log(data)
+        console.log(event)
+        copyClipboard(data, event)
+      },
+      showMsgForm() {
+        this.msgFormVisible = true
+        this.msgForm = {message: ''}
+      },
+      submitMsgForm() {
+        this.msgFormVisible = false
+        uploadMsg(this.msgForm).then(() => {
+          Message({message: '发送成功', type: 'success'})
+          this.showFiles()
         })
       }
-      this.batchDownload = this.selectedFileNames.size > 0;
-      this.files = [...this.markFileSelected(this.files)]
     },
-    onSelectHandler(filename) {
-      if (this.selectedFileNames.has(filename)) {
-        this.selectedFileNames.delete(filename)
-      } else {
-        this.selectedFileNames.add(filename)
-      }
-      this.batchDownload = this.selectedFileNames.size > 0;
-      this.files = [...this.markFileSelected(this.files)]
-    },
-    handleDownload(item, event) {
-      if (['directory', 'file'].includes(item.type)) {
-        this.downloadFile(item.name)
-      } else if (item.type === 'text') {
-        this.copyMsg(item.content, event)
+    computed: {
+      isPC() {
+        return window.innerWidth > 500;
+      },
+      listHeight() {
+        return window.innerHeight - 260;
       }
     },
-    openDirectory(item) {
-      if (item.type !== 'directory') {
-        return;
-      }
-      let name = item.name;
-      this.selectedFileNames = new Set(); // 切换路径后,已选择文件清空
-      this.path.push(name)
-      this.showFiles()
+    components: {
+      FileIcon, SvgIcon
     },
-    skipPath(idx) {
-      this.path = this.path.slice(0, idx);
-      this.showFiles()
-    },
-    markFileSelected(files) {
-      files.forEach(file => {
-        file.selected = this.selectedFileNames.has(file.name)
-      })
-      return files;
-    },
-    showFiles() {
-      listFiles({path: this.path.join('/')}).then(res => {
-        this.files = this.markFileSelected(res.data.files)
-        this.path = res.data.path
-        // 更新路由
-        if (this.path.length > 0) {
-          console.log("this.path", this.path)
-          this.$router.push(this.path.join('/'))
-        }
-      }).catch(error => {
-        console.log("请求失败", error)
-        this.path = []
-        // 返回首页
-        window.history.go(-(window.history.length - 1));
-      })
-    },
-    updateHeaders() {
-      this.headers = {Authorization: getToken()}
-    },
-    submitLoginForm() {
-      console.log("---submitLoginForm--")
-      login(this.loginForm).then(res => {
-        Message({message: '登录成功', type: 'success'})
-        setToken(res.data.Authorization)
-        this.loginFormVisible = false
-        // 更新请求头内容
-        this.updateHeaders()
-        // 更新列表
-        this.showFiles()
-      })
-    },
-    uploadSuccess(response, file, fileList) {
-      console.log('---uploadSuccess---', response, file, fileList)
-      Message({message: '上传成功', type: 'success'})
-      this.fileList = fileList.filter((f) => {
-        return f.name !== file.name;
-      })
-      this.fileFormVisible = false
-    },
-    uploadError(err, file, fileList) {
-      console.log('---uploadError---', err, file, fileList)
-      Message({message: '上传失败', type: 'success'})
-      this.fileList = fileList.filter((f) => {
-        return f.name !== file.name;
-      })
-      this.fileFormVisible = false
-    },
-    async loadTusConfig() {
-      const res = await getTusConfig()
-      this.tusConfig = res.data
-    },
-    downloadFile(filename) {
-      download(this.path.join('/') + '/' + filename)
-    },
-    copyMsg(data, event) {
-      console.log(data)
-      console.log(event)
-      copyClipboard(data, event)
-    },
-    showMsgForm() {
-      this.msgFormVisible = true
-      this.msgForm = {message: ''}
-    },
-    submitMsgForm() {
-      this.msgFormVisible = false
-      uploadMsg(this.msgForm).then(() => {
-        Message({message: '发送成功', type: 'success'})
-        this.showFiles()
-      })
-    }
-  },
-  computed: {
-    isPC() {
-      return window.innerWidth > 500;
-    },
-    listHeight() {
-      return window.innerHeight - 260;
-    }
-  },
-  components: {
-    FileIcon, SvgIcon
-  },
-}
+  }
 </script>
 <style lang="scss">
-@import '../assets/font/DancingScript.css';
+  @import '../assets/font/DancingScript.css';
 
-.pointer {
-  cursor: pointer;
-}
+  .pointer {
+    cursor: pointer;
+  }
 
-.select-all-btn {
-  float: left;
-  margin-left: 10px;
-  margin-bottom: 4px;
-}
+  .select-all-btn {
+    float: left;
+    margin-left: 10px;
+    margin-bottom: 4px;
+  }
 
-.header-breadcrumb {
-  padding-top: 4px;
-  margin-left: 40px
-}
+  .header-breadcrumb {
+    padding-top: 4px;
+    margin-left: 40px
+  }
 
-.body {
-  max-width: 750px;
-  margin: 0 auto;
-}
+  .body {
+    max-width: 750px;
+    margin: 0 auto;
+  }
 
-.header {
-  text-align: center;
-  margin-bottom: 16px;
-}
+  .header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
 
-.header .overlay {
-  width: 100%;
-  margin: 0 auto;
-  height: 100%;
-  padding: 8px;
-  color: #FFF;
-}
+  .header .overlay {
+    width: 100%;
+    margin: 0 auto;
+    height: 100%;
+    padding: 8px;
+    color: #FFF;
+  }
 
-.file-desc {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
+  .file-desc {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
 
-.file {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
+  .file {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
 
-.filename {
-  margin-left: 10px;
-}
+  .filename {
+    margin-left: 10px;
+  }
 
-.username {
-  font-size: 12px;
-  margin-left: 12px;
-  color: #909399;
-}
+  .username {
+    font-size: 12px;
+    margin-left: 12px;
+    color: #909399;
+  }
 
-h1 {
-  font-family: 'DancingScript', cursive;
-  font-size: 60px;
-  margin-bottom: 15px;
-  margin-top: 8px;
-}
+  h1 {
+    font-family: 'DancingScript', cursive;
+    font-size: 60px;
+    margin-bottom: 15px;
+    margin-top: 8px;
+  }
 
-h3 {
-  font-family: 'Open Sans', sans-serif;
-  margin-bottom: 30px;
-  display: block;
-  font-size: 1em;
-  margin-block-start: 1em;
-  margin-block-end: 1em;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-  font-weight: bold;
-}
+  h3 {
+    font-family: 'Open Sans', sans-serif;
+    margin-bottom: 30px;
+    display: block;
+    font-size: 1em;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+    font-weight: bold;
+  }
 
-.row-bg {
-  align-items: center;
-}
+  .row-bg {
+    align-items: center;
+  }
 
-.button-group {
-  margin-bottom: 32px;
-}
+  .button-group {
+    margin-bottom: 32px;
+  }
 
-.list-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
+  .list-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
 
-.file-list {
-  max-width: 750px;
-  width: 95%;
-  margin: 0 auto;
-}
+  .file-list {
+    max-width: 750px;
+    width: 95%;
+    margin: 0 auto;
+  }
 
-.dialog {
-  max-width: 700px;
-  width: 95%;
-}
+  .dialog {
+    max-width: 700px;
+    width: 95%;
+  }
 
-.cell {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
+  .cell {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
 </style>
 
 <style>
-/** ------- pc端 --------- **/
-@media only screen and (min-width: 500px) {
-  .el-upload-dragger .el-icon-upload {
-    font-size: 46px !important;
-    margin: 0 !important;
+  /** ------- pc端 --------- **/
+  @media only screen and (min-width: 500px) {
+    .el-upload-dragger .el-icon-upload {
+      font-size: 46px !important;
+      margin: 0 !important;
+    }
+
+    .el-upload-dragger {
+      height: 90px !important;
+      width: 500px !important;
+      margin-bottom: 16px;
+    }
   }
 
-  .el-upload-dragger {
-    height: 90px !important;
-    width: 500px !important;
-    margin-bottom: 16px;
-  }
-}
+  /** ------- 移动端 ---------- **/
+  @media only screen and (max-width: 500px) {
+    .el-upload-dragger .el-icon-upload {
+      font-size: 46px !important;
+      margin: 0 !important;
+    }
 
-/** ------- 移动端 ---------- **/
-@media only screen and (max-width: 500px) {
-  .el-upload-dragger .el-icon-upload {
-    font-size: 46px !important;
-    margin: 0 !important;
+    .el-upload-dragger {
+      height: 90px !important;
+      width: 300px !important;
+      margin-bottom: 16px;
+    }
   }
-
-  .el-upload-dragger {
-    height: 90px !important;
-    width: 300px !important;
-    margin-bottom: 16px;
-  }
-}
 
 </style>
