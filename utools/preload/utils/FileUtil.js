@@ -1,12 +1,13 @@
 const path = require('path')
 const fs = require('fs');
+const os = require("os");
 const openExplorer = require('open-file-explorer');
 
 const DEFAULT_HANDLER = (err) => console.log(err)
 
 const openFile = (filePath, errorHandler = DEFAULT_HANDLER) => {
     let fileDir = filePath;
-    // Èç¹ûÂ·¾¶ÊÇÎÄ¼þ£¬´ò¿ªÎÄ¼þËùÔÚÎÄ¼þ¼Ð
+    // ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
     if (!fs.lstatSync(filePath).isDirectory()) {
         fileDir = path.dirname(filePath)
     }
@@ -47,10 +48,10 @@ const parseFileName = (filePath) => {
     return words.length > 0 ? words[words.length - 1] : "";
 }
 
-const getAllFiles = function(dirPath, arrayOfFiles) {
+const getAllFiles = function (dirPath, arrayOfFiles) {
     files = fs.readdirSync(dirPath)
     arrayOfFiles = arrayOfFiles || []
-    files.forEach(function(file) {
+    files.forEach(function (file) {
         if (fs.statSync(dirPath + "/" + file).isDirectory()) {
             arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles)
         } else {
@@ -60,17 +61,17 @@ const getAllFiles = function(dirPath, arrayOfFiles) {
     return arrayOfFiles
 }
 
-const getTotalSize = function(directoryPath) {
+const getTotalSize = function (directoryPath) {
     const arrayOfFiles = getAllFiles(directoryPath)
     let totalSize = 0
-    arrayOfFiles.forEach(function(filePath) {
+    arrayOfFiles.forEach(function (filePath) {
         totalSize += fs.statSync(filePath).size
     })
     return totalSize
 }
 
 
-const convertBytes = function(bytes) {
+const convertBytes = function (bytes) {
     const sizes = ["Bytes", "KB", "MB", "GB", "TB"]
     if (bytes === 0) {
         return "n/a"
@@ -82,8 +83,43 @@ const convertBytes = function(bytes) {
     return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i]
 }
 
-const getTotalSizeReadable = function(directoryPath) {
+const getTotalSizeReadable = function (directoryPath) {
     return convertBytes(getTotalSize(directoryPath))
+}
+
+const getTempFilePath = () => {
+    let osTmpDir = os.tmpdir();
+    let fsTmpDir = path.join(osTmpDir, "file_share")
+    if (!fs.existsSync(fsTmpDir)) {
+        fs.mkdirSync(fsTmpDir)
+    }
+    return fsTmpDir;
+}
+
+// 30åˆ†é’ŸåŽåˆ é™¤ä¸´æ—¶æ–‡ä»¶
+const clearTempFileDelay = (destZipFile) => {
+    setTimeout(() => {
+        console.log("åˆ é™¤ä¸´æ—¶æ–‡ä»¶", destZipFile)
+        fs.unlinkSync(destZipFile);
+    }, 1000 * 60 * 30);
+}
+
+const clearTempDir = () => {
+    let tempFilePath = getTempFilePath();
+    console.log("æ¸…ç©ºä¸´æ—¶æ–‡ä»¶å¤¹", tempFilePath)
+    fs.readdir(tempFilePath, (err, files) => {
+        if (err) {
+            console.log(err)
+        }
+
+        for (const file of files) {
+            fs.unlink(path.join(tempFilePath, file), (err) => {
+                if (err) {
+                    console.log(err)
+                }
+            });
+        }
+    });
 }
 
 exports.openFile = openFile
@@ -91,3 +127,6 @@ exports.listFiles = listFiles
 exports.parseFileName = parseFileName
 exports.getTotalSize = getTotalSize
 exports.getTotalSizeReadable = getTotalSizeReadable
+exports.clearTempFileDelay = clearTempFileDelay
+exports.getTempFilePath = getTempFilePath
+exports.clearTempDir = clearTempDir

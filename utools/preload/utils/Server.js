@@ -87,7 +87,7 @@ function getClientIp(req) {
     // 获取反向代理记录的真实客户端IP
     let realip = req.headers['x-real-ip']
     let clientip = realip || sourceip
-    console.log('sourceip %s, realip %s, clientip %s', sourceip,realip,clientip)
+    console.log('sourceip %s, realip %s, clientip %s', sourceip, realip, clientip)
     return clientip;
 }
 
@@ -133,6 +133,7 @@ const initApp = () => {
         }
 
         let filename = req.query.filename
+        let timestamp = req.query.timestamp
         console.log('/api/download filename', filename)
 
         let sourceFilePath;
@@ -157,31 +158,34 @@ const initApp = () => {
         }
         console.log('finalPath', sourceFilePath)
 
-        if (fs.lstatSync(sourceFilePath).isDirectory()) {
-            console.log("send directory: " + sourceFilePath);
-            let fileName = FileUtil.parseFileName(sourceFilePath);
-            let destZipFile =  path.join(path.parse(sourceFilePath).dir, fileName) + ".zip"
-            ZipUtil.zipDirectory(sourceFilePath, destZipFile).then((event) => {
-                console.log(event)
-                let downloadName = FileUtil.parseFileName(destZipFile);
-                res.download(destZipFile, null, {dotfiles: 'allow', headers: {'download-filename': encodeURI(downloadName)}}, function (err) {
-                    if (err) {
-                        console.log(err);
-                    }
-                    console.log("移除压缩包")
-                    fs.unlinkSync(destZipFile);
-                })
-            }).catch(error => {
-                console.log(error)
-            })
-        } else {
-            console.log("send file: " + sourceFilePath);
-            let downloadName = FileUtil.parseFileName(sourceFilePath);
-            res.download(sourceFilePath, null, {dotfiles: 'allow', headers: {'download-filename': encodeURI(downloadName)}}, function (err) {
+        let doDownload = (destZipFile, callback = () => {
+        }) => {
+            res.download(destZipFile, null, {
+                dotfiles: 'allow'
+            }, function (err) {
                 if (err) {
                     console.log(err);
                 }
+                callback();
             })
+        }
+
+        if (fs.lstatSync(sourceFilePath).isDirectory()) {
+            console.log("send directory: " + sourceFilePath);
+            let fileName = FileUtil.parseFileName(sourceFilePath);
+            let destZipFile = path.join(FileUtil.getTempFilePath(), fileName + "_" + timestamp) + ".zip"
+            if (fs.existsSync(destZipFile)) {
+                doDownload(destZipFile, () => FileUtil.clearTempFileDelay(destZipFile))
+            } else {
+                ZipUtil.zipDirectory(sourceFilePath, destZipFile).then((event) => {
+                    doDownload(destZipFile, () => FileUtil.clearTempFileDelay(destZipFile))
+                }).catch(error => {
+                    console.log(error)
+                })
+            }
+        } else {
+            console.log("send file: " + sourceFilePath);
+            doDownload(sourceFilePath)
         }
     });
 
@@ -258,6 +262,7 @@ const startServer = () => {
         status = StatusStart;
         EventDispatcher.triggerEvent({type: 'server.statusChange', data: {status: StatusStart}})
     });
+    FileUtil.clearTempDir()
     return {success: true, message: "服务启动成功", url: Setting.getUrl()};
 }
 
