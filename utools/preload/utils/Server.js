@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
 const crypto = require('crypto');
-const md5 = crypto.createHash('md5');
 const express = require('express') // http://expressjs.com/
 const cookieParser = require('cookie-parser');
 const multer = require('multer')
@@ -17,7 +16,7 @@ const ZipUtil = require('./ZipUtil')
 const SseUtil = require('./SseUtil')
 
 let session = new Set()
-let systemToken = md5.update(new Date().getTime() + '').digest('hex');
+let systemToken = crypto.createHash('md5').update(new Date().getTime() + '').digest('hex');
 session.add(systemToken)
 
 const StatusStart = "start"
@@ -40,6 +39,7 @@ function authFilter(req, res, next) {
         req.url === '/index.html' ||
         req.url === '/favicon.ico' ||
         req.url === '/api/login' ||
+        req.url === '/api/registrySSE' ||
         req.url.startsWith('/api/download') ||
         req.url.startsWith('/static')) {
         next()
@@ -193,6 +193,7 @@ const initApp = () => {
     });
 
     app.post('/api/login', urlencodedParser, jsonParser, function (req, res) {
+        console.log("api/login")
         // no auth
         if (!Setting.getAuthEnable()) {
             res.json({code: 200, message: 'success'})
@@ -200,11 +201,14 @@ const initApp = () => {
         }
         // password error
         let password = req.body.password
+        console.log("password", password)
+        console.log("Setting.getPassword()", Setting.getPassword())
         if (Setting.getPassword() !== password) {
             res.json({code: 403, message: '密码错误'})
             return;
         }
         // update auth
+        let md5 = crypto.createHash('md5');
         let token = md5.update(password).digest('hex');
         session.add(token)
         res.json({code: 200, data: {Authorization: token}, message: 'success'})

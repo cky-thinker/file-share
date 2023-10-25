@@ -195,17 +195,7 @@
       })
       // 更新请求头内容
       this.updateHeaders()
-      if (EventSource) {
-        let sse = new EventSource("/api/registrySSE")
-        sse.onmessage = (event) => {
-          console.log("update file list", event)
-          if (JSON.parse(event.data).type === 'fileDb.listChange') {
-            this.showFiles()
-          }
-        };
-      } else {
-        setInterval(this.showFiles, 3000)
-      }
+      this.registrySSE();
     },
     watch: {
       $route: function () {
@@ -214,6 +204,19 @@
       }
     },
     methods: {
+      registrySSE() {
+        if (EventSource) {
+          let sse = new EventSource("/api/registrySSE")
+          sse.onmessage = (event) => {
+            console.log("update file list", event)
+            if (JSON.parse(event.data).type === 'fileDb.listChange') {
+              this.showFiles()
+            }
+          };
+        } else {
+          setInterval(this.showFiles, 3000)
+        }
+      },
       refreshPath() {
         let pathUrl = window.location.pathname;
         if (pathUrl) {
