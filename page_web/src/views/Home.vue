@@ -293,9 +293,6 @@
           }
         }).catch(error => {
           console.log("请求失败", error)
-          this.path = []
-          // 返回首页
-          window.history.go(-(window.history.length - 1));
         })
       },
       updateHeaders() {
