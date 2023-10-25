@@ -128,13 +128,16 @@
                   <span v-if="['directory', 'file'].includes(file.type)">{{ file.name }}</span>
                 </el-col>
                 <el-col :span="6">
-                  <el-button v-if="['directory', 'file'].includes(file.type)" type="default" size="mini" icon="el-icon-document-copy"
-                             title="复制链接到剪切板" @click="handleFileUrlCopy(file, $event)">
-                  </el-button>
-                  <el-button v-if="file.type === 'text'" type="default" size="mini"
-                             icon="el-icon-document-copy" title="复制文本到剪切板"
-                             @click="handleClipboard(file.content, $event)"></el-button>
-                  <el-button v-if="['directory', 'file'].includes(file.type)" type="default" size="mini"
+                  <el-popover placement="left" :width="100" trigger="hover">
+                    <template #reference>
+                      <el-button :style="['directory', 'file'].includes(file.type) ? '' : 'visibility:hidden;'"
+                                 type="default" size="mini" icon="el-icon-document-copy"
+                                 title="复制链接到剪切板" @click="handleFileUrlCopy(file, $event)">
+                      </el-button>
+                    </template>
+                    <qrcode-vue :value="getFileUrl(file)"></qrcode-vue>
+                  </el-popover>
+                  <el-button :style="['directory', 'file'].includes(file.type) ? '' : 'visibility:hidden;'" type="default" size="mini"
                              icon="el-icon-search" title="打开文件所在目录" @click="openFile(file.name, $event)">
                   </el-button>
                   <el-button type="default" size="mini" icon="el-icon-delete"
@@ -181,9 +184,11 @@ let copyClipboard = (text, event) => {
     text: () => text
   })
   clipboard.on('success', () => {
-    ElMessage.success({message: '复制成功', type: 'success'});
+    console.log("copy success", text)
+    ElMessage.success({message: '复制链接成功', type: 'success'});
   })
   clipboard.onClick(event)
+  clipboard.destroy()
 }
 
 export default {
@@ -277,8 +282,12 @@ export default {
       })
     },
     handleFileUrlCopy: function (file, event) {
-      let url = this.settingForm.url + `/api/download?filename=${encodeURIComponent(file.name)}&token=${api.getSystemToken()}&timestamp=${new Date().getTime()}`
+      let url = this.getFileUrl(file);
       copyClipboard(url, event)
+    },
+    getFileUrl(file) {
+      let url = this.settingForm.url + `/api/download?filename=${encodeURIComponent(file.name)}&token=${api.getSystemToken()}&timestamp=${new Date().getTime()}`;
+      return url;
     },
     handleClipboard: function (data, event) {
       copyClipboard(data, event)
@@ -341,8 +350,21 @@ export default {
 </script>
 
 <style>
+html {
+  height: 100%;
+}
+
 body {
   margin: 0;
+  height: 100%;
+}
+
+*::-webkit-scrollbar {
+  width: 3px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #ccc;
 }
 
 .body {
@@ -351,11 +373,12 @@ body {
   background-blend-mode: screen, overlay, hard-light, color-burn, color-dodge, normal;
   background-attachment: fixed;
   background-repeat: no-repeat;
-  background-position: 0 100%;
   min-height: 600px;
   position: absolute;
+  background-size:100% 100%;
   width: 100%;
   height: 100%;
+  overflow: scroll;
 }
 
 .container {

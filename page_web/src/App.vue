@@ -18,5 +18,6 @@
     background-repeat: no-repeat;
     background-position: 0 100%;
     color: #ffffff;
+    height: 100%;
   }
 </style>
