@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const crypto = require('crypto');
+const md5 = crypto.createHash('md5');
 const express = require('express') // http://expressjs.com/
 const cookieParser = require('cookie-parser');
 const multer = require('multer')
@@ -16,6 +17,8 @@ const ZipUtil = require('./ZipUtil')
 const SseUtil = require('./SseUtil')
 
 let session = new Set()
+let systemToken = md5.update(new Date().getTime()).digest('hex');
+session.add(systemToken)
 
 const StatusStart = "start"
 const StatusStop = "stop"
@@ -202,7 +205,6 @@ const initApp = () => {
             return;
         }
         // update auth
-        let md5 = crypto.createHash('md5');
         let token = md5.update(password).digest('hex');
         session.add(token)
         res.json({code: 200, data: {Authorization: token}, message: 'success'})
@@ -281,3 +283,4 @@ exports.stopServer = stopServer
 exports.getServerStatus = getServerStatus
 exports.StatusStart = StatusStart
 exports.StatusStop = StatusStop
+exports.getSystemToken = () => systemToken
