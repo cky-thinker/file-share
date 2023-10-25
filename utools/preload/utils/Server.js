@@ -17,7 +17,7 @@ const ZipUtil = require('./ZipUtil')
 const SseUtil = require('./SseUtil')
 
 let session = new Set()
-let systemToken = md5.update(new Date().getTime()).digest('hex');
+let systemToken = md5.update(new Date().getTime() + '').digest('hex');
 session.add(systemToken)
 
 const StatusStart = "start"
