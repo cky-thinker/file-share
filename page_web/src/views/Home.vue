@@ -155,6 +155,7 @@
   import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
   import {Message, MessageBox} from "element-ui";
   import {copyClipboard} from '@/utils/clipboard'
+  import VueRouter from "vue-router";
 
   export default {
     name: 'HomeView',
@@ -187,8 +188,14 @@
       }
     },
     mounted() {
+      // 处理路由重复报错
+      const originalPush = VueRouter.prototype.push
+      VueRouter.prototype.push = function push(location) {
+        return originalPush.call(this, location).catch(err => err)
+      }
       this.refreshPath();
-      this.showFiles()
+      this.showFiles();
+      this.updateRouter();
       // 3s更新一下列表
       addAuthInvalidCallback(() => {
         this.loginFormVisible = true;
@@ -204,6 +211,12 @@
       }
     },
     methods: {
+      updateRouter() {
+        // 更新路由
+        let path = '/' + this.path.join('/')
+        console.log("this.path", path)
+        this.$router.push(path)
+      },
       registrySSE() {
         if (EventSource) {
           let sse = new EventSource("/api/registrySSE")
@@ -273,11 +286,11 @@
         let name = item.name;
         this.selectedFileNames = new Set(); // 切换路径后,已选择文件清空
         this.path.push(name)
-        this.showFiles()
+        this.updateRouter();
       },
       skipPath(idx) {
         this.path = this.path.slice(0, idx);
-        this.showFiles()
+        this.updateRouter();
       },
       markFileSelected(files) {
         files.forEach(file => {
@@ -289,11 +302,6 @@
         listFiles({path: this.path.join('/')}).then(res => {
           this.files = this.markFileSelected(res.data.files)
           this.path = res.data.path
-          // 更新路由
-          if (this.path.length > 0) {
-            console.log("this.path", this.path)
-            this.$router.push(this.path.join('/'))
-          }
         }).catch(error => {
           console.log("请求失败", error)
         })

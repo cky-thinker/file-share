@@ -110,8 +110,7 @@ const initApp = () => {
             sourceFilePath = parseResult.finalPath
             filePaths = parseResult.filePaths
             if (sourceFilePath !== '' && !fs.existsSync(sourceFilePath)) {
-                console.log("文件在系统不存在，移除该记录", sourceFilePath)
-                FileDb.removeFile({name: parseResult.startPath})
+                console.log("文件在系统不存在", sourceFilePath)
                 res.sendStatus(404);
                 return;
             }
@@ -149,8 +148,7 @@ const initApp = () => {
                 return;
             }
             if (!fs.existsSync(sourceFilePath)) {
-                console.log("文件在系统不存在，移除该记录", sourceFilePath)
-                FileDb.removeFile({name: parseResult.filePaths[0]})
+                console.log("文件在系统不存在", sourceFilePath)
                 res.sendStatus(404);
                 return;
             }
