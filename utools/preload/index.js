@@ -87,5 +87,6 @@ window.api = {
     getUrl: Setting.getUrl,
     getIpAddress: IpUtil.getIpAddress,
     getIpAddresses: IpUtil.getIpAddresses,
-    getNetInterfaceNames: IpUtil.getNetInterfaceNames
+    getNetInterfaceNames: IpUtil.getNetInterfaceNames,
+    getSystemToken: Server.getSystemToken
 }

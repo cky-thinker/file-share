@@ -128,6 +128,9 @@
                   <span v-if="['directory', 'file'].includes(file.type)">{{ file.name }}</span>
                 </el-col>
                 <el-col :span="6">
+                  <el-button v-if="['directory', 'file'].includes(file.type)" type="default" size="mini" icon="el-icon-document-copy"
+                             title="复制链接到剪切板" @click="handleFileUrlCopy(file, $event)">
+                  </el-button>
                   <el-button v-if="file.type === 'text'" type="default" size="mini"
                              icon="el-icon-document-copy" title="复制文本到剪切板"
                              @click="handleClipboard(file.content, $event)"></el-button>
@@ -272,6 +275,10 @@ export default {
       api.openFile(filename, (err) => {
         ElMessage.error({message: `文件打开失败 "${err}"`, type: 'error'});
       })
+    },
+    handleFileUrlCopy: function (file, event) {
+      let url = this.settingForm.url + `/api/download?filename=${encodeURIComponent(file.name)}&token=${api.getSystemToken()}&timestamp=${new Date().getTime()}`
+      copyClipboard(url, event)
     },
     handleClipboard: function (data, event) {
       copyClipboard(data, event)
