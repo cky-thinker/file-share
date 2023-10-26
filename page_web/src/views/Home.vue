@@ -187,7 +187,7 @@
         tusConfig: {},
       }
     },
-    mounted() {
+    created() {
       // 处理路由重复报错
       const originalPush = VueRouter.prototype.push
       VueRouter.prototype.push = function push(location) {
@@ -342,7 +342,8 @@
         this.tusConfig = res.data
       },
       downloadFile(filename) {
-        let name = encodeURIComponent(filename);
+        let path = '/' + this.path.join('/')
+        let name = encodeURIComponent((path === '/' ? '/' : (path + '/')) + filename);
         let a = document.createElement('a');
         a.href = `/api/download?filename=${name}&token=${getToken()}&timestamp=${new Date().getTime()}`;
         a.download = name;
