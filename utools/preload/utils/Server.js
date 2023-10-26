@@ -5,6 +5,7 @@ const express = require('express') // http://expressjs.com/
 const cookieParser = require('cookie-parser');
 const multer = require('multer')
 const bodyParser = require("body-parser");
+const history = require('connect-history-api-fallback');
 const urlencodedParser = bodyParser.urlencoded({extended: false});
 const jsonParser = bodyParser.json()
 
@@ -96,6 +97,17 @@ function getClientIp(req) {
 
 const initApp = () => {
     let app = express();
+    app.use(history({
+        index: '/index.html',
+        rewrites: [
+            {
+                from: /^\/api\/.*$/,
+                to: function(context) {
+                    return context.parsedUrl.path
+                }
+            }
+        ]
+    }))
     app.use(cookieParser());
     app.all("/api/*", authFilter);
     let rootPath = path.resolve(__dirname, '..')
