@@ -327,7 +327,6 @@
         this.fileList = fileList.filter((f) => {
           return f.name !== file.name;
         })
-        this.fileFormVisible = false
       },
       uploadError(err, file, fileList) {
         console.log('---uploadError---', err, file, fileList)
@@ -335,7 +334,6 @@
         this.fileList = fileList.filter((f) => {
           return f.name !== file.name;
         })
-        this.fileFormVisible = false
       },
       async loadTusConfig() {
         const res = await getTusConfig()
