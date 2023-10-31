@@ -139,10 +139,10 @@
                     <qrcode-vue :value="getFileUrl(file)"></qrcode-vue>
                   </el-popover>
                   <!-- 复制文本 / 打开文件 -->
-                  <el-button v-if="file.type === 'text'" type="default" size="mini"
+                  <el-button v-if="['text'].includes(file.type)" type="default" size="mini"
                              icon="el-icon-document-copy" title="复制文本到剪切板"
                              @click="handleClipboard(file.content, $event)"></el-button>
-                  <el-button :style="['directory', 'file'].includes(file.type) ? '' : 'visibility:hidden;'" type="default" size="mini"
+                  <el-button v-if="['directory', 'file'].includes(file.type)" type="default" size="mini"
                              icon="el-icon-search" title="打开文件所在目录" @click="openFile(file.name, $event)">
                   </el-button>
                   <!-- 删除 -->
