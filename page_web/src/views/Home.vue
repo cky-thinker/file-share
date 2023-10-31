@@ -66,8 +66,19 @@
               <div :class="`${scope.row.type === 'directory' ? 'pointer' : ''} file-desc`"
                    @click="openDirectory(scope.row, $event)">
                 <div>
-                  <file-icon v-if="scope.row.type === 'file'" :filename="scope.row.name"/>
+                  <!-- 非图片文件 -->
+                  <file-icon v-if="scope.row.type === 'file' && !isPicture(scope.row.name)" :filename="scope.row.name"/>
+                  <!-- 图片文件 -->
+                  <el-image
+                    v-if="scope.row.type === 'file' && isPicture(scope.row.name)"
+                    class="file-image"
+                    fit="scale-down"
+                    :src="scope.row.fullUrl"
+                    :preview-src-list="[scope.row.fullUrl]">
+                  </el-image>
+                  <!-- 文件夹 -->
                   <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
+                  <!-- 消息 -->
                   <svg-icon v-if="scope.row.type === 'text'" name="message"/>
                 </div>
                 <el-tooltip class="filename" effect="light"
@@ -156,6 +167,7 @@
   import {Message, MessageBox} from "element-ui";
   import {copyClipboard} from '@/utils/clipboard'
   import VueRouter from "vue-router";
+  import {isPicture} from "@/utils/fileUtil";
 
   export default {
     name: 'HomeView',
@@ -211,6 +223,9 @@
       }
     },
     methods: {
+      isPicture(filename) {
+        return isPicture(filename)
+      },
       updateRouter() {
         // 更新路由
         let path = '/' + this.path.join('/')
@@ -251,7 +266,7 @@
           })
         }
         this.batchDownload = this.selectedFileNames.size > 0;
-        this.files = [...this.markFileSelected(this.files)]
+        this.files = this.addAddiFileAttrs(this.files)
       },
       onSelectHandler(filename) {
         if (this.selectedFileNames.has(filename)) {
@@ -260,7 +275,7 @@
           this.selectedFileNames.add(filename)
         }
         this.batchDownload = this.selectedFileNames.size > 0;
-        this.files = [...this.markFileSelected(this.files)]
+        this.files = this.addAddiFileAttrs(this.files)
       },
       handleDownload(item, event) {
         if (['directory', 'file'].includes(item.type)) {
@@ -292,15 +307,14 @@
         this.path = this.path.slice(0, idx);
         this.updateRouter();
       },
-      markFileSelected(files) {
-        files.forEach(file => {
-          file.selected = this.selectedFileNames.has(file.name)
+      addAddiFileAttrs(files) {
+        return files.map(file => {
+          return {...file, selected: this.selectedFileNames.has(file.name), fullUrl: this.getDownloadFileUrl(file.name)}
         })
-        return files;
       },
       showFiles() {
         listFiles({path: this.path.join('/')}).then(res => {
-          this.files = this.markFileSelected(res.data.files)
+          this.files = this.addAddiFileAttrs(res.data.files)
           this.path = res.data.path
         }).catch(error => {
           console.log("请求失败", error)
@@ -340,13 +354,16 @@
         this.tusConfig = res.data
       },
       downloadFile(filename) {
-        let path = '/' + this.path.join('/')
-        let name = encodeURIComponent((path === '/' ? '/' : (path + '/')) + filename);
         let a = document.createElement('a');
-        a.href = `/api/download?filename=${name}&token=${getToken()}&timestamp=${new Date().getTime()}`;
+        a.href = this.getDownloadFileUrl(filename);
         a.download = name;
         a.click()
         a.remove();
+      },
+      getDownloadFileUrl(filename) {
+        let path = '/' + this.path.join('/')
+        let name = encodeURIComponent((path === '/' ? '/' : (path + '/')) + filename);
+        return `/api/download?filename=${name}&token=${getToken()}&timestamp=${new Date().getTime()}`;
       },
       copyMsg(data, event) {
         console.log(data)
@@ -486,6 +503,12 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
+  }
+  .file-image {
+    width: 2em;
+    height: 2em;
+    overflow: hidden;
+    vertical-align: middle;
   }
 </style>
 
