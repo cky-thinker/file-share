@@ -47,7 +47,7 @@
               <el-col :span="4">
                 <el-popover placement="left" :width="100" trigger="hover">
                   <template #reference>
-                    <el-button type="default" size="mini" icon="el-icon-document-copy"
+                    <el-button type="default" size="mini" icon="el-icon-link"
                                title="复制链接到剪切板" @click="handleClipboard(settingForm.url, $event)">复制链接
                     </el-button>
                   </template>
@@ -128,18 +128,24 @@
                   <span v-if="['directory', 'file'].includes(file.type)">{{ file.name }}</span>
                 </el-col>
                 <el-col :span="6">
+                  <!-- 复制链接 -->
                   <el-popover placement="left" :width="100" trigger="hover">
                     <template #reference>
                       <el-button :style="['directory', 'file'].includes(file.type) ? '' : 'visibility:hidden;'"
-                                 type="default" size="mini" icon="el-icon-document-copy"
+                                 type="default" size="mini" icon="el-icon-link"
                                  title="复制链接到剪切板" @click="handleFileUrlCopy(file, $event)">
                       </el-button>
                     </template>
                     <qrcode-vue :value="getFileUrl(file)"></qrcode-vue>
                   </el-popover>
+                  <!-- 复制文本 / 打开文件 -->
+                  <el-button v-if="file.type === 'text'" type="default" size="mini"
+                             icon="el-icon-document-copy" title="复制文本到剪切板"
+                             @click="handleClipboard(file.content, $event)"></el-button>
                   <el-button :style="['directory', 'file'].includes(file.type) ? '' : 'visibility:hidden;'" type="default" size="mini"
                              icon="el-icon-search" title="打开文件所在目录" @click="openFile(file.name, $event)">
                   </el-button>
+                  <!-- 删除 -->
                   <el-button type="default" size="mini" icon="el-icon-delete"
                              @click="() => removeFile(file)"></el-button>
                 </el-col>
