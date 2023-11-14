@@ -20,6 +20,11 @@
           "label": "分享",
           "fileType": "file",
           "minLength": 1
+        },
+        {
+          "type": "over",
+          "label": "分享",
+          "minLength": 1
         }
       ]
     }
