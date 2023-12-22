@@ -9,6 +9,15 @@ android {
     namespace = "cn.yzl.share.android"
     compileSdk = 33
 
+    signingConfigs {
+        create("key") {
+            storeFile = file("key.jks")
+            keyAlias = "key0"
+            keyPassword = "123456"
+            storePassword = "123456"
+        }
+    }
+
     defaultConfig {
         applicationId = "cn.yzl.share.android"
         minSdk = 24
@@ -29,6 +38,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("key")
         }
     }
     compileOptions {
