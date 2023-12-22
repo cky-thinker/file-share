@@ -6,6 +6,7 @@ import cn.yizems.moshi.ex.toJsonString
 import cn.yizems.util.ktx.android.context.getGlobalContext
 import cn.yizems.util.ktx.comm.file.child
 import cn.yzl.share.android.FileDto
+import cn.yzl.share.android.MainViewModel
 import com.yanzhenjie.andserver.annotation.GetMapping
 import com.yanzhenjie.andserver.annotation.PostMapping
 import com.yanzhenjie.andserver.annotation.RequestParam
@@ -29,7 +30,7 @@ class MyController {
             getGlobalContext().filesDir
         }
 
-        private val textStore by lazy {
+        val textStore by lazy {
             CopyOnWriteArrayList<FileDto>()
         }
     }
@@ -90,6 +91,7 @@ class MyController {
             return JsonObject().toJsonString()
         }
         textStore.add(0, FileDto(text.take(20), "text", text))
+        MainViewModel.updateFilesList()
         return JsonObject().toJsonString()
     }
 
@@ -102,6 +104,7 @@ class MyController {
                 input.copyTo(output)
             }
         }
+        MainViewModel.updateFilesList()
         return JsonObject().toJsonString()
     }
 
