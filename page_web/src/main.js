@@ -1,27 +1,14 @@
-import Vue from "vue"
-import Element from 'element-ui'
-import './assets/styles/element-variables.scss'
-import '@/assets/styles/index.scss' // global css
-import '@/assets/styles/common.scss' // common css
-
-import App from "./App.vue"
-import plugins from './plugins' // plugins
-
-import './assets/icons' // svg icon
-
-// 通用组件
-import FileIcon from "@/components/FileIcon"
-
+import {createApp} from 'vue'
+import App from './App.vue'
+// element ui
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+// vue
 import router from './router'
+import plugins from './plugins'
 
-Vue.component("file-icon", FileIcon);
-
-Vue.use(plugins)
-Vue.use(Element)
-
-Vue.config.productionTip = false;
-
-new Vue({
-  router,
-  render: (h) => h(App)
-}).$mount("#app");
+const app = createApp(App)
+app.use(plugins)
+app.use(router)
+app.use(ElementPlus)
+app.mount('#app')

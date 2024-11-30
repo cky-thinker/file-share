@@ -1,5 +1,5 @@
 {
-  "main": "./main/index.html",
+  "main": "./page_app/index.html",
   "preload": "./preload/index.js",
   "logo": "./asserts/logo.png",
   "features": [
