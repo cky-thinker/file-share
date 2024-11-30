@@ -1,8 +1,8 @@
-import download from './download'
+import {registryIcon} from "@/plugins/icon";
 
 export default {
-  install(Vue) {
-    // 下载文件
-    Vue.prototype.$download = download
+  install(app) {
+    // icon
+    registryIcon(app)
   }
 }

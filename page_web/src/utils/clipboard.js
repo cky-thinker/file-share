@@ -1,12 +1,13 @@
 import Clipboard from 'clipboard'
-import {Message} from 'element-ui'
+import {ElMessage} from 'element-plus'
 
 export function copyClipboard(text, event) {
-  const clipboard = new Clipboard(event.target, {
+  const clipboard = new Clipboard("copy", {
     text: () => text
   })
   clipboard.on('success', () => {
-    Message.success({message: '复制成功', type: 'success'});
+    ElMessage.success({message: '复制成功', type: 'success'});
+    clipboard.destroy()
   })
   clipboard.onClick(event)
 }
