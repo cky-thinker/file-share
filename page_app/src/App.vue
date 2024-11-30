@@ -1,8 +1,11 @@
 <template>
   <div class="body">
     <div class="container">
-      <el-button class="setting-btn" @click="onHandlerSetting()" type="default" size="mini"
-                 icon="el-icon-setting" title="设置">设置
+      <el-button class="setting-btn" @click="onHandlerSetting()" type="default" size="small" title="设置">
+        <el-icon>
+          <Setting/>
+        </el-icon>
+        设置
       </el-button>
       <el-dialog v-model="settingFormVisible" title="设置" style="width: 70%;">
         <el-row class="row-bg">
@@ -45,23 +48,34 @@
             <el-row class="row-bg">
               <el-col :span="12">分享链接：{{ settingForm.url }}</el-col>
               <el-col :span="4">
-                <el-popover placement="left" :width="100" trigger="hover">
+                <el-popover placement="left" :width="125" trigger="hover">
                   <template #reference>
-                    <el-button type="default" size="mini" icon="el-icon-link"
-                               title="复制链接到剪切板" @click="handleClipboard(settingForm.url, $event)">复制链接
+                    <el-button type="default" size="small"
+                               title="复制链接到剪切板" @click="handleClipboard(settingForm.url, $event)">
+                      <el-icon>
+                        <Link/>
+                      </el-icon>
+                      复制链接
                     </el-button>
                   </template>
                   <qrcode-vue :value="settingForm.url"></qrcode-vue>
                 </el-popover>
               </el-col>
               <el-col :span="4">
-                <el-button type="default" size="mini"
-                           icon="el-icon-sort" title="切换ip协议" @click="changeIpFamily()">协议：{{ ipFamily }}
+                <el-button type="default" size="small" title="切换ip协议" @click="changeIpFamily()">
+                  <el-icon>
+                    <Sort/>
+                  </el-icon>
+                  协议：{{ ipFamily }}
                 </el-button>
               </el-col>
               <el-col :span="4">
-                <el-button v-if="netInterfaceNames.length > 1" type="default" size="mini"
-                           icon="el-icon-sort" title="切换网卡" @click="changeNetInterface()">网卡：{{ currentInterfaceName }}
+                <el-button v-if="netInterfaceNames.length > 1" type="default" size="small" title="切换网卡"
+                           @click="changeNetInterface()">
+                  <el-icon>
+                    <Sort/>
+                  </el-icon>
+                  网卡：{{ currentInterfaceName }}
                 </el-button>
               </el-col>
             </el-row>
@@ -82,15 +96,19 @@
                 <el-row class="row-bg">
                   <el-col :span="12">分享列表</el-col>
                   <el-col :span="4">
-                    <el-button @click="dialogFormVisible = true" type="default" size="mini"
-                               icon="el-icon-message" title="分享一段文本">分享文本
+                    <el-button @click="dialogFormVisible = true" type="default" size="small" title="分享一段文本">
+                      <el-icon>
+                        <Message/>
+                      </el-icon>
+                      分享文本
                     </el-button>
                   </el-col>
                   <el-col :span="4">
                     <el-popconfirm @confirm="removeFileAll()" title="确定要清空所有文件吗？">
                       <template #reference>
-                        <el-button type="default" size="mini" icon="el-icon-delete"
-                                   title="清空列表">清空列表
+                        <el-button type="default" size="small" title="清空列表">
+                          <el-icon><Delete /></el-icon>
+                          清空列表
                         </el-button>
                       </template>
                     </el-popconfirm>
@@ -129,25 +147,26 @@
                 </el-col>
                 <el-col :span="6">
                   <!-- 复制链接 -->
-                  <el-popover placement="left" :width="100" trigger="hover">
+                  <el-popover placement="left" :width="125" trigger="hover">
                     <template #reference>
                       <el-button :style="['directory', 'file'].includes(file.type) ? '' : 'visibility:hidden;'"
-                                 type="default" size="mini" icon="el-icon-link"
-                                 title="复制链接到剪切板" @click="handleFileUrlCopy(file, $event)">
+                                 type="default" size="small" title="复制链接到剪切板" @click="handleFileUrlCopy(file, $event)">
+                        <el-icon><Link /></el-icon>
                       </el-button>
                     </template>
                     <qrcode-vue :value="getFileUrl(file)"></qrcode-vue>
                   </el-popover>
                   <!-- 复制文本 / 打开文件 -->
-                  <el-button v-if="['text'].includes(file.type)" type="default" size="mini"
-                             icon="el-icon-document-copy" title="复制文本到剪切板"
-                             @click="handleClipboard(file.content, $event)"></el-button>
-                  <el-button v-if="['directory', 'file'].includes(file.type)" type="default" size="mini"
-                             icon="el-icon-search" title="打开文件所在目录" @click="openFile(file.name, $event)">
+                  <el-button v-if="['text'].includes(file.type)" type="default" size="small" title="复制文本到剪切板" @click="handleClipboard(file.content, $event)">
+                    <el-icon><DocumentCopy /></el-icon>
+                  </el-button>
+                  <el-button v-if="['directory', 'file'].includes(file.type)" type="default" size="small" title="打开文件所在目录" @click="openFile(file.name, $event)">
+                    <el-icon><FolderOpened /></el-icon>
                   </el-button>
                   <!-- 删除 -->
-                  <el-button type="default" size="mini" icon="el-icon-delete"
-                             @click="() => removeFile(file)"></el-button>
+                  <el-button type="default" size="small" @click="() => removeFile(file)">
+                    <el-icon><Delete /></el-icon>
+                  </el-button>
                 </el-col>
               </el-row>
             </div>
@@ -182,6 +201,7 @@
 import Clipboard from 'clipboard'
 import {ElMessage} from 'element-plus'
 import QrcodeVue from 'qrcode.vue'
+import {Link, Message, Setting, Sort, Delete, DocumentCopy, FolderOpened} from '@element-plus/icons-vue'
 
 let api = window.api;
 
@@ -199,6 +219,7 @@ let copyClipboard = (text, event) => {
 
 export default {
   name: 'App',
+  components: {QrcodeVue, Setting, Link, Sort, Message, Delete, DocumentCopy, FolderOpened},
   data: () => {
     return {
       serverStatus: 'stop',
@@ -336,6 +357,7 @@ export default {
   mounted: function () {
     // document.getElementsByClassName('el-upload__input')[0].webkitdirectory = true
     // 注册事件监听
+    console.log(api)
     api.registryEventListener('server.statusChange', (event) => {
       console.log("---服务状态变更---", event)
       this.serverStatus = event.data.status
@@ -350,8 +372,7 @@ export default {
   beforeUnmount() {
     clearInterval(this.timer)
     this.timer = null
-  },
-  components: {QrcodeVue}
+  }
 }
 </script>
 
@@ -381,7 +402,7 @@ body {
   background-repeat: no-repeat;
   min-height: 600px;
   position: absolute;
-  background-size:100% 100%;
+  background-size: 100% 100%;
   width: 100%;
   height: 100%;
   overflow: scroll;

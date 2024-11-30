@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {Message, Notification} from 'element-ui'
+import {ElMessage, ElNotification} from 'element-plus'
 import {getToken, logout} from '@/utils/auth'
 import errorCode from '@/utils/errorCode'
 
@@ -60,13 +60,13 @@ service.interceptors.response.use(res => {
       logout()
       return Promise.reject('登录状态无效，请重新登录')
     } else if (code === 500) {
-      Message({
+      ElMessage({
         message: res.data.message || msg,
         type: 'error'
       })
       return Promise.reject(new Error(msg))
     } else if (code !== 200) {
-      Notification.error({
+      ElNotification.error({
         title: msg
       })
       return Promise.reject('error')
@@ -88,7 +88,7 @@ service.interceptors.response.use(res => {
         message = "系统接口" + message.substr(message.length - 3) + "异常";
       }
     }
-    Message({
+    ElMessage({
       message: message,
       type: 'error',
       duration: 5 * 1000

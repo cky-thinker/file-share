@@ -102,7 +102,7 @@ const initApp = () => {
         rewrites: [
             {
                 from: /^\/api\/.*$/,
-                to: function(context) {
+                to: function (context) {
                     return context.parsedUrl.path
                 }
             }
@@ -110,8 +110,8 @@ const initApp = () => {
     }))
     app.use(cookieParser());
     app.all("/api/*", authFilter);
-    let rootPath = path.resolve(__dirname, '..')
-    app.use(express.static(path.join(rootPath, 'web'), {index: 'index.html'}))
+    let rootPath = path.resolve(__dirname, '..', '..')
+    app.use(express.static(path.join(rootPath, 'page_web'), {index: 'index.html'}))
     // file list
     app.get('/api/files', function (req, res) {
         let path = req.query.path

@@ -34,5 +34,7 @@ dist
 
 ### VS Code ###
 .vscode/
-utools/main/*
-utools/preload/web/*
+utools/page_app/*
+utools/page_web/*
+/utools/page_app/
+/utools/page_web/
