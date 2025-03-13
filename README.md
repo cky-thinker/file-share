@@ -64,4 +64,4 @@ utools文件夹：插件最终基于该目录运行与打包
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=cky-thinker/file-share&type=Date)](https://star-history.com/#cky-thinker/file-share&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=cky-thinker/file-share&type=Date)](https://www.star-history.com/#cky-thinker/file-share&Date)
