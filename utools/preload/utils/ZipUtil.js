@@ -25,15 +25,3 @@ const zipDirectory = (sourceDir, outPath) => {
 }
 
 exports.zipDirectory = zipDirectory
-
-let finalPath = "/Users/chenkeyu/Downloads";
-let fileName = FileUtil.parseFileName(finalPath);
-let destZipFile =  path.join(path.parse(finalPath).dir, fileName) + ".zip"
-
-console.log("---finalPath---", finalPath)
-console.log("---destZipFile---", destZipFile)
-zipDirectory(finalPath, destZipFile).then((file) => {
-    console.log("压缩成功", file)
-}).catch(error => {
-    console.log(error)
-})
