@@ -35,26 +35,39 @@
           </div>
         </template>
 
-        <div style="padding-left: 16px; padding-right: 16px; margin-bottom: 8px;">
-          <el-checkbox class="select-all-btn" @change="selectAll"></el-checkbox>
-          <el-breadcrumb class="header-breadcrumb" separator="/">
-            <el-breadcrumb-item>
-              <el-link :underline="false" @click="skipPath(0)">
-                首页
-              </el-link>
-            </el-breadcrumb-item>
-            <el-breadcrumb-item v-bind:key="idx" v-for="(p, idx) in path">
-              <el-link :underline="false" @click="skipPath(idx + 1)">
-                {{ p }}
-              </el-link>
-            </el-breadcrumb-item>
-          </el-breadcrumb>
+        <div class="flex pl-4 pr-4">
+          <div class="flex-7">
+            <el-checkbox class="select-all-btn" @change="selectAll"></el-checkbox>
+            <el-breadcrumb class="header-breadcrumb" separator="/">
+              <el-breadcrumb-item>
+                <el-link :underline="false" @click="skipPath(0)">
+                  首页
+                </el-link>
+              </el-breadcrumb-item>
+              <el-breadcrumb-item v-bind:key="idx" v-for="(p, idx) in path">
+                <el-link :underline="false" @click="skipPath(idx + 1)">
+                  {{ p }}
+                </el-link>
+              </el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
+          <div class="flex-3">
+            <el-input
+              placeholder="搜索"
+              v-model="query">
+              <template #prefix>
+                <el-icon class="el-input__icon">
+                  <search/>
+                </el-icon>
+              </template>
+            </el-input>
+          </div>
         </div>
         <div style="padding-left: 16px; padding-right: 16px">
           <el-table
             :max-height="listHeight"
             :show-header="false"
-            :data="files"
+            :data="filteredFiles"
             row-key="id"
           >
             <el-table-column width="30px" align="center">
@@ -182,12 +195,12 @@ import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {copyClipboard} from '@/utils/clipboard'
 import {isPicture} from "@/utils/fileUtil";
-import {DocumentCopy, Download, UploadFilled, User} from '@element-plus/icons-vue'
+import {DocumentCopy, Download, Search, UploadFilled, User} from '@element-plus/icons-vue'
 
 export default {
   name: 'HomeView',
   components: {
-    FileIcon, SvgIcon, DocumentCopy, Download, UploadFilled, User
+    FileIcon, SvgIcon, DocumentCopy, Download, UploadFilled, User, Search
   },
   data() {
     return {
@@ -211,6 +224,7 @@ export default {
       // 共享文件列表
       path: [],
       files: [],
+      query: undefined,
       headers: {
         Authorization: ''
       },
@@ -409,6 +423,15 @@ export default {
     },
     listHeight() {
       return window.innerHeight - 260;
+    },
+    filteredFiles() {
+      if (!this.query) return this.files;
+
+      // 将查询转换为正则表达式，如 "sc" -> /.*s.*c.*/i
+      const pattern = this.query.split('').join('.*');
+      const regex = new RegExp(pattern, 'i');
+
+      return this.files.filter(file => regex.test(file.name));
     }
   },
 }
