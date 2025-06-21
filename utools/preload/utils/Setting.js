@@ -14,6 +14,7 @@ const AuthEnable = 'authEnable' // 是否开启密码校验
 const Password = 'password' // 密码
 const tusEnableKey = 'tusEnable' // 是否启用续传功能
 const chunkSizeKey = 'chunkSize' // 上传文件的分片大小
+const AutoStart = 'autoStart' // 自动启动
 
 let curIp = IpUtil.getIpAddress();
 
@@ -193,6 +194,27 @@ function updateChunkSize(chunkSize) {
     });
 }
 
+/**
+ * 更新自动启动
+ * @param value
+ * @returns {Promise<unknown>}
+ */
+function updateAutoStart(value) {
+    return new Promise((resolve, reject) => {
+        if (value == null) {
+            return reject({ success: false, message: '更新失败，值为空' });
+        }
+        console.log('--updateAutoStart--', value)
+        AppDatabase.setStorageItem(AutoStart, value)
+        return resolve({ success: true, message: '修改成功' });
+    });
+}
+
+function getAutoStart() {
+    return AppDatabase.getStorageItem(AutoStart, false)
+}
+
+
 function getSetting() {
     return {
         uploadPath: getUploadPath(),
@@ -202,7 +224,8 @@ function getSetting() {
         authEnable: getAuthEnable(),
         password: getPassword(),
         tusEnable: getTusEnable(),
-        chunkSize: getChunkSize()
+        chunkSize: getChunkSize(),
+        autoStart: getAutoStart(),
     }
 }
 
@@ -250,6 +273,7 @@ exports.Password = Password
 exports.AuthEnable = AuthEnable
 exports.tusEnableKey = tusEnableKey
 exports.chunkSizeKey = chunkSizeKey
+exports.AutoStart = AutoStart
 exports.getUploadPath = getUploadPath
 exports.updateUploadPath = updateUploadPath
 exports.getPort = getPort
@@ -267,3 +291,5 @@ exports.getTusEnable = getTusEnable
 exports.updateTusEnable = updateTusEnable
 exports.getChunkSize = getChunkSize
 exports.updateChunkSize = updateChunkSize
+exports.updateAutoStart = updateAutoStart
+exports.getAutoStart = getAutoStart

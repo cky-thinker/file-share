@@ -29,7 +29,9 @@ utools.onPluginEnter(({ code, type, payload }) => {
 			FileDb.addText(payload)
 		}
         checkStart = true;
-	}
+	} else if (Setting.getAutoStart()) {
+        checkStart = true;
+    }
     if (checkStart && Server.getServerStatus() === Server.StatusStop) {
         Server.startServer()
     }
@@ -63,7 +65,8 @@ const updateSetting = (setting) => {
         let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable])
         let tusEnable = Setting.updateTusEnable(setting[Setting.tusEnableKey])
         let chunkSize = Setting.updateChunkSize(setting[Setting.chunkSizeKey])
-        Promise.all([updateUploadPath, updatePort, password, authEnable, tusEnable, chunkSize])
+        let autoStart = Setting.updateAutoStart(setting[Setting.AutoStart])
+        return Promise.all([updateUploadPath, updatePort, password, authEnable, tusEnable, chunkSize, autoStart])
             .then((msg) => {
                 resolve(msg)
             })
