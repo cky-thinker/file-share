@@ -1,7 +1,7 @@
 <template>
   <div class="body">
     <div class="container">
-      <el-button class="setting-btn" @click="onHandlerSetting()" type="default" size="small" title="设置">
+      <el-button class="setting-btn" @click="onHandlerSetting()" type="default" title="设置">
         <el-icon>
           <Setting/>
         </el-icon>
@@ -44,43 +44,55 @@
                 <el-row class="row-bg" justify="space-between">
                   <el-col :span="6">正在分享...</el-col>
                   <el-col :span="6">
-                    <el-button type="danger" size="small" @click="stopServer" plain>取消分享</el-button>
+                    <el-button type="danger" @click="stopServer" plain>取消分享</el-button>
                   </el-col>
                 </el-row>
               </div>
             </template>
             <el-row class="row-bg">
               <el-col :span="12">分享链接：{{ settingForm.url }}</el-col>
-              <el-col :span="4">
+              <el-col :span="3">
                 <el-popover placement="left" :width="125" trigger="hover">
                   <template #reference>
-                    <el-button type="default" size="small"
+                    <el-button type="default"
                                title="复制链接到剪切板" @click="handleClipboard(settingForm.url, $event)">
                       <el-icon>
                         <Link/>
                       </el-icon>
-                      复制链接
+                      &nbsp;复制
                     </el-button>
                   </template>
                   <qrcode-vue :value="settingForm.url"></qrcode-vue>
                 </el-popover>
               </el-col>
-              <el-col :span="4">
-                <el-button type="default" size="small" title="切换ip协议" @click="changeIpFamily()">
-                  <el-icon>
-                    <Sort/>
-                  </el-icon>
-                  协议：{{ ipFamily }}
-                </el-button>
+              <el-col :span="3">
+                <el-tooltip
+                    effect="dark"
+                    content="切换ip协议"
+                    placement="top-start"
+                >
+                  <el-button type="default" title="切换ip协议" @click="changeIpFamily()">
+                    <el-icon>
+                      <Sort/>
+                    </el-icon>
+                    &nbsp;{{ ipFamily }}
+                  </el-button>
+                </el-tooltip>
               </el-col>
-              <el-col :span="4">
-                <el-button v-if="netInterfaceNames.length > 1" type="default" size="small" title="切换网卡"
-                           @click="changeNetInterface()">
-                  <el-icon>
-                    <Sort/>
-                  </el-icon>
-                  网卡：{{ currentInterfaceName }}
-                </el-button>
+              <el-col :span="3">
+                <el-tooltip
+                    effect="dark"
+                    content="切换网卡"
+                    placement="top-start"
+                >
+                  <el-button v-if="netInterfaceNames.length > 1" type="default" title="切换网卡"
+                             @click="changeNetInterface()">
+                    <el-icon>
+                      <Sort/>
+                    </el-icon>
+                    &nbsp;{{ currentInterfaceName }}
+                  </el-button>
+                </el-tooltip>
               </el-col>
             </el-row>
           </el-card>
@@ -100,7 +112,7 @@
                 <el-row class="row-bg">
                   <el-col :span="12">分享列表</el-col>
                   <el-col :span="4">
-                    <el-button @click="dialogFormVisible = true" type="default" size="small" title="分享一段文本">
+                    <el-button @click="dialogFormVisible = true" type="default" title="分享一段文本">
                       <el-icon>
                         <Message/>
                       </el-icon>
@@ -110,7 +122,7 @@
                   <el-col :span="4">
                     <el-popconfirm @confirm="removeFileAll()" title="确定要清空所有文件吗？">
                       <template #reference>
-                        <el-button type="default" size="small" title="清空列表">
+                        <el-button type="default" title="清空列表">
                           <el-icon><Delete /></el-icon>
                           清空列表
                         </el-button>
