@@ -3,6 +3,7 @@ import App from './App.vue'
 // element ui
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import '@/assets/tailwind.css'
 // vue
 import router from './router'
 import plugins from './plugins'
