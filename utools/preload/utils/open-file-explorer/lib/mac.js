@@ -7,7 +7,7 @@ const { spawn } = require('child_process');
  */
 function openExplorerinMac(path, callback) {
     path = path || '/';
-    let p = spawn('open', [path]);
+    let p = spawn('open', ['-R', path]);
     p.on('error', (err) => {
         p.kill();
         return callback(err);
