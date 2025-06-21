@@ -7,7 +7,7 @@ module.exports = defineConfig({
     publicPath: './',
     outputDir: "dist",
     assetsDir: "static",
-    productionSourceMap: true,
+    productionSourceMap: process.env.NODE_ENV === 'production' ? false : true,
     devServer: {
         port: port,
         proxy: {
@@ -25,9 +25,6 @@ module.exports = defineConfig({
         }
     },
     transpileDependencies: true,
-    configureWebpack: {
-        devtool: 'source-map',
-    },
     chainWebpack: config => {
         config.resolve.alias.set('@', resolve('src'));
         config.module
