@@ -1,13 +1,12 @@
 const path = require('path')
 const fs = require('fs');
 const os = require("os");
-const openExplorer = require('open-file-explorer');
+const openExplorer = require('./open-file-explorer/index');
 
 const DEFAULT_HANDLER = (err) => console.log(err)
 
 const openFile = (filePath, errorHandler = DEFAULT_HANDLER) => {
     let fileDir = filePath;
-    // ���·�����ļ������ļ������ļ���
     if (!fs.lstatSync(filePath).isDirectory()) {
         fileDir = path.dirname(filePath)
     }
