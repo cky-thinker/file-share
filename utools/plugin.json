@@ -1,7 +1,7 @@
 {
-  "main": "./page_app/index.html",
-  "preload": "./preload/index.js",
-  "logo": "./asserts/logo.png",
+  "main": "page_app/index.html",
+  "preload": "preload/index.js",
+  "logo": "asserts/logo.png",
   "features": [
     {
       "code": "FileShare",
