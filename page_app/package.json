@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV='development' && vue-cli-service serve",
-    "build": "cross-env NODE_ENV=production && node ./.build/build.js",
+    "build": "cross-env NODE_ENV='production' && node ./.build/build.js",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
