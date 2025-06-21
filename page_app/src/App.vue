@@ -11,6 +11,10 @@
         <el-row class="row-bg">
           <el-col :span="24">
             <el-form ref="form" :model="settingForm" label-width="80px">
+              <el-form-item label="服务自启">
+                <el-switch v-model="settingForm.autoStart">
+                </el-switch>
+              </el-form-item>
               <el-form-item label="上传路径">
                 <el-input v-model="settingForm.uploadPath"></el-input>
               </el-form-item>
@@ -235,6 +239,7 @@ export default {
       },
       settingFormVisible: false,
       settingForm: {
+        autoStart: false,
         url: '',
         uploadPath: '',
         port: 5421
