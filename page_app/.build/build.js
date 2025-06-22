@@ -1,11 +1,12 @@
 const {exec} = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { env } = process;
 
 // 定义要执行的命令
 const buildCommand = 'vue-cli-service build';
 const sourceDistDir = path.resolve(__dirname, '..', 'dist')
-const targetDir = path.resolve(__dirname, '..', '..', 'utools', 'page_app')
+const targetDir = env.BUILD_TYPE === 'utool' ? path.resolve(__dirname, '..', '..', 'utools', 'page_app') : path.resolve(__dirname, '..', '..', 'electron', 'dist', 'page_app')
 console.log('构建目录', sourceDistDir)
 console.log('打包目录', targetDir)
 

@@ -1,0 +1,6 @@
+../.idea
+dist_electron
+node_modules
+out/
+dict/
+build/

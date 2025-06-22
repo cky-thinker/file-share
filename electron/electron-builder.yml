@@ -1,0 +1,122 @@
+productName: "fileshare"
+appId: "com.github.ckythinker.fileshare"
+
+asar: false
+directories:
+  output: "build"
+buildDependenciesFromSource: true
+files:
+  - "dist/**/*"
+  # Don't bundle these files
+  - "!**/node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}"
+  - "!node_modules/css-b64-images/{draft.png,draft.xcf}"
+  - "!node_modules/dagre-d3-renderer/dist/demo/"
+  - "!node_modules/dagre-d3/dist/demo/"
+  - "!node_modules/dragula/resources"
+  - "!node_modules/jest-image-snapshot/images/"
+  - "!node_modules/jest-image-snapshot/jest-image-snapshot.png"
+  - "!node_modules/**/*.js.map"
+  - "!node_modules/**/*.cjs.map"
+  - "!node_modules/**/*.mjs.map"
+  - "!node_modules/**/*.ts.map"
+  - "!node_modules/vscode-ripgrep/{jsconfig.json,*.md,LICENSE}"
+  - "!node_modules/vscode-ripgrep/download.js"
+  - "!node_modules/vscode-ripgrep/postinstall.js"
+  # Don't bundle build files
+  - "!node_modules/ced/bin"
+  - "!node_modules/ced/vendor"
+  - "!node_modules/fontmanager-redux/bin"
+  - "!node_modules/keyboard-layout/bin"
+  - "!node_modules/keytar/bin"
+  - "!node_modules/native-keymap/bin"
+  # Large source files that aren't needed
+  - "!node_modules/dagre-d3/dist/dagre-d3.min.js"
+  - "!node_modules/mermaid/dist/mermaid.js"
+  - "!node_modules/mermaid/dist/mermaid.min.js"
+  - "!node_modules/mermaid/dist/mermaid.esm.min.mjs"
+  - "!node_modules/katex/dist/katex.min.js"
+  - "!node_modules/katex/dist/katex.mjs"
+  - "!node_modules/vega/build-es5/"
+  - "!node_modules/vega-embed/build-es5/"
+  # Don't bundle Linux build files
+  - "!node_modules/ced/build/Release/compact_enc_det.a"
+  # Don't bundle Windows build files
+  - "!node_modules/**/{*.vcxproj,*.vcxproj.filters}"
+  - "!node_modules/**/build/Release/{*.lib,*.exp,*.ilk,*.pdb,*.iobj,*.ipdb}"
+  - "!node_modules/**/build/Release/obj"
+  - "!node_modules/ced/build/vendor"
+
+fileAssociations:
+  - ext:
+      - "*"
+    name: "fileshare"
+    description: "LAN file share"
+    icon: "../resources/icons/icon.icns"
+
+mac:
+  artifactName: "fileshare-mac-${arch}.${ext}"
+  icon: "../resources/icons/icon.icns"
+  darkModeSupport: false
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+dmg:
+  artifactName: "fileshare-mac-${arch}.${ext}"
+
+win:
+  artifactName: "fileshare-setup-win-${arch}.${ext}"
+  icon: "../resources/icons/icon.ico"
+  target:
+    - target: "nsis"
+      arch: [ia32, x64]
+  requestedExecutionLevel: "asInvoker"
+nsis:
+  artifactName: "fileshare-setup-win-${arch}.${ext}"
+  perMachine: false
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  include: "../resources/windows/installer.nsh"
+
+linux:
+  artifactName: "fileshare-linux-${arch}.${ext}"
+  executableName: "fileshare"
+  description: "LAN file sharing"
+  maintainer: ""
+  category: "Office;Utility"
+  mimeTypes:
+    - "*"
+  icon: "../resources/icons"
+  desktop:
+    StartupWMClass: "fileshare"
+    Keywords: "fileshare;"
+  target:
+    - target: "deb"
+#    - target: "rpm"
+  # Workaround because file association array doesn't work.
+  fileAssociations:
+    - ext: "*"
+      name: "fileshare"
+      description: "LAN file share"
+deb:
+  # Custom dependencies:
+  depends:
+    # keytar
+    - "libsecret-1-0"
+    # keyboard-layout
+    - "libx11-xcb1"
+    - "libxkbfile1"
+    # fontmanager
+    - "libfontconfig1"
+  fpm:
+    # Expat := MIT like
+    - "--license=Expat"
+rpm:
+  # Custom dependencies:
+  depends:
+    # keytar
+    - "libsecret"
+    # keyboard-layout
+    - "libX11-xcb"
+    - "libxkbfile"
+    # fontmanager
+    - "fontconfig"
