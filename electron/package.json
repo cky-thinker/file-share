@@ -1,0 +1,80 @@
+{
+  "name": "fileshare",
+  "productName": "fileshare",
+  "description": "局域网文件共享工具",
+  "version": "v1.0.3",
+  "main": "./dist/main.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development electron .",
+    "build": "cross-env NODE_ENV=development node .electron_build/build.js",
+    "release:linux": "cross-env NODE_ENV=production node .electron_build/build.js && electron-builder build -p never --linux",
+    "release:mac": "cross-env NODE_ENV=development node .electron_build/build.js && electron-builder build -p never --mac",
+    "release:win": "cross-env NODE_ENV=production node .electron_build/build.js && electron-builder build -p never --win"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "archiver-utils": "^5.0.2",
+    "body-parser": "^1.19.0",
+    "connect-history-api-fallback": "^2.0.0",
+    "cookie-parser": "^1.4.6",
+    "downloads-folder": "^3.0.3",
+    "electron-log": "^4.4.6",
+    "express": "^4.18.2",
+    "multer": "^1.4.3",
+    "node-machine-id": "^1.1.12",
+    "registry-js": "^1.16.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.9",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/plugin-proposal-export-default-from": "^7.16.7",
+    "@babel/plugin-proposal-function-bind": "^7.16.7",
+    "@babel/plugin-syntax-class-properties": "^7.12.13",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/register": "^7.17.7",
+    "@babel/runtime": "^7.17.9",
+    "babel-loader": "^8.2.4",
+    "babel-plugin-component": "^1.1.1",
+    "babel-plugin-istanbul": "^6.1.1",
+    "cfonts": "^2.10.1",
+    "chalk": "^4.1.2",
+    "copy-webpack-plugin": "^10.2.4",
+    "cross-env": "^7.0.3",
+    "del": "^6.0.0",
+    "electron": "^30.0.9",
+    "electron-builder": "^25.1.8",
+    "fs-extra": "^10.0.1",
+    "listr": "^0.14.3",
+    "node-loader": "^2.0.0",
+    "webpack": "^5.72.0",
+    "webpack-bundle-analyzer": "^4.5.0",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.8.1",
+    "webpack-hot-middleware": "^2.25.1",
+    "webpack-merge": "^5.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:cky-thinker/file-share-desktop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cky-thinker/file-share-desktop/issues"
+  },
+  "author": {
+    "name": "Cky",
+    "email": "cky.yu@foxmail.com",
+    "url": "https://github.com/cky-thinker"
+  },
+  "maintainer": [
+    {
+      "name": "Cky",
+      "email": "cky.yu@foxmail.com",
+      "url": "https://github.com/cky-thinker"
+    }
+  ]
+}
