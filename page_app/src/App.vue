@@ -442,7 +442,7 @@ body {
 .container {
   max-width: 700px;
   margin: 0 auto;
-  padding-top: 18px;
+  padding-top: 56px;
 }
 
 .setting-btn {
