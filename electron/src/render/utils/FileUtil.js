@@ -6,10 +6,6 @@ const openExplorer = require('./open-file-explorer/index');
 const DEFAULT_HANDLER = (err) => console.log(err)
 
 const openFile = (filePath, errorHandler = DEFAULT_HANDLER) => {
-    // let fileDir = filePath;
-    // if (!fs.lstatSync(filePath).isDirectory()) {
-    //     fileDir = path.dirname(filePath)
-    // }
     openExplorer(filePath, err => {
         if (err) {
             errorHandler(err)

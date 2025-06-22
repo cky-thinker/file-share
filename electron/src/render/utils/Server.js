@@ -15,6 +15,7 @@ const FileDb = require('./FileDb')
 const FileUtil = require('./FileUtil')
 const ZipUtil = require('./ZipUtil')
 const SseUtil = require('./SseUtil')
+const {getPageWebHome} = require("../../common/globalSetting");
 
 let session = new Set()
 let systemToken = crypto.createHash('md5').update(new Date().getTime() + '').digest('hex');
@@ -87,7 +88,7 @@ function parsePath(filename) {
  * 获取客户端IP
  */
 function getClientIp(req) {
-    let sourceip = `${req.ip.match(/\d+\.\d+\.\d+\.\d+/) || req.ip}`
+    let sourceip = req.ip.match(/\d+\.\d+\.\d+\.\d+/).toString()
     // 获取反向代理记录的真实客户端IP
     let realip = req.headers['x-real-ip']
     let clientip = realip || sourceip
@@ -102,7 +103,7 @@ const initApp = () => {
         rewrites: [
             {
                 from: /^\/api\/.*$/,
-                to: function (context) {
+                to: function(context) {
                     return context.parsedUrl.path
                 }
             }
@@ -110,8 +111,7 @@ const initApp = () => {
     }))
     app.use(cookieParser());
     app.all("/api/*", authFilter);
-    let rootPath = path.resolve(__dirname, '..', '..')
-    app.use(express.static(path.join(rootPath, 'page_web'), {index: 'index.html'}))
+    app.use(express.static(getPageWebHome(), {index: 'index.html'}))
     // file list
     app.get('/api/files', function (req, res) {
         let path = req.query.path
