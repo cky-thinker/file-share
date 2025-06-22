@@ -43,19 +43,19 @@ jobs:
           brew install python-setuptools
 
       - name: Cache Electron
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path:  ${{ env.HOME }}/.cache/electron
           key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
 
       - name: Cache Electron-Builder
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ env.HOME }}/.cache/electron-builder
           key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
 
       - name: Cache electron dir node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cacheElectronDirNodeModules
         with:
           path: ${{ github.workspace }}/electron/node_modules
@@ -64,7 +64,7 @@ jobs:
             ${{ runner.os }}-electron-dir-node_modules-cache-v2-
 
       - name: Cache app dir node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cacheAppDirNodeModules
         with:
           path: ${{ github.workspace }}/page_app/node_modules
@@ -73,7 +73,7 @@ jobs:
             ${{ runner.os }}-app-dir-node_modules-cache-v2-
 
       - name: Cache web dir node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cacheWebDirNodeModules
         with:
           path: ${{ github.workspace }}/page_web/node_modules
@@ -165,19 +165,19 @@ jobs:
         shell: pwsh
 
       - name: Cache Electron
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ env.LOCALAPPDATA }}\electron\Cache
           key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
 
       - name: Cache Electron-Builder
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ env.LOCALAPPDATA }}\electron-builder\cache
           key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
 
       - name: Cache electron dir node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cacheElectronDirNodeModules
         with:
           path: ${{ github.workspace }}\electron\node_modules
@@ -186,7 +186,7 @@ jobs:
             ${{ runner.os }}-electron-dir-node_modules-cache-v2-
 
       - name: Cache app dir node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cacheAppDirNodeModules
         with:
           path: ${{ github.workspace }}\page_app\node_modules
@@ -195,7 +195,7 @@ jobs:
             ${{ runner.os }}-app-dir-node_modules-cache-v2-
 
       - name: Cache web dir node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cacheWebDirNodeModules
         with:
           path: ${{ github.workspace }}\page_web\node_modules
