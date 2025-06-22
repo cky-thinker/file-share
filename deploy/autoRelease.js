@@ -58,14 +58,14 @@ exec('git tag -l --sort=v:refname', (err, stdout, stderr) => {
                         }
                         console.log(`Git tag ${newVersion} added`);
 
-                        // exec(`git push && git push --all`, (err, stdout, stderr) => {
-                        //     if (err) {
-                        //         console.error(`Error pushing changes and tag to remote: ${err}`);
-                        //         return rl.close();
-                        //     }
-                        //     console.log(`Changes and tag ${newVersion} pushed to remote`);
-                        //     rl.close();
-                        // });
+                        exec(`git push && git push --all`, (err, stdout, stderr) => {
+                            if (err) {
+                                console.error(`Error pushing changes and tag to remote: ${err}`);
+                                return rl.close();
+                            }
+                            console.log(`Changes and tag ${newVersion} pushed to remote`);
+                            rl.close();
+                        });
                         process.exit(0);
                     });
                 });
