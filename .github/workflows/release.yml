@@ -1,0 +1,239 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  unix:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: false
+    timeout-minutes: 45
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+
+    env:
+      USE_HARD_LINKS: false
+      DISPLAY: ":99.0"
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+          check-latest: true
+
+      # Workaround: Fix native build failure due to outdated node-gyp version.
+      - name: Fix node-gyp
+        run: |
+          npm install --global node-gyp@latest
+          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
+          node-gyp install
+        shell: pwsh
+      - name: Fix No module named 'distutils'
+        if: runner.os == 'macOS'
+        run: |
+          brew install python-setuptools
+
+      - name: Cache Electron
+        uses: actions/cache@v2
+        with:
+          path:  ${{ env.HOME }}/.cache/electron
+          key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
+
+      - name: Cache Electron-Builder
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.HOME }}/.cache/electron-builder
+          key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
+
+      - name: Cache electron dir node_modules
+        uses: actions/cache@v2
+        id: cacheElectronDirNodeModules
+        with:
+          path: ${{ github.workspace }}/electron/node_modules
+          key: ${{ runner.os }}-electron-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
+          restore-keys: |
+            ${{ runner.os }}-electron-dir-node_modules-cache-v2-
+
+      - name: Cache app dir node_modules
+        uses: actions/cache@v2
+        id: cacheAppDirNodeModules
+        with:
+          path: ${{ github.workspace }}/page_app/node_modules
+          key: ${{ runner.os }}-app-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'page_app/package-lock.json')) }}
+          restore-keys: |
+            ${{ runner.os }}-app-dir-node_modules-cache-v2-
+
+      - name: Cache web dir node_modules
+        uses: actions/cache@v2
+        id: cacheWebDirNodeModules
+        with:
+          path: ${{ github.workspace }}/page_web/node_modules
+          key: ${{ runner.os }}-web-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\page_web\package-lock.json')) }}
+          restore-keys: |
+            ${{ runner.os }}-web-dir-node_modules-cache-v2-
+
+      - name: Install page_app dependencies
+        working-directory: ./page_app
+        run: npm install
+
+      - name: Install page_web dependencies
+        working-directory: ./page_web
+        run: npm install
+
+      - name: Install electron dependencies
+        working-directory: ./electron
+        run: npm install
+        shell: bash
+
+      - name: Build page_app
+        working-directory: ./page_app
+        run: npm run build:desktop
+        shell: bash
+
+      - name: Build page_web
+        working-directory: ./page_web
+        run: npm run build:desktop
+        shell: bash
+
+      - name: Build electron
+        working-directory: ./electron
+        run: |
+          ARCH=$(uname -m)
+          echo $RUNNER_OS
+          echo $ARCH
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            npm run release:linux
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            npm run release:mac
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
+
+      - name: Echo build info
+        working-directory: ./electron
+        run: ls -la ./build
+
+      - name: Release linux
+        uses: softprops/action-gh-release@v2
+        if: runner.os == 'Linux'
+        with:
+          files: |
+            electron/build/fileshare-linux-amd64.deb
+
+      - name: Release mac
+        uses: softprops/action-gh-release@v2
+        if: runner.os == 'macOS'
+        with:
+          files: |
+            electron/build/fileshare-mac-arm64.dmg
+            electron/build/fileshare-mac-x64.dmg
+
+  windows:
+    runs-on: windows-latest
+    continue-on-error: false
+    timeout-minutes: 45
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+          check-latest: true
+
+      # Workaround: Fix native build failure due to outdated node-gyp version.
+      - name: Fix node-gyp
+        run: |
+          npm install --global node-gyp@latest
+          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
+          node-gyp install
+        shell: pwsh
+
+      - name: Cache Electron
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.LOCALAPPDATA }}\electron\Cache
+          key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
+
+      - name: Cache Electron-Builder
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.LOCALAPPDATA }}\electron-builder\cache
+          key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
+
+      - name: Cache electron dir node_modules
+        uses: actions/cache@v2
+        id: cacheElectronDirNodeModules
+        with:
+          path: ${{ github.workspace }}\electron\node_modules
+          key: ${{ runner.os }}-electron-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
+          restore-keys: |
+            ${{ runner.os }}-electron-dir-node_modules-cache-v2-
+
+      - name: Cache app dir node_modules
+        uses: actions/cache@v2
+        id: cacheAppDirNodeModules
+        with:
+          path: ${{ github.workspace }}\page_app\node_modules
+          key: ${{ runner.os }}-app-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\page_app\package-lock.json')) }}
+          restore-keys: |
+            ${{ runner.os }}-app-dir-node_modules-cache-v2-
+
+      - name: Cache web dir node_modules
+        uses: actions/cache@v2
+        id: cacheWebDirNodeModules
+        with:
+          path: ${{ github.workspace }}\page_web\node_modules
+          key: ${{ runner.os }}-web-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\page_web\package-lock.json')) }}
+          restore-keys: |
+            ${{ runner.os }}-web-dir-node_modules-cache-v2-
+
+      - name: Install page_app dependencies
+        working-directory: ./page_app
+        run: npm install
+
+      - name: Install page_web dependencies
+        working-directory: ./page_web
+        run: npm install
+
+      - name: Install electron dependencies
+        working-directory: ./electron
+        run: npm install
+        shell: bash
+
+      - name: Build page_app
+        working-directory: ./page_app
+        run: npm run build:desktop
+        shell: bash
+
+      - name: Build page_web
+        working-directory: ./page_web
+        run: npm run build:desktop
+        shell: bash
+
+      - name: Build electron
+        working-directory: ./electron
+        run: npm run release:win
+        shell: bash
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            electron/build/fileshare-setup-win-ia32.exe
+            electron/build/fileshare-setup-win-x64.exe
