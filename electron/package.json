@@ -2,7 +2,7 @@
   "name": "fileshare",
   "productName": "fileshare",
   "description": "局域网文件共享工具",
-  "version": "v1.0.2",
+  "version": "v1.0.3",
   "main": "./dist/main.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development electron .",
