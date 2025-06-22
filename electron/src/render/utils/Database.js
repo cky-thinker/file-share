@@ -1,10 +1,11 @@
+const PlatformAdaptor = require('./PlatformAdaptor')
 // ----- 数据库接口封装 k-v 存储 -----
 function setStorageItem(key, value) {
-    utools.dbStorage.setItem(key, value);
+    PlatformAdaptor.dbStorage.setItem(key, value);
 }
 
 function getStorageItem(key, defaultValue = null) {
-    let value = utools.dbStorage.getItem(key);
+    let value = PlatformAdaptor.dbStorage.getItem(key);
     // 存在直接返回
     if (!!value) {
         return value;

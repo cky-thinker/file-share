@@ -3,7 +3,7 @@ import setupExceptionHandler, {initExceptionLogger} from "../common/exceptionHan
 import log from 'electron-log'
 import {getLogLevel, getLogPath, getPageAppPath, getPreloadPath, isDev} from "../common/globalSetting";
 
-const {app, BrowserWindow, Menu} = require('electron')
+const {app, BrowserWindow, Menu, ipcMain} = require('electron')
 const path = require('node:path')
 
 // NOTE: We only support Linux, macOS and Windows but not BSD nor SunOS.
@@ -34,6 +34,7 @@ const createWindow = () => {
         title: "file-share-desktop",
         icon: path.join(__static, 'icon.png'),
         webPreferences: {
+            enableRemoteModule: true,
             contextIsolation: false,
             webSecurity: false,
             nodeIntegration: true,
@@ -49,6 +50,16 @@ const createWindow = () => {
     }).catch(e => {
         console.log("load error", e)
     })
+
+    // 处理打开开发者工具事件
+    ipcMain.on('open-dev-tools', () => {
+        win.webContents.openDevTools();
+    });
+
+    // 处理关闭开发者工具事件
+    ipcMain.on('close-dev-tools', () => {
+        win.webContents.closeDevTools();
+    });
 }
 
 app.whenReady().then(() => {

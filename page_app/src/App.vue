@@ -28,6 +28,10 @@
               <el-form-item v-if="settingForm.authEnable" label="校验密码">
                 <el-input v-model="settingForm.password" show-password></el-input>
               </el-form-item>
+              <el-form-item label="调试工具">
+                <el-switch v-model="devTool" @change="switchDevTool">
+                </el-switch>
+              </el-form-item>
             </el-form>
           </el-col>
         </el-row>
@@ -218,7 +222,7 @@
 import Clipboard from 'clipboard'
 import {ElMessage} from 'element-plus'
 import QrcodeVue from 'qrcode.vue'
-import {Link, Message, Setting, Sort, Delete, DocumentCopy, FolderOpened} from '@element-plus/icons-vue'
+import {Delete, DocumentCopy, FolderOpened, Link, Message, Setting, Sort} from '@element-plus/icons-vue'
 
 let api = window.api;
 
@@ -256,6 +260,7 @@ export default {
         uploadPath: '',
         port: 5421
       },
+      devTool: false,
       dialogFormVisible: false,
       timer: null
     }
@@ -370,6 +375,14 @@ export default {
       this.files = api.listFiles();
       this.settingForm = api.getSetting()
       console.log("---settingForm--", this.settingForm)
+    },
+    switchDevTool() {
+      console.log("---switchDevTool--", this.devTool)
+      if (this.devTool) {
+        api.openDevTool();
+      } else {
+        api.closeDevTool();
+      }
     }
   },
   mounted: function () {
