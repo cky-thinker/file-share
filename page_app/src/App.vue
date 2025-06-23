@@ -226,8 +226,17 @@ import {Delete, DocumentCopy, FolderOpened, Link, Message, Setting, Sort} from '
 
 let api = window.api;
 
+// 查找最近的按钮元素
+const findButtonElement = (element) => {
+  while (element && !element.matches('button')) {
+    element = element.parentElement;
+  }
+  return element;
+};
+
 let copyClipboard = (text, event) => {
-  const clipboard = new Clipboard(event.target, {
+  const target = findButtonElement(event.target);
+  const clipboard = new Clipboard(target, {
     text: () => text
   })
   clipboard.on('success', () => {
