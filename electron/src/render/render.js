@@ -97,6 +97,7 @@ window.api = {
     getIpAddresses: IpUtil.getIpAddresses,
     getNetInterfaceNames: IpUtil.getNetInterfaceNames,
     getSystemToken: Server.getSystemToken,
+    getPlatform: PlatformAdaptor.getPlatform,
     openDevTool: PlatformAdaptor.openDevTool,
     closeDevTool: PlatformAdaptor.closeDevTool
 }

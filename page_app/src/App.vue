@@ -28,7 +28,7 @@
               <el-form-item v-if="settingForm.authEnable" label="校验密码">
                 <el-input v-model="settingForm.password" show-password></el-input>
               </el-form-item>
-              <el-form-item label="调试工具">
+              <el-form-item v-if="getPlatform() === 'electron'" label="调试工具">
                 <el-switch v-model="devTool" @change="switchDevTool">
                 </el-switch>
               </el-form-item>
@@ -226,6 +226,11 @@ import {Delete, DocumentCopy, FolderOpened, Link, Message, Setting, Sort} from '
 
 let api = window.api;
 
+const successMessage = (message) => {
+  ElMessage.closeAll() // 关闭历史消息
+  ElMessage.success({message: message, type: 'success'});
+}
+
 // 查找最近的按钮元素
 const findButtonElement = (element) => {
   while (element && !element.matches('button')) {
@@ -241,7 +246,7 @@ let copyClipboard = (text, event) => {
   })
   clipboard.on('success', () => {
     console.log("copy success", text)
-    ElMessage.success({message: '复制链接成功', type: 'success'});
+    successMessage('复制链接成功')
   })
   clipboard.onClick(event)
   clipboard.destroy()
@@ -284,12 +289,12 @@ export default {
       console.log(this.settingForm)
       api.updateSetting(this.settingForm)
           .then(() => {
-            ElMessage.success("更新成功");
+            successMessage('更新成功')
             this.settingForm = api.getSetting();
             this.settingFormVisible = false;
           })
           .catch(() => {
-            ElMessage.error("更新失败");
+            successMessage('更新失败')
             this.settingForm = api.getSetting();
             this.settingFormVisible = false;
           })
@@ -327,7 +332,7 @@ export default {
         api.removeFile(f)
       })
       this.files = api.listFiles();
-      ElMessage.success({message: '已清空列表', type: 'success'});
+      successMessage('已清空列表')
     },
     removeFile: function (file) {
       let removeFiles = this.files.filter((f) => f.name === file.name);
@@ -353,6 +358,7 @@ export default {
     },
     changeIpFamily: function () {
       this.ipFamily = this.ipFamily === 'ipv4' ? 'ipv6' : 'ipv4';
+      successMessage(`切换协议为 "${this.ipFamily}"`)
       this.currentNetInterfaceIdx = 0;
       this.netInterfaceNames = api.getNetInterfaceNames(this.ipFamily);
       this.currentInterfaceName = this.netInterfaceNames[0] || "";
@@ -374,7 +380,7 @@ export default {
       }
       api.updateIp(ip).then(() => {
         this.settingForm = api.getSetting()
-        ElMessage.success({message: `切换网卡为 "${this.currentInterfaceName}"`, type: 'success'});
+        successMessage(`切换网卡为 "${this.currentInterfaceName}"`)
       });
     },
     updatePage() {
@@ -384,6 +390,9 @@ export default {
       this.files = api.listFiles();
       this.settingForm = api.getSetting()
       console.log("---settingForm--", this.settingForm)
+    },
+    getPlatform() {
+      return api.getPlatform();
     },
     switchDevTool() {
       console.log("---switchDevTool--", this.devTool)

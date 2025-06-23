@@ -1,5 +1,5 @@
 let _setImmediate = setTimeout;
-process.once('loaded', function() {
+process.once('loaded', function () {
     global.setImmediate = _setImmediate;
 });
 const path = require('path')
@@ -13,7 +13,7 @@ const FileDb = require('./utils/FileDb')
 const EventDispatcher = require('./utils/EventDispatcher')
 
 // 进入插件
-utools.onPluginEnter(({ code, type, payload }) => {
+utools.onPluginEnter(({code, type, payload}) => {
     let checkStart = false;
     if (type === 'files' && !!payload) {
         console.log("快捷方式进入插件", payload)
@@ -24,12 +24,12 @@ utools.onPluginEnter(({ code, type, payload }) => {
         })
         checkStart = true;
     } else if (type === 'over') {
-		console.log('文本分享方式进入插件', payload)
-		if (payload) {
-			FileDb.addText(payload)
-		}
+        console.log('文本分享方式进入插件', payload)
+        if (payload) {
+            FileDb.addText(payload)
+        }
         checkStart = true;
-	} else if (Setting.getAutoStart()) {
+    } else if (Setting.getAutoStart()) {
         checkStart = true;
     }
     if (checkStart && Server.getServerStatus() === Server.StatusStop) {
@@ -99,5 +99,14 @@ window.api = {
     getIpAddress: IpUtil.getIpAddress,
     getIpAddresses: IpUtil.getIpAddresses,
     getNetInterfaceNames: IpUtil.getNetInterfaceNames,
-    getSystemToken: Server.getSystemToken
+    getSystemToken: Server.getSystemToken,
+    getPlatform: () => {
+        return 'utools'
+    },
+    openDevTool: () => {
+        console.log("not supported")
+    },
+    closeDevTool: () => {
+        console.log("not supported")
+    }
 }
