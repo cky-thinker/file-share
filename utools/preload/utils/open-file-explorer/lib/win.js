@@ -7,7 +7,7 @@ const { spawn } = require('child_process');
  */
 function openExplorerinWindows(path, callback) {
     path = path || '=';
-    let p = spawn('explorer', [`/select,${path}`]);
+    let p = spawn('explorer', [`/select,"${path}"`]);
     p.on('error', (err) => {
         p.kill();
         return callback(err);
