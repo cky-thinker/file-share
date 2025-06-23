@@ -1,4 +1,4 @@
-const { spawn } = require('child_process');
+const {spawn} = require('child_process');
 
 /**
  * Opens the Explorer and executes the callback function in windows os
@@ -7,7 +7,7 @@ const { spawn } = require('child_process');
  */
 function openExplorerinWindows(path, callback) {
     path = path || '=';
-    let p = spawn('explorer', [`/select,"${path}"`]);
+    let p = spawn('explorer', ["/select,", path]);
     p.on('error', (err) => {
         p.kill();
         return callback(err);
