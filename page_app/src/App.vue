@@ -55,7 +55,7 @@
             </template>
             <el-row class="row-bg">
               <el-col :span="12">分享链接：{{ settingForm.url }}</el-col>
-              <el-col :span="3">
+              <el-col :span="4">
                 <el-popover placement="left" :width="125" trigger="hover">
                   <template #reference>
                     <el-button type="default"
@@ -63,13 +63,13 @@
                       <el-icon>
                         <Link/>
                       </el-icon>
-                      &nbsp;复制
+                      &nbsp;复制链接
                     </el-button>
                   </template>
                   <qrcode-vue :value="settingForm.url"></qrcode-vue>
                 </el-popover>
               </el-col>
-              <el-col :span="3">
+              <el-col :span="4">
                 <el-tooltip
                     effect="dark"
                     content="切换ip协议"
@@ -79,11 +79,11 @@
                     <el-icon>
                       <Sort/>
                     </el-icon>
-                    &nbsp;{{ ipFamily }}
+                    &nbsp;切换{{ ipFamily }}
                   </el-button>
                 </el-tooltip>
               </el-col>
-              <el-col :span="3">
+              <el-col :span="4">
                 <el-tooltip
                     effect="dark"
                     content="切换网卡"
@@ -94,7 +94,7 @@
                     <el-icon>
                       <Sort/>
                     </el-icon>
-                    &nbsp;{{ currentInterfaceName }}
+                    &nbsp;切换网卡
                   </el-button>
                 </el-tooltip>
               </el-col>
@@ -120,7 +120,7 @@
                       <el-icon>
                         <Message/>
                       </el-icon>
-                      分享文本
+                      &nbsp;分享文本
                     </el-button>
                   </el-col>
                   <el-col :span="4">
@@ -128,7 +128,7 @@
                       <template #reference>
                         <el-button type="default" title="清空列表">
                           <el-icon><Delete /></el-icon>
-                          清空列表
+                          &nbsp;清空列表
                         </el-button>
                       </template>
                     </el-popconfirm>
@@ -458,7 +458,7 @@ body {
 }
 
 .container {
-  max-width: 700px;
+  max-width: 750px;
   margin: 0 auto;
   padding-top: 56px;
 }
