@@ -97,6 +97,7 @@ export default {
 :deep(.el-input__wrapper) {
   height: 44px;
 }
+
 .login-form {
   background-color: rgba(255, 255, 255, 0.6);
 }
