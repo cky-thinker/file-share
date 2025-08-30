@@ -4,6 +4,7 @@ const downloadsFolder = require('downloads-folder');
 
 const AppDatabase = require('./Database');
 const IpUtil = require('./IpUtil');
+const Server = require("./Server");
 
 const uploadPathKey = 'uploadPath' // 上传路径
 const portKey = 'port' // 端口号
@@ -100,6 +101,12 @@ function updatePassword(value) {
         if (value == null) {
             return reject({ success: false, message: '更新失败，值为空' });
         }
+        // 值没变，不更新
+        if (getPassword() === value) {
+            console.log("password 值没变，不更新")
+            return resolve({ success: true, message: 'ValueNotChange' })
+        }
+        Server.clearSession()
         console.log('--updatePassword--', value)
         AppDatabase.setStorageItem(Password, value)
         return resolve({ success: true, message: '修改成功' });

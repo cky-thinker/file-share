@@ -17,8 +17,17 @@ const ZipUtil = require('./ZipUtil')
 const SseUtil = require('./SseUtil')
 
 let session = new Set()
-let systemToken = crypto.createHash('md5').update(new Date().getTime() + '').digest('hex');
-session.add(systemToken)
+
+function clearSession() {
+    session.clear()
+}
+
+function getToken(permanent = false, timeoutSec = 3600) {
+    if (session.size === 0) {
+        return ""
+    }
+    return session.keys().next().value
+}
 
 const StatusStart = "start"
 const StatusStop = "stop"
@@ -207,6 +216,11 @@ const initApp = () => {
         res.json({ code: 200, data: { authEnable }, message: 'success' })
     })
 
+    app.get("/api/logout", (req, res) => {
+        clearSession()
+        res.json({ code: 200, message: 'success' })
+    })
+
     app.post('/api/login', urlencodedParser, jsonParser, function (req, res) {
         console.log("api/login")
         // no auth
@@ -305,4 +319,5 @@ exports.stopServer = stopServer
 exports.getServerStatus = getServerStatus
 exports.StatusStart = StatusStart
 exports.StatusStop = StatusStop
-exports.getSystemToken = () => systemToken
+exports.clearSession = clearSession
+exports.getToken = getToken

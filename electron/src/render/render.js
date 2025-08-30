@@ -100,7 +100,6 @@ window.api = {
     setNetInterface: IpUtil.setNetInterface,
     getIpFamily: IpUtil.getIpFamily,
     getNetInterface: IpUtil.getNetInterface,
-    getSystemToken: Server.getSystemToken,
     getPlatform: PlatformAdaptor.getPlatform,
     openDevTool: PlatformAdaptor.openDevTool,
     closeDevTool: PlatformAdaptor.closeDevTool

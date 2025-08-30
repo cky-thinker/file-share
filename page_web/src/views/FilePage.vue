@@ -225,8 +225,8 @@ export default {
     }
   },
   async created() {
-    let setting = await getSetting()
-    this.authEnable = setting.authEnable
+    let settingRes = await getSetting()
+    this.authEnable = settingRes.data.authEnable
     this.refreshPath();
     await this.showFiles();
     this.updateRouter();

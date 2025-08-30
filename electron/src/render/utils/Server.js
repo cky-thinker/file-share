@@ -297,4 +297,3 @@ exports.stopServer = stopServer
 exports.getServerStatus = getServerStatus
 exports.StatusStart = StatusStart
 exports.StatusStop = StatusStop
-exports.getSystemToken = () => systemToken

@@ -109,7 +109,7 @@ window.api = {
     setNetInterface: IpUtil.setNetInterface,
     getIpFamily: IpUtil.getIpFamily,
     getNetInterface: IpUtil.getNetInterface,
-    getSystemToken: Server.getSystemToken,
+    getToken: Server.getToken,
     getPlatform: () => {
         return 'utools'
     },

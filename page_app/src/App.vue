@@ -350,7 +350,7 @@ export default {
       copyClipboard(url, event)
     },
     getFileUrl(file) {
-      let url = this.settingForm.url + `/api/download?filename=${encodeURIComponent(file.name)}&token=${api.getSystemToken()}&timestamp=${new Date().getTime()}`;
+      let url = this.settingForm.url + `/api/download?filename=${encodeURIComponent(file.name)}&token=${api.getToken()}&timestamp=${new Date().getTime()}`;
       return url;
     },
     handleClipboard: function (data, event) {
