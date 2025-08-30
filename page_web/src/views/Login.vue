@@ -98,6 +98,14 @@ export default {
   height: 44px;
 }
 .login-form {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+h1 {
+  color: var(--el-text-color-primary);
+}
+
+h3 {
+  color: var(--el-text-color-primary);
 }
 </style>
