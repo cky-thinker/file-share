@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie'
 export const TokenKey = 'Authorization'
+
 const authInvalidCallback = []
 
 export function getToken() {

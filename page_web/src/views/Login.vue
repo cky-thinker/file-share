@@ -98,6 +98,7 @@ export default {
             message: '登录成功',
             type: 'success'
           })
+          console.log("res", res)
           setToken(res.data.Authorization)
           // 跳转到首页
           this.$router.push('/')

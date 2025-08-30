@@ -60,8 +60,9 @@ service.interceptors.response.use(res => {
     return res.data
   } else if (code === 401) {
     logout()
-    // TODO 重定向到登录页
-    return Promise.reject('登录状态无效，请重新登录')
+    // 重定向到登录页
+    window.location.href = '/login';
+    return Promise.reject('登录状态无效，请重新登录');
   } else {
     console.log("请求错误", res.data.message || msg)
     return Promise.reject('error')

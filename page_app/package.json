@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV='development' && vue-cli-service serve",
+    "build:dev": "cross-env NODE_ENV='development' BUILD_TYPE=utool node ./.build/build.js",
     "build:utool": "cross-env NODE_ENV='production' BUILD_TYPE=utool node ./.build/build.js",
     "build:desktop": "cross-env NODE_ENV='production' BUILD_TYPE=desktop node ./.build/build.js",
     "lint": "vue-cli-service lint"

@@ -1,4 +1,5 @@
 const {networkInterfaces} = require('os');
+const Setting = require('./Setting');
 
 function _normalizeFamily(family) {
     return family ? family.toLowerCase() : 'ipv4';
@@ -56,6 +57,33 @@ let getIpAddress = function (idx = 0, ipFamily = 'ipv4') {
     return ipAddresses.length > 0 ? ipAddresses[0].address : loopback(ipFamily);
 };
 
+let setIpFamily = function (ipFamily) {
+    ipFamily = _normalizeFamily(ipFamily);
+    if (ipFamily !== 'ipv4' && ipFamily !== 'ipv6') {
+        throw new Error('family must be ipv4 or ipv6');
+    }
+    Setting.setIpFamily(ipFamily);
+}
+
+let getIpFamily = function () {
+    return Setting.getIpFamily();
+}
+
+let setNetInterface = function (netInterfaceName) {
+    if (!netInterfaceName) {
+        throw new Error('netInterfaceName is required');
+    }
+    Setting.setNetInterfaceName(netInterfaceName);
+}
+
+let getNetInterface = function () {
+    return Setting.getNetInterfaceName();
+}
+
 exports.getIpAddress = getIpAddress
 exports.getIpAddresses = getIpAddresses
 exports.getNetInterfaceNames = getNetInterfaceNames
+exports.setIpFamily = setIpFamily
+exports.getIpFamily = getIpFamily
+exports.setNetInterface = setNetInterface
+exports.getNetInterface = getNetInterface

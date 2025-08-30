@@ -1,38 +1,27 @@
 // ----- 配置管理 -----
-const path = require('path')
 const fs = require("fs")
 const downloadsFolder = require('downloads-folder');
-const nodeMachine = require('node-machine-id');
 
-const AppDatabase = require('./Database')
-const IpUtil = require("./IpUtil");
+const AppDatabase = require('./Database');
+const IpUtil = require('./IpUtil');
 
 const uploadPathKey = 'uploadPath' // 上传路径
 const portKey = 'port' // 端口号
-const ipKey = 'ip' // 端口号
 const AuthEnable = 'authEnable' // 是否开启密码校验
 const Password = 'password' // 密码
 const tusEnableKey = 'tusEnable' // 是否启用续传功能
 const chunkSizeKey = 'chunkSize' // 上传文件的分片大小
 const AutoStart = 'autoStart' // 自动启动
-
-let curIp = IpUtil.getIpAddress();
+const ipFamilyKey = 'ipFamily' // IP协议族
+const netInterfaceNameKey = 'netInterfaceName' // 网络接口名称
 
 // 上传路径默认值
 function getDefaultUploadPath() {
     return downloadsFolder();
 }
 
-let machineId = null;
-function getMachineId() {
-    if (machineId == null) {
-        machineId = nodeMachine.machineIdSync();
-    }
-    return machineId;
-}
-
 function getUploadPath() {
-    return AppDatabase.getStorageItem(uploadPathKey + ":" + getMachineId(), getDefaultUploadPath);
+    return AppDatabase.getStorageItem(uploadPathKey, getDefaultUploadPath);
 }
 
 /**
@@ -56,7 +45,7 @@ function updateUploadPath(path) {
         if (!fs.lstatSync(path).isDirectory()) {
             return reject({ success: false, message: '上传路径必须为文件夹' })
         }
-        AppDatabase.setStorageItem(uploadPathKey + ":" + getMachineId(), path);
+        AppDatabase.setStorageItem(uploadPathKey, path);
         resolve({ success: true, message: '修改成功' })
     })
 }
@@ -85,29 +74,10 @@ function updatePort(port) {
     });
 }
 
-function getUrl() {
-    let ip = getIp()
+let getUrl = function getUrl() {
+    let ip = IpUtil.getIp()
     let port = getPort()
     return `http://${ip}:${port}`;
-}
-
-function getIp() {
-    return curIp;
-}
-
-function updateIp(ip) {
-    return new Promise((resolve, reject) => {
-        if (!ip) {
-            return reject({ success: false, message: '更新地址失败，地址为空' });
-        }
-        // 值没变，不更新
-        if (getIp() === ip) {
-            console.log("ip 值没变，不更新")
-            return resolve({ success: true, message: 'ValueNotChange' });
-        }
-        curIp = ip;
-        resolve({ success: true, message: '修改成功' });
-    })
 }
 
 function updateAuthEnable(value) {
@@ -166,10 +136,10 @@ function getChunkSize() {
  */
 function updateChunkSize(chunkSize) {
     const isNumber = (value) => {
-        if (typeof value == 'number'){
+        if (typeof value == 'number') {
             return true
         }
-        if (typeof value == 'string'){
+        if (typeof value == 'string') {
             return !!value && !isNaN(value)
         }
         return false
@@ -179,10 +149,10 @@ function updateChunkSize(chunkSize) {
             return reject({ success: false, message: '更新分片大小失败，值为空' })
         }
         if (!isNumber(chunkSize)) {
-            return reject({ success: false, message: '更新分片大小失败，值不是数字' } )
+            return reject({ success: false, message: '更新分片大小失败，值不是数字' })
         }
-        if (chunkSize <= 0){
-            return reject({ success: false, message: '更新分片大小失败，值应该大于0' } )
+        if (chunkSize <= 0) {
+            return reject({ success: false, message: '更新分片大小失败，值应该大于0' })
         }
         // 值没变，不更新
         if (getChunkSize() === chunkSize) {
@@ -190,7 +160,7 @@ function updateChunkSize(chunkSize) {
             return resolve({ success: true, message: 'ValueNotChange' })
         }
         AppDatabase.setStorageItem(chunkSizeKey, chunkSize)
-        return  resolve({ success: true, message: '修改成功' })
+        return resolve({ success: true, message: '修改成功' })
     });
 }
 
@@ -219,7 +189,7 @@ function getSetting() {
     return {
         uploadPath: getUploadPath(),
         port: getPort(),
-        ip: getIp(),
+        ip: IpUtil.getIp(),
         url: getUrl(),
         authEnable: getAuthEnable(),
         password: getPassword(),
@@ -236,14 +206,7 @@ function updateSetting(setting) {
     }).catch((e) => {
         console.log(e)
     })
-
     updatePort(setting[portKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-
-    updateIp(setting[ipKey]).then((e) => {
         console.log(e)
     }).catch((e) => {
         console.log(e)
@@ -267,6 +230,31 @@ function updateSetting(setting) {
     })
 }
 
+function getIpFamily() {
+    return AppDatabase.getStorageItem(ipFamilyKey, 'ipv4')
+}
+
+function setIpFamily(value) {
+    if (!value) {
+        throw new Error('IP协议族不能为空');
+    }
+    if (value !== 'ipv4' && value !== 'ipv6') {
+        throw new Error('IP协议族必须是ipv4或ipv6');
+    }
+    AppDatabase.setStorageItem(ipFamilyKey, value);
+}
+
+function getNetInterfaceName() {
+    return AppDatabase.getStorageItem(netInterfaceNameKey, '')
+}
+
+function setNetInterfaceName(value) {
+    if (!value) {
+        throw new Error('网络接口名称不能为空');
+    }
+    AppDatabase.setStorageItem(netInterfaceNameKey, value);
+}
+
 exports.uploadPathKey = uploadPathKey
 exports.portKey = portKey
 exports.Password = Password
@@ -274,15 +262,15 @@ exports.AuthEnable = AuthEnable
 exports.tusEnableKey = tusEnableKey
 exports.chunkSizeKey = chunkSizeKey
 exports.AutoStart = AutoStart
+exports.ipFamilyKey = ipFamilyKey
+exports.netInterfaceNameKey = netInterfaceNameKey
 exports.getUploadPath = getUploadPath
 exports.updateUploadPath = updateUploadPath
 exports.getPort = getPort
+exports.getUrl = getUrl
 exports.updatePort = updatePort
 exports.getSetting = getSetting
 exports.updateSetting = updateSetting
-exports.getUrl = getUrl
-exports.getIp = getIp
-exports.updateIp = updateIp
 exports.updateAuthEnable = updateAuthEnable
 exports.getAuthEnable = getAuthEnable
 exports.updatePassword = updatePassword
@@ -293,3 +281,7 @@ exports.getChunkSize = getChunkSize
 exports.updateChunkSize = updateChunkSize
 exports.updateAutoStart = updateAutoStart
 exports.getAutoStart = getAutoStart
+exports.getIpFamily = getIpFamily
+exports.setIpFamily = setIpFamily
+exports.getNetInterfaceName = getNetInterfaceName
+exports.setNetInterfaceName = setNetInterfaceName

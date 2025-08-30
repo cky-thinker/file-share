@@ -13,7 +13,7 @@ const FileDb = require('./utils/FileDb')
 const EventDispatcher = require('./utils/EventDispatcher')
 
 // 进入插件
-utools.onPluginEnter(({code, type, payload}) => {
+utools.onPluginEnter(({ code, type, payload }) => {
     let checkStart = false;
     if (type === 'files' && !!payload) {
         console.log("快捷方式进入插件", payload)
@@ -46,6 +46,12 @@ utools.onPluginOut(() => {
 utools.onPluginReady(() => {
     console.log('插件装配完成，已准备好')
     Setting.getSetting(); // 初始化配置
+
+    // 初始化IP相关配置
+    const savedIpFamily = IpUtil.getIpFamily();
+    const savedNetInterface = IpUtil.getNetInterface();
+    const ipAddress = IpUtil.getIp();
+    console.log('加载保存的IP配置:', { ipFamily: savedIpFamily, netInterface: savedNetInterface, ipAddress: ipAddress });
 })
 
 // 配置更新
@@ -85,6 +91,7 @@ const openFile = (filename) => {
 window.api = {
     updateSetting,
     getSetting: Setting.getSetting,
+    getUrl: Setting.getUrl,
     startServer: Server.startServer,
     stopServer: Server.stopServer,
     getServerStatus: Server.getServerStatus,
@@ -94,11 +101,14 @@ window.api = {
     addFile: FileDb.addFile,
     removeFile: FileDb.removeFile,
     listFiles: FileDb.listFiles,
-    updateIp: Setting.updateIp,
-    getUrl: Setting.getUrl,
+    getIp: IpUtil.getIp,
     getIpAddress: IpUtil.getIpAddress,
     getIpAddresses: IpUtil.getIpAddresses,
     getNetInterfaceNames: IpUtil.getNetInterfaceNames,
+    setIpFamily: IpUtil.setIpFamily,
+    setNetInterface: IpUtil.setNetInterface,
+    getIpFamily: IpUtil.getIpFamily,
+    getNetInterface: IpUtil.getNetInterface,
     getSystemToken: Server.getSystemToken,
     getPlatform: () => {
         return 'utools'

@@ -1,5 +1,4 @@
 // ----- 配置管理 -----
-const path = require('path')
 const fs = require("fs")
 const downloadsFolder = require('downloads-folder');
 const nodeMachine = require('node-machine-id');
@@ -15,6 +14,8 @@ const Password = 'password' // 密码
 const tusEnableKey = 'tusEnable' // 是否启用续传功能
 const chunkSizeKey = 'chunkSize' // 上传文件的分片大小
 const AutoStart = 'autoStart' // 自动启动
+const ipFamilyKey = 'ipFamily' // IP协议族
+const netInterfaceNameKey = 'netInterfaceName' // 网络接口名称
 
 let curIp = IpUtil.getIpAddress();
 
@@ -166,10 +167,10 @@ function getChunkSize() {
  */
 function updateChunkSize(chunkSize) {
     const isNumber = (value) => {
-        if (typeof value == 'number'){
+        if (typeof value == 'number') {
             return true
         }
-        if (typeof value == 'string'){
+        if (typeof value == 'string') {
             return !!value && !isNaN(value)
         }
         return false
@@ -179,10 +180,10 @@ function updateChunkSize(chunkSize) {
             return reject({ success: false, message: '更新分片大小失败，值为空' })
         }
         if (!isNumber(chunkSize)) {
-            return reject({ success: false, message: '更新分片大小失败，值不是数字' } )
+            return reject({ success: false, message: '更新分片大小失败，值不是数字' })
         }
-        if (chunkSize <= 0){
-            return reject({ success: false, message: '更新分片大小失败，值应该大于0' } )
+        if (chunkSize <= 0) {
+            return reject({ success: false, message: '更新分片大小失败，值应该大于0' })
         }
         // 值没变，不更新
         if (getChunkSize() === chunkSize) {
@@ -190,7 +191,7 @@ function updateChunkSize(chunkSize) {
             return resolve({ success: true, message: 'ValueNotChange' })
         }
         AppDatabase.setStorageItem(chunkSizeKey, chunkSize)
-        return  resolve({ success: true, message: '修改成功' })
+        return resolve({ success: true, message: '修改成功' })
     });
 }
 
@@ -212,6 +213,31 @@ function updateAutoStart(value) {
 
 function getAutoStart() {
     return AppDatabase.getStorageItem(AutoStart, false)
+}
+
+function getIpFamily() {
+    return AppDatabase.getStorageItem(ipFamilyKey, 'ipv4')
+}
+
+function setIpFamily(value) {
+    if (!value) {
+        throw new Error('IP协议族不能为空');
+    }
+    if (value !== 'ipv4' && value !== 'ipv6') {
+        throw new Error('IP协议族必须是ipv4或ipv6');
+    }
+    AppDatabase.setStorageItem(ipFamilyKey, value);
+}
+
+function getNetInterfaceName() {
+    return AppDatabase.getStorageItem(netInterfaceNameKey, '')
+}
+
+function setNetInterfaceName(value) {
+    if (!value) {
+        throw new Error('网络接口名称不能为空');
+    }
+    AppDatabase.setStorageItem(netInterfaceNameKey, value);
 }
 
 
@@ -274,6 +300,8 @@ exports.AuthEnable = AuthEnable
 exports.tusEnableKey = tusEnableKey
 exports.chunkSizeKey = chunkSizeKey
 exports.AutoStart = AutoStart
+exports.ipFamilyKey = ipFamilyKey
+exports.netInterfaceNameKey = netInterfaceNameKey
 exports.getUploadPath = getUploadPath
 exports.updateUploadPath = updateUploadPath
 exports.getPort = getPort
@@ -293,3 +321,7 @@ exports.getChunkSize = getChunkSize
 exports.updateChunkSize = updateChunkSize
 exports.updateAutoStart = updateAutoStart
 exports.getAutoStart = getAutoStart
+exports.getIpFamily = getIpFamily
+exports.setIpFamily = setIpFamily
+exports.getNetInterfaceName = getNetInterfaceName
+exports.setNetInterfaceName = setNetInterfaceName

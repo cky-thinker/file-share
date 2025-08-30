@@ -8,7 +8,7 @@
               <h1>File Share</h1>
               <h3>跨平台、高速的文件传输工具</h3>
             </div>
-            <div class="user-section">
+            <div v-if="authEnable" class="user-section">
               <button @click="handleLogout" class="logout-btn">
                 <el-icon class="logout-icon"><User /></el-icon>
                 <span>退出登录</span>
@@ -191,6 +191,7 @@ import {ElMessage, ElMessageBox} from "element-plus";
 import {copyClipboard} from '@/utils/clipboard'
 import {isPicture} from "@/utils/fileUtil";
 import {DocumentCopy, Download, Search, UploadFilled, User} from '@element-plus/icons-vue'
+import {getSetting} from "@/api/SettingApi";
 
 export default {
   name: 'HomeView',
@@ -216,6 +217,7 @@ export default {
       path: [],
       files: [],
       query: undefined,
+      authEnable: true,
       headers: {
         Authorization: ''
       },
@@ -223,6 +225,8 @@ export default {
     }
   },
   async created() {
+    let setting = await getSetting()
+    this.authEnable = setting.authEnable
     this.refreshPath();
     await this.showFiles();
     this.updateRouter();

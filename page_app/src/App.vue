@@ -72,20 +72,6 @@
               <el-col :span="4">
                 <el-tooltip
                     effect="dark"
-                    content="切换ip协议"
-                    placement="top-start"
-                >
-                  <el-button type="default" title="切换ip协议" @click="changeIpFamily()">
-                    <el-icon>
-                      <Sort/>
-                    </el-icon>
-                    &nbsp;切换{{ ipFamily === 'ipv6' ? 'ipv4' : 'ipv6' }}
-                  </el-button>
-                </el-tooltip>
-              </el-col>
-              <el-col :span="4">
-                <el-tooltip
-                    effect="dark"
                     content="切换网卡"
                     placement="top-start"
                 >
@@ -95,6 +81,20 @@
                       <Sort/>
                     </el-icon>
                     &nbsp;切换网卡
+                  </el-button>
+                </el-tooltip>
+              </el-col>
+              <el-col :span="4">
+                <el-tooltip
+                    effect="dark"
+                    content="切换ip协议"
+                    placement="top-start"
+                >
+                  <el-button type="default" title="切换ip协议" @click="changeIpFamily()">
+                    <el-icon>
+                      <Sort/>
+                    </el-icon>
+                    &nbsp;切换{{ ipFamily === 'ipv6' ? 'ipv4' : 'ipv6' }}
                   </el-button>
                 </el-tooltip>
               </el-col>
@@ -356,37 +356,37 @@ export default {
     handleClipboard: function (data, event) {
       copyClipboard(data, event)
     },
+    // 切换协议
     changeIpFamily: function () {
       this.ipFamily = this.ipFamily === 'ipv4' ? 'ipv6' : 'ipv4';
-      successMessage(`切换协议为 "${this.ipFamily}"`)
+      // 持久化保存协议选择
+      api.setIpFamily(this.ipFamily);
       this.currentNetInterfaceIdx = 0;
       this.netInterfaceNames = api.getNetInterfaceNames(this.ipFamily);
       this.currentInterfaceName = this.netInterfaceNames[0] || "";
-      this.updateIp();
+      api.setNetInterface(this.currentInterfaceName);
+      this.settingForm.url = api.getUrl();
+      successMessage(`切换协议为 "${this.ipFamily}"`)
     },
+    // 切换网卡
     changeNetInterface: function () {
-      if (this.currentNetInterfaceIdx === 99) {
+      if (this.currentNetInterfaceIdx > 99) {
         this.currentNetInterfaceIdx = 0;
       } else {
         this.currentNetInterfaceIdx = this.currentNetInterfaceIdx + 1;
       }
       this.currentInterfaceName = this.netInterfaceNames[this.currentNetInterfaceIdx % this.netInterfaceNames.length];
-      this.updateIp();
-    },
-    updateIp() {
-      let ip = api.getIpAddress(this.currentNetInterfaceIdx, this.ipFamily);
-      if (this.ipFamily === 'ipv6') {
-        ip = `[${ip}]`
+      // 持久化保存网卡选择
+      if (this.currentInterfaceName) {
+        api.setNetInterface(this.currentInterfaceName);
       }
-      api.updateIp(ip).then(() => {
-        this.settingForm = api.getSetting()
-        successMessage(`切换网卡为 "${this.currentInterfaceName}"`)
-      });
+      this.settingForm.url = api.getUrl();
+      successMessage(`切换网卡为 "${this.currentInterfaceName}"`)
     },
     updatePage() {
       this.serverStatus = api.getServerStatus();
       this.netInterfaceNames = api.getNetInterfaceNames(this.ipFamily);
-      this.currentInterfaceName = this.netInterfaceNames[0] || "";
+      this.currentInterfaceName = api.getNetInterface();
       this.files = api.listFiles();
       this.settingForm = api.getSetting()
       console.log("---settingForm--", this.settingForm)
@@ -416,6 +416,25 @@ export default {
       this.files = api.listFiles();
       console.log(this.files)
     })
+    // 加载保存的协议和网卡配置
+    const savedIpFamily = api.getIpFamily();
+    if (savedIpFamily) {
+      this.ipFamily = savedIpFamily;
+    }
+    
+    // 初始化网卡列表
+    this.netInterfaceNames = api.getNetInterfaceNames(this.ipFamily);
+    
+    // 加载保存的网卡配置
+    const savedNetInterface = api.getNetInterface();
+    if (savedNetInterface && this.netInterfaceNames.includes(savedNetInterface)) {
+      this.currentInterfaceName = savedNetInterface;
+      this.currentNetInterfaceIdx = this.netInterfaceNames.indexOf(savedNetInterface);
+    } else {
+      this.currentInterfaceName = this.netInterfaceNames[0] || "";
+      this.currentNetInterfaceIdx = 0;
+    }
+    
     this.updatePage()
   },
   beforeUnmount() {
