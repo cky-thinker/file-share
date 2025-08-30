@@ -63,7 +63,7 @@ service.interceptors.response.use(res => {
     // TODO 重定向到登录页
     return Promise.reject('登录状态无效，请重新登录')
   } else {
-    log.error("请求错误", res.data.message || msg)
+    console.log("请求错误", res.data.message || msg)
     return Promise.reject('error')
   }
 },
