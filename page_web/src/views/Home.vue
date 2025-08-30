@@ -3,8 +3,18 @@
     <div class="body">
       <div class="header">
         <div class="overlay">
-          <h1>File Share</h1>
-          <h3>跨平台、高速的文件传输工具</h3>
+          <div class="header-content">
+            <div class="title-section">
+              <h1>File Share</h1>
+              <h3>跨平台、高速的文件传输工具</h3>
+            </div>
+            <div class="user-section">
+              <button @click="handleLogout" class="logout-btn">
+                <el-icon class="logout-icon"><User /></el-icon>
+                <span>退出登录</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -176,7 +186,7 @@
 import FileIcon from "@/components/FileIcon";
 import SvgIcon from "@/components/SvgIcon";
 import {getTusConfig, listFiles, uploadMsg} from "@/api/FileApi";
-import {getToken} from "@/utils/auth";
+import {getToken, logout} from "@/utils/auth";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {copyClipboard} from '@/utils/clipboard'
 import {isPicture} from "@/utils/fileUtil";
@@ -382,6 +392,19 @@ export default {
         ElMessage({message: '发送成功', type: 'success'})
         this.showFiles()
       })
+    },
+    handleLogout() {
+      ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        logout()
+        ElMessage({message: '已退出登录', type: 'success'})
+        this.$router.push('/login')
+      }).catch(() => {
+        // 用户取消退出
+      })
     }
   },
   computed: {
@@ -437,6 +460,57 @@ export default {
   height: 100%;
   padding: 8px;
   color: #FFF;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.title-section {
+  flex: 1;
+  text-align: center;
+}
+
+.user-section {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  color: #FFF;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.logout-icon {
+  font-size: 16px;
 }
 
 .file-desc {
