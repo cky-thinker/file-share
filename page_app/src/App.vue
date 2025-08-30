@@ -455,11 +455,12 @@ body {
 }
 
 *::-webkit-scrollbar {
-  width: 3px;
+  display: none;
 }
 
-*::-webkit-scrollbar-thumb {
-  background: #ccc;
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .body {
