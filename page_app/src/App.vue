@@ -79,7 +79,7 @@
                     <el-icon>
                       <Sort/>
                     </el-icon>
-                    &nbsp;切换{{ ipFamily }}
+                    &nbsp;切换{{ ipFamily === 'ipv6' ? 'ipv4' : 'ipv6' }}
                   </el-button>
                 </el-tooltip>
               </el-col>
