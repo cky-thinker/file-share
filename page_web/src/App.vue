@@ -32,4 +32,23 @@ body {
   width: 100vw;
   height: 100vh;
 }
+
+h1 {
+  font-family: 'DancingScript', cursive;
+  font-size: 60px;
+  margin-bottom: 15px;
+  margin-top: 8px;
+}
+
+h3 {
+  font-family: 'Open Sans', sans-serif;
+  margin-bottom: 30px;
+  display: block;
+  font-size: 1em;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  font-weight: bold;
+}
 </style>

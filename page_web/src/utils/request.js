@@ -1,7 +1,7 @@
-import axios from 'axios'
-import {ElMessage, ElNotification} from 'element-plus'
-import {getToken, logout} from '@/utils/auth'
+import { getToken, logout } from '@/utils/auth'
 import errorCode from '@/utils/errorCode'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 对应国际化资源文件后缀
@@ -52,31 +52,24 @@ service.interceptors.request.use(config => {
 
 // 响应拦截器
 service.interceptors.response.use(res => {
-    // 未设置状态码则默认成功状态
-    const code = res.data.code || 200;
-    // 获取错误信息
-    const msg = errorCode[code] || res.data.msg || errorCode['default']
-    if (code === 401) {
-      logout()
-      return Promise.reject('登录状态无效，请重新登录')
-    } else if (code === 500) {
-      ElMessage({
-        message: res.data.message || msg,
-        type: 'error'
-      })
-      return Promise.reject(new Error(msg))
-    } else if (code !== 200) {
-      ElNotification.error({
-        title: msg
-      })
-      return Promise.reject('error')
-    } else {
-      return res.data
-    }
-  },
+  // 未设置状态码则默认成功状态
+  const code = res.data.code || 200;
+  // 获取错误信息
+  const msg = errorCode[code] || res.data.msg || errorCode['default']
+  if (code >= 200 && code < 300) {
+    return res.data
+  } else if (code === 401) {
+    logout()
+    // TODO 重定向到登录页
+    return Promise.reject('登录状态无效，请重新登录')
+  } else {
+    log.error("请求错误", res.data.message || msg)
+    return Promise.reject('error')
+  }
+},
   error => {
     console.log('err' + error)
-    let {message} = error;
+    let { message } = error;
     if (message === "Network Error") {
       message = "后端接口连接异常";
     } else if (message.includes("timeout")) {

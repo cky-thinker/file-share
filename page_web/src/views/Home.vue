@@ -167,21 +167,7 @@
         </span>
         </template>
       </el-dialog>
-      <el-dialog
-        title="身份校验"
-        class="dialog"
-        v-model="loginFormVisible">
-        <el-form ref="loginForm" :model="loginForm" label-width="80px">
-          <el-form-item label="密码">
-            <el-input v-model="loginForm.password"></el-input>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="submitLoginForm">提 交</el-button>
-        </span>
-        </template>
-      </el-dialog>
+
     </div>
   </div>
 </template>
@@ -190,8 +176,7 @@
 import FileIcon from "@/components/FileIcon";
 import SvgIcon from "@/components/SvgIcon";
 import {getTusConfig, listFiles, uploadMsg} from "@/api/FileApi";
-import {login} from "@/api/UserApi";
-import {addAuthInvalidCallback, getToken, setToken} from "@/utils/auth";
+import {getToken} from "@/utils/auth";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {copyClipboard} from '@/utils/clipboard'
 import {isPicture} from "@/utils/fileUtil";
@@ -216,11 +201,7 @@ export default {
       msgForm: {
         message: ''
       },
-      // 登录表单
-      loginFormVisible: false,
-      loginForm: {
-        password: ''
-      },
+
       // 共享文件列表
       path: [],
       files: [],
@@ -236,9 +217,6 @@ export default {
     await this.showFiles();
     this.updateRouter();
     // 3s更新一下列表
-    addAuthInvalidCallback(() => {
-      this.loginFormVisible = true;
-    })
     // 更新请求头内容
     this.updateHeaders()
     this.registrySSE();
@@ -358,18 +336,7 @@ export default {
     updateHeaders() {
       this.headers = {Authorization: getToken()}
     },
-    submitLoginForm() {
-      console.log("---submitLoginForm--")
-      login(this.loginForm).then(res => {
-        ElMessage({message: '登录成功', type: 'success'})
-        setToken(res.data.Authorization)
-        this.loginFormVisible = false
-        // 更新请求头内容
-        this.updateHeaders()
-        // 更新列表
-        this.showFiles()
-      })
-    },
+
     uploadSuccess(response, file, fileList) {
       console.log('---uploadSuccess---', response, file, fileList)
       ElMessage({message: '上传成功', type: 'success'})
@@ -496,25 +463,6 @@ export default {
   font-size: 12px;
   margin-left: 12px;
   color: #909399;
-}
-
-h1 {
-  font-family: 'DancingScript', cursive;
-  font-size: 60px;
-  margin-bottom: 15px;
-  margin-top: 8px;
-}
-
-h3 {
-  font-family: 'Open Sans', sans-serif;
-  margin-bottom: 30px;
-  display: block;
-  font-size: 1em;
-  margin-block-start: 1em;
-  margin-block-end: 1em;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-  font-weight: bold;
 }
 
 .row-bg {
