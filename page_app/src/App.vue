@@ -69,13 +69,13 @@
                   <qrcode-vue :value="settingForm.url"></qrcode-vue>
                 </el-popover>
               </el-col>
-              <el-col :span="4">
+              <el-col v-if="netInterfaceNames.length > 1" :span="4">
                 <el-tooltip
                     effect="dark"
                     content="切换网卡"
                     placement="top-start"
                 >
-                  <el-button v-if="netInterfaceNames.length > 1" type="default" title="切换网卡"
+                  <el-button type="default" title="切换网卡"
                              @click="changeNetInterface()">
                     <el-icon>
                       <Sort/>
