@@ -22,11 +22,15 @@ function clearSession() {
     session.clear()
 }
 
-function getToken(permanent = false, timeoutSec = 3600) {
-    if (session.size === 0) {
-        return ""
+function getToken(permanent = true, timeoutSec = 3600) {
+    if (Setting.getAuthEnable()) {
+        let md5 = crypto.createHash('md5');
+        let token =  md5.update(Setting.getPassword()).digest('hex');
+        session.add(token)
+        return token;
+    } else {
+        return "";
     }
-    return session.keys().next().value
 }
 
 const StatusStart = "start"
