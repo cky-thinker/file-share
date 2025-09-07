@@ -5,12 +5,11 @@ process.once('loaded', function () {
 const path = require('path')
 const fs = require("fs")
 
-const IpUtil = require('./utils/IpUtil')
-const Setting = require('./utils/Setting')
-const Server = require('./utils/Server')
-const FileUtil = require('./utils/FileUtil')
-const FileDb = require('./utils/FileDb')
-const EventDispatcher = require('./utils/EventDispatcher')
+const { IpUtil, FileUtil, Setting, Server, FileDb, EventDispatcher } = require('@file-share/shared-utils');
+const PlatformAdapter = require('./utils/PlatformAdapterInstance');
+
+// 创建Setting实例
+const setting = new Setting(PlatformAdapter, IpUtil)
 
 // 进入插件
 utools.onPluginEnter(({ code, type, payload }) => {
@@ -29,7 +28,7 @@ utools.onPluginEnter(({ code, type, payload }) => {
             FileDb.addText(payload)
         }
         checkStart = true;
-    } else if (Setting.getAutoStart()) {
+    } else if (setting.getAutoStart()) {
         checkStart = true;
     }
     if (checkStart && Server.getServerStatus() === Server.StatusStop) {
@@ -45,7 +44,7 @@ utools.onPluginOut(() => {
 // 插件装配
 utools.onPluginReady(() => {
     console.log('插件装配完成，已准备好')
-    Setting.getSetting(); // 初始化配置
+    setting.getSetting(); // 初始化配置
 
     // 初始化IP相关配置
     const savedIpFamily = IpUtil.getIpFamily();
@@ -57,8 +56,8 @@ utools.onPluginReady(() => {
 // 配置更新
 const updateSetting = (setting) => {
     return new Promise((resolve, reject) => {
-        let updateUploadPath = Setting.updateUploadPath(setting[Setting.uploadPathKey]);
-        let updatePort = Setting.updatePort(setting[Setting.portKey]).then((result) => {
+        let updateUploadPath = setting.updateUploadPath(setting[setting.uploadPathKey]);
+        let updatePort = setting.updatePort(setting[setting.portKey]).then((result) => {
             if (result.message === 'ValueNotChange') {
                 console.log("端口未变更")
                 return;
@@ -67,11 +66,11 @@ const updateSetting = (setting) => {
             Server.stopServer();
             Server.startServer()
         })
-        let password = Setting.updatePassword(setting[Setting.Password])
-        let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable])
-        let tusEnable = Setting.updateTusEnable(setting[Setting.tusEnableKey])
-        let chunkSize = Setting.updateChunkSize(setting[Setting.chunkSizeKey])
-        let autoStart = Setting.updateAutoStart(setting[Setting.AutoStart])
+        let password = setting.updatePassword(setting[setting.Password])
+        let authEnable = setting.updateAuthEnable(setting[setting.AuthEnable])
+        let tusEnable = setting.updateTusEnable(setting[setting.tusEnableKey])
+        let chunkSize = setting.updateChunkSize(setting[setting.chunkSizeKey])
+        let autoStart = setting.updateAutoStart(setting[setting.AutoStart])
         return Promise.all([updateUploadPath, updatePort, password, authEnable, tusEnable, chunkSize, autoStart])
             .then((msg) => {
                 resolve(msg)
@@ -90,8 +89,8 @@ const openFile = (filename) => {
 
 window.api = {
     updateSetting,
-    getSetting: Setting.getSetting,
-    getUrl: Setting.getUrl,
+    getSetting: setting.getSetting,
+    getUrl: setting.getUrl,
     startServer: Server.startServer,
     stopServer: Server.stopServer,
     getServerStatus: Server.getServerStatus,

@@ -1,0 +1,52 @@
+{
+  "name": "@file-share/shared-utils",
+  "version": "1.0.1",
+  "description": "Shared utilities for file-share project",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./utils/*": "./utils/*",
+    "./utils/Database": "./utils/Database.js",
+    "./utils/EventDispatcher": "./utils/EventDispatcher.js",
+    "./utils/FileDb": "./utils/FileDb.js",
+    "./utils/FileUtil": "./utils/FileUtil.js",
+    "./utils/IpUtil": "./utils/IpUtil.js",
+    "./utils/Server": "./utils/Server.js",
+    "./utils/Setting": "./utils/Setting.js",
+    "./utils/SseUtil": "./utils/SseUtil.js",
+    "./utils/ZipUtil": "./utils/ZipUtil.js",
+    "./utils/open-file-explorer": "./utils/open-file-explorer/index.js"
+  },
+  "keywords": [
+    "file-share",
+    "utilities",
+    "shared",
+    "electron",
+    "utools"
+  ],
+  "author": "file-share",
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "^6.0.1",
+    "body-parser": "^1.19.0",
+    "connect-history-api-fallback": "^2.0.0",
+    "cookie-parser": "^1.4.6",
+    "downloads-folder": "^3.0.3",
+    "express": "^4.18.2",
+    "multer": "^1.4.3",
+    "node-machine-id": "^1.1.12",
+    "uuid": "^9.0.1"
+  },
+  "peerDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cky-thinker/file-share.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cky-thinker/file-share/issues"
+  },
+  "homepage": "https://github.com/cky-thinker/file-share/#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}

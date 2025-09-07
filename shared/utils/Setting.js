@@ -2,12 +2,12 @@
 const fs = require("fs")
 const downloadsFolder = require('downloads-folder');
 
-const AppDatabase = require('./Database');
-const IpUtil = require('./IpUtil');
-const Server = require("./Server");
+const AppDatabase = require('./Database')
+const IpUtil = require("./IpUtil");
 
 const uploadPathKey = 'uploadPath' // 上传路径
 const portKey = 'port' // 端口号
+const ipKey = 'ip' // 端口号
 const AuthEnable = 'authEnable' // 是否开启密码校验
 const Password = 'password' // 密码
 const tusEnableKey = 'tusEnable' // 是否启用续传功能
@@ -16,13 +16,29 @@ const AutoStart = 'autoStart' // 自动启动
 const ipFamilyKey = 'ipFamily' // IP协议族
 const netInterfaceNameKey = 'netInterfaceName' // 网络接口名称
 
+let curIp = null;
+
+// 平台特定的配置处理器
+let platformConfig = {
+    getMachineId: () => null,
+    getStorageKey: (key) => key,
+    clearSession: () => {}
+};
+
+function setPlatformConfig(config) {
+    platformConfig = { ...platformConfig, ...config };
+    // 初始化IP地址
+    curIp = IpUtil.getIpAddress();
+}
+
 // 上传路径默认值
 function getDefaultUploadPath() {
     return downloadsFolder();
 }
 
 function getUploadPath() {
-    return AppDatabase.getStorageItem(uploadPathKey, getDefaultUploadPath);
+    const key = platformConfig.getStorageKey(uploadPathKey);
+    return AppDatabase.getStorageItem(key, getDefaultUploadPath());
 }
 
 /**
@@ -46,7 +62,8 @@ function updateUploadPath(path) {
         if (!fs.lstatSync(path).isDirectory()) {
             return reject({ success: false, message: '上传路径必须为文件夹' })
         }
-        AppDatabase.setStorageItem(uploadPathKey, path);
+        const key = platformConfig.getStorageKey(uploadPathKey);
+        AppDatabase.setStorageItem(key, path);
         resolve({ success: true, message: '修改成功' })
     })
 }
@@ -56,14 +73,14 @@ function getPort() {
 }
 
 /**
- * 更新上传路径
+ * 更新端口
  * @param port
  * @returns {Promise<unknown>}  .then() 更新成功 .catch 更新失败
  */
 function updatePort(port) {
     return new Promise((resolve, reject) => {
         if (!port) {
-            return reject({ success: false, message: '更新上传路径失败，端口为空' });
+            return reject({ success: false, message: '更新端口失败，端口为空' });
         }
         // 值没变，不更新
         if (getPort() === port) {
@@ -75,10 +92,29 @@ function updatePort(port) {
     });
 }
 
-let getUrl = function getUrl() {
-    let ip = IpUtil.getIp()
+function getUrl() {
+    let ip = getIp()
     let port = getPort()
     return `http://${ip}:${port}`;
+}
+
+function getIp() {
+    return curIp || IpUtil.getIp();
+}
+
+function updateIp(ip) {
+    return new Promise((resolve, reject) => {
+        if (!ip) {
+            return reject({ success: false, message: '更新地址失败，地址为空' });
+        }
+        // 值没变，不更新
+        if (getIp() === ip) {
+            console.log("ip 值没变，不更新")
+            return resolve({ success: true, message: 'ValueNotChange' });
+        }
+        curIp = ip;
+        resolve({ success: true, message: '修改成功' });
+    })
 }
 
 function updateAuthEnable(value) {
@@ -106,7 +142,8 @@ function updatePassword(value) {
             console.log("password 值没变，不更新")
             return resolve({ success: true, message: 'ValueNotChange' })
         }
-        Server.clearSession()
+        // 平台特定的会话清理
+        platformConfig.clearSession();
         console.log('--updatePassword--', value)
         AppDatabase.setStorageItem(Password, value)
         return resolve({ success: true, message: '修改成功' });
@@ -191,52 +228,6 @@ function getAutoStart() {
     return AppDatabase.getStorageItem(AutoStart, false)
 }
 
-
-function getSetting() {
-    return {
-        uploadPath: getUploadPath(),
-        port: getPort(),
-        ip: IpUtil.getIp(),
-        url: getUrl(),
-        authEnable: getAuthEnable(),
-        password: getPassword(),
-        tusEnable: getTusEnable(),
-        chunkSize: getChunkSize(),
-        autoStart: getAutoStart(),
-    }
-}
-
-function updateSetting(setting) {
-    console.log('---updateSetting---', setting)
-    updateUploadPath(setting[uploadPathKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-    updatePort(setting[portKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-    updateAuthEnable(setting[AuthEnable]).then((e) => {
-        console.log(e)
-    })
-    updatePassword(setting[Password]).then((e) => {
-        console.log(e)
-    })
-
-    updateTusEnable(setting[tusEnableKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-    updateChunkSize(setting[chunkSizeKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-}
-
 function getIpFamily() {
     return AppDatabase.getStorageItem(ipFamilyKey, 'ipv4')
 }
@@ -262,6 +253,59 @@ function setNetInterfaceName(value) {
     AppDatabase.setStorageItem(netInterfaceNameKey, value);
 }
 
+function getSetting() {
+    return {
+        uploadPath: getUploadPath(),
+        port: getPort(),
+        ip: getIp(),
+        url: getUrl(),
+        authEnable: getAuthEnable(),
+        password: getPassword(),
+        tusEnable: getTusEnable(),
+        chunkSize: getChunkSize(),
+        autoStart: getAutoStart(),
+    }
+}
+
+function updateSetting(setting) {
+    console.log('---updateSetting---', setting)
+    updateUploadPath(setting[uploadPathKey]).then((e) => {
+        console.log(e)
+    }).catch((e) => {
+        console.log(e)
+    })
+
+    updatePort(setting[portKey]).then((e) => {
+        console.log(e)
+    }).catch((e) => {
+        console.log(e)
+    })
+
+    updateIp(setting[ipKey]).then((e) => {
+        console.log(e)
+    }).catch((e) => {
+        console.log(e)
+    })
+    updateAuthEnable(setting[AuthEnable]).then((e) => {
+        console.log(e)
+    })
+    updatePassword(setting[Password]).then((e) => {
+        console.log(e)
+    })
+
+    updateTusEnable(setting[tusEnableKey]).then((e) => {
+        console.log(e)
+    }).catch((e) => {
+        console.log(e)
+    })
+    updateChunkSize(setting[chunkSizeKey]).then((e) => {
+        console.log(e)
+    }).catch((e) => {
+        console.log(e)
+    })
+}
+
+exports.setPlatformConfig = setPlatformConfig
 exports.uploadPathKey = uploadPathKey
 exports.portKey = portKey
 exports.Password = Password
@@ -274,10 +318,12 @@ exports.netInterfaceNameKey = netInterfaceNameKey
 exports.getUploadPath = getUploadPath
 exports.updateUploadPath = updateUploadPath
 exports.getPort = getPort
-exports.getUrl = getUrl
 exports.updatePort = updatePort
 exports.getSetting = getSetting
 exports.updateSetting = updateSetting
+exports.getUrl = getUrl
+exports.getIp = getIp
+exports.updateIp = updateIp
 exports.updateAuthEnable = updateAuthEnable
 exports.getAuthEnable = getAuthEnable
 exports.updatePassword = updatePassword

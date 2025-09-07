@@ -1,7 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const crypto = require('crypto');
-const express = require('express') // http://expressjs.com/
+const express = require('express')
 const cookieParser = require('cookie-parser');
 const multer = require('multer')
 const bodyParser = require("body-parser");
@@ -123,7 +123,8 @@ const initApp = () => {
     }))
     app.use(cookieParser());
     app.all("/api/*", authFilter);
-    let rootPath = path.resolve(__dirname, '..', '..')
+    let rootPath = path.resolve(__dirname, '..')
+    console.log("rootPath", rootPath)
     app.use(express.static(path.join(rootPath, 'page_web'), { index: 'index.html' }))
     // file list
     app.get('/api/files', function (req, res) {

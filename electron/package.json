@@ -13,6 +13,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@file-share/shared-utils": "file:../shared",
     "archiver": "^7.0.1",
     "archiver-utils": "^5.0.2",
     "body-parser": "^1.19.0",

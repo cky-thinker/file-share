@@ -4,16 +4,14 @@ process.once('loaded', function () {
     global.setImmediate = _setImmediate;
 });
 require('../common/globalSetting')
-const IpUtil = require('./utils/IpUtil')
-const Setting = require('./utils/Setting')
-const Server = require('./utils/Server')
-const FileUtil = require('./utils/FileUtil')
-const FileDb = require('./utils/FileDb')
-const PlatformAdaptor = require('./utils/PlatformAdaptor')
-const EventDispatcher = require('./utils/EventDispatcher')
+const PlatformAdapter = require('./utils/PlatformAdapterInstance')
+const { IpUtil, FileUtil, ZipUtil, Database, Setting, Server, FileDb, EventDispatcher } = require('@file-share/shared-utils')
+
+// 创建Setting实例
+const setting = new Setting(PlatformAdapter, IpUtil)
 
 // 进入插件
-PlatformAdaptor.onPluginEnter(({code, type, payload}) => {
+PlatformAdapter.onPluginEnter(({code, type, payload}) => {
     let checkStart = false;
     if (type === 'files' && !!payload) {
         console.log("快捷方式进入应用", payload)
@@ -36,12 +34,12 @@ PlatformAdaptor.onPluginEnter(({code, type, payload}) => {
 })
 
 // 退出插件
-PlatformAdaptor.onPluginOut(() => {
+PlatformAdapter.onPluginOut(() => {
     console.log('用户退出应用')
 })
 
 // 插件装配
-PlatformAdaptor.onPluginReady(() => {
+PlatformAdapter.onPluginReady(() => {
     console.log('插件装配完成，已准备好')
     Setting.getSetting(); // 初始化配置
 })
