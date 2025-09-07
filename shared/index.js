@@ -5,25 +5,10 @@ const FileDb = require('./utils/FileDb');
 const FileUtil = require('./utils/FileUtil');
 const IpUtil = require('./utils/IpUtil');
 const Server = require('./utils/Server');
-const SettingModule = require('./utils/Setting');
+const Setting = require('./utils/Setting');
 const SseUtil = require('./utils/SseUtil');
 const ZipUtil = require('./utils/ZipUtil');
 const openFileExplorer = require('./utils/open-file-explorer');
-
-// Create a Setting class wrapper for backward compatibility
-class Setting {
-  constructor(platformAdapter, ipUtil) {
-    if (platformAdapter && platformAdapter.setPlatformConfig) {
-      SettingModule.setPlatformConfig(platformAdapter);
-    }
-    // Bind all Setting module functions to this instance
-    Object.keys(SettingModule).forEach(key => {
-      if (typeof SettingModule[key] === 'function') {
-        this[key] = SettingModule[key];
-      }
-    });
-  }
-}
 
 module.exports = {
   Database,
@@ -33,7 +18,6 @@ module.exports = {
   IpUtil,
   Server,
   Setting,
-  SettingModule,
   SseUtil,
   ZipUtil,
   openFileExplorer,
@@ -46,7 +30,6 @@ module.exports = {
     IpUtil,
     Server,
     Setting,
-    SettingModule,
     SseUtil,
     ZipUtil,
     openFileExplorer

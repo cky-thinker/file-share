@@ -1,7 +1,5 @@
-const path = require("path")
 const fs = require("fs")
 const archiver = require('archiver');
-const FileUtil = require("./FileUtil")
 
 
 /**

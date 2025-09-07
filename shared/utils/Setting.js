@@ -18,27 +18,13 @@ const netInterfaceNameKey = 'netInterfaceName' // 网络接口名称
 
 let curIp = null;
 
-// 平台特定的配置处理器
-let platformConfig = {
-    getMachineId: () => null,
-    getStorageKey: (key) => key,
-    clearSession: () => {}
-};
-
-function setPlatformConfig(config) {
-    platformConfig = { ...platformConfig, ...config };
-    // 初始化IP地址
-    curIp = IpUtil.getIpAddress();
-}
-
 // 上传路径默认值
 function getDefaultUploadPath() {
     return downloadsFolder();
 }
 
 function getUploadPath() {
-    const key = platformConfig.getStorageKey(uploadPathKey);
-    return AppDatabase.getStorageItem(key, getDefaultUploadPath());
+    return AppDatabase.getStorageItem(uploadPathKey, getDefaultUploadPath());
 }
 
 /**
@@ -62,8 +48,7 @@ function updateUploadPath(path) {
         if (!fs.lstatSync(path).isDirectory()) {
             return reject({ success: false, message: '上传路径必须为文件夹' })
         }
-        const key = platformConfig.getStorageKey(uploadPathKey);
-        AppDatabase.setStorageItem(key, path);
+        AppDatabase.setStorageItem(uploadPathKey, path);
         resolve({ success: true, message: '修改成功' })
     })
 }
@@ -142,8 +127,6 @@ function updatePassword(value) {
             console.log("password 值没变，不更新")
             return resolve({ success: true, message: 'ValueNotChange' })
         }
-        // 平台特定的会话清理
-        platformConfig.clearSession();
         console.log('--updatePassword--', value)
         AppDatabase.setStorageItem(Password, value)
         return resolve({ success: true, message: '修改成功' });
@@ -257,10 +240,8 @@ function getSetting() {
     return {
         uploadPath: getUploadPath(),
         port: getPort(),
-        ip: getIp(),
-        url: getUrl(),
-        authEnable: getAuthEnable(),
         password: getPassword(),
+        authEnable: getAuthEnable(),
         tusEnable: getTusEnable(),
         chunkSize: getChunkSize(),
         autoStart: getAutoStart(),
@@ -268,44 +249,23 @@ function getSetting() {
 }
 
 function updateSetting(setting) {
-    console.log('---updateSetting---', setting)
-    updateUploadPath(setting[uploadPathKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-
-    updatePort(setting[portKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-
-    updateIp(setting[ipKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-    updateAuthEnable(setting[AuthEnable]).then((e) => {
-        console.log(e)
-    })
-    updatePassword(setting[Password]).then((e) => {
-        console.log(e)
-    })
-
-    updateTusEnable(setting[tusEnableKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
-    updateChunkSize(setting[chunkSizeKey]).then((e) => {
-        console.log(e)
-    }).catch((e) => {
-        console.log(e)
-    })
+    let updateUploadPathR = updateUploadPath(setting[uploadPathKey]);
+    let updatePortR = updatePort(setting[portKey])
+    let passwordR = updatePassword(setting[Password])
+    let authEnableR = updateAuthEnable(setting[AuthEnable])
+    let tusEnableR = updateTusEnable(setting[tusEnableKey])
+    let chunkSizeR = updateChunkSize(setting[chunkSizeKey])
+    let autoStartR = updateAutoStart(setting[AutoStart])
+    return Promise.all([updateUploadPathR, updatePortR, passwordR, authEnableR, tusEnableR, chunkSizeR, autoStartR])
+        .then((msg) => {
+            resolve(msg)
+        })
+        .catch((e) => {
+            console.log(e)
+            reject(e)
+        })
 }
 
-exports.setPlatformConfig = setPlatformConfig
 exports.uploadPathKey = uploadPathKey
 exports.portKey = portKey
 exports.Password = Password

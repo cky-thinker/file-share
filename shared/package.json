@@ -1,6 +1,6 @@
 {
   "name": "@file-share/shared-utils",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "Shared utilities for file-share project",
   "main": "index.js",
   "exports": {

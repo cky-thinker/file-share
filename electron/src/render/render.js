@@ -4,45 +4,10 @@ process.once('loaded', function () {
     global.setImmediate = _setImmediate;
 });
 require('../common/globalSetting')
+// 初始化适配器
 const PlatformAdapter = require('./utils/PlatformAdapterInstance')
-const { IpUtil, FileUtil, ZipUtil, Database, Setting, Server, FileDb, EventDispatcher } = require('@file-share/shared-utils')
-
-// 创建Setting实例
-const setting = new Setting(PlatformAdapter, IpUtil)
-
-// 进入插件
-PlatformAdapter.onPluginEnter(({code, type, payload}) => {
-    let checkStart = false;
-    if (type === 'files' && !!payload) {
-        console.log("快捷方式进入应用", payload)
-        payload.forEach((toAddFile) => {
-            if (toAddFile.isFile) {
-                FileDb.addFile(toAddFile)
-            }
-        })
-        checkStart = true;
-    } else if (type === 'over') {
-        console.log('文本分享方式进入应用', payload)
-        if (payload) {
-            FileDb.addText(payload)
-        }
-        checkStart = true;
-    }
-    if (checkStart && Server.getServerStatus() === Server.StatusStop) {
-        Server.startServer()
-    }
-})
-
-// 退出插件
-PlatformAdapter.onPluginOut(() => {
-    console.log('用户退出应用')
-})
-
-// 插件装配
-PlatformAdapter.onPluginReady(() => {
-    console.log('插件装配完成，已准备好')
-    Setting.getSetting(); // 初始化配置
-})
+const { IpUtil, FileUtil, Setting, Server, FileDb, EventDispatcher } = require('@file-share/shared-utils')
+PlatformAdapter.initDatabaseAdapter()
 
 // 配置更新
 const updateSetting = (setting) => {
@@ -98,7 +63,7 @@ window.api = {
     setNetInterface: IpUtil.setNetInterface,
     getIpFamily: IpUtil.getIpFamily,
     getNetInterface: IpUtil.getNetInterface,
-    getPlatform: PlatformAdaptor.getPlatform,
-    openDevTool: PlatformAdaptor.openDevTool,
-    closeDevTool: PlatformAdaptor.closeDevTool
+    getPlatform: PlatformAdapter.getPlatform,
+    openDevTool: PlatformAdapter.openDevTool,
+    closeDevTool: PlatformAdapter.closeDevTool
 }

@@ -28,8 +28,6 @@ class UtoolsDatabaseAdapter {
     }
 }
 
-// 设置适配器
-Database.setAdapter(new UtoolsDatabaseAdapter())
 
 // 创建平台适配器对象
 const PlatformAdapter = {
@@ -45,6 +43,10 @@ const PlatformAdapter = {
     },
     getPlatform: () => {
         return 'utools'
+    },
+    initDatabaseAdapter: () => {
+        // 设置适配器
+        Database.setAdapter(new UtoolsDatabaseAdapter())
     }
 }
 
