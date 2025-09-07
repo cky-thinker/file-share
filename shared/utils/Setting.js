@@ -240,6 +240,8 @@ function getSetting() {
     return {
         uploadPath: getUploadPath(),
         port: getPort(),
+        ip: getIp(),
+        url: getUrl(),
         password: getPassword(),
         authEnable: getAuthEnable(),
         tusEnable: getTusEnable(),
