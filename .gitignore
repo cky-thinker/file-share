@@ -41,3 +41,5 @@ utools/page_web/*
 electron/dict
 electron/node_modules
 electron/build
+
+.DS_Store
