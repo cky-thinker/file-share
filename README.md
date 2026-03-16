@@ -1,3 +1,9 @@
+[![English](https://img.shields.io/badge/lang-English-blue)](./README.en.md) [![简体中文](https://img.shields.io/badge/语言-简体中文-brightgreen)](#简体中文)
+Languages: [English](./README.en.md) | [简体中文](#简体中文)
+
+![File Share](./wiki/asserts/icon/file-share.png)
+
+## 简体中文
 ## 简介
 **经历过500M以上的大文件传输吗？紧急要用，然后文件传输要N小时！**
 
