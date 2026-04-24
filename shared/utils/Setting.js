@@ -259,13 +259,6 @@ function updateSetting(setting) {
     let chunkSizeR = updateChunkSize(setting[chunkSizeKey])
     let autoStartR = updateAutoStart(setting[AutoStart])
     return Promise.all([updateUploadPathR, updatePortR, passwordR, authEnableR, tusEnableR, chunkSizeR, autoStartR])
-        .then((msg) => {
-            resolve(msg)
-        })
-        .catch((e) => {
-            console.log(e)
-            reject(e)
-        })
 }
 
 exports.uploadPathKey = uploadPathKey
