@@ -3,6 +3,9 @@
   "version": "1.0.5",
   "description": "Shared utilities for file-share project",
   "main": "index.js",
+  "scripts": {
+    "postinstall": "rm -rf node_modules/registry-js/dist/lib/*.map"
+  },
   "exports": {
     ".": "./index.js",
     "./utils/*": "./utils/*",

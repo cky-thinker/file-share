@@ -34,17 +34,6 @@
                   show-password
                 ></el-input>
               </el-form-item>
-              <!-- <el-form-item
-                v-if="getPlatform() === 'electron'"
-                label="调试工具"
-              >
-                <el-switch v-model="devTool" @change="switchDevTool">
-                </el-switch>
-              </el-form-item> -->
-              <el-form-item label="调试工具">
-                <el-switch v-model="vconsoleEnable" @change="switchVConsole">
-                </el-switch>
-              </el-form-item>
             </el-form>
           </el-col>
         </el-row>
@@ -312,7 +301,6 @@ import {
   Setting,
   Sort,
 } from "@element-plus/icons-vue";
-import VConsole from "vconsole";
 
 let api = window.api;
 
@@ -379,10 +367,8 @@ export default {
         port: 5421,
       },
       devTool: false,
-      vconsoleEnable: false,
       dialogFormVisible: false,
       timer: null,
-      vConsoleInstance: null,
     };
   },
   methods: {
@@ -520,23 +506,11 @@ export default {
         api.closeDevTool();
       }
     },
-    switchVConsole() {
-      console.log("---switchVConsole--", this.vconsoleEnable);
-      if (this.vconsoleEnable) {
-        this.vConsoleInstance && this.vConsoleInstance.show();
-      } else {
-        this.vConsoleInstance && this.vConsoleInstance.hide();
-      }
-    },
   },
   mounted: function () {
     // document.getElementsByClassName('el-upload__input')[0].webkitdirectory = true
     // 注册事件监听
     console.log(api);
-    // 初始化 vConsole
-    if (!this.vConsoleInstance) {
-      this.vConsoleInstance = new VConsole();
-    }
     api.registryEventListener("server.statusChange", (event) => {
       console.log("---服务状态变更---", event);
       this.serverStatus = event.data.status;
@@ -579,10 +553,7 @@ export default {
 </script>
 
 <style>
-/* 隐藏 vConsole 悬浮按钮，作为方法调用失效的兜底 */
-.vc-switch {
-  display: none !important;
-}
+
 html {
   height: 100%;
 }
