@@ -1,6 +1,9 @@
 {
   "name": "file-share-utools",
   "version": "1.0.0",
+  "scripts": {
+    "postinstall": "rm -rf node_modules/registry-js/dist/lib/*.map"
+  },
   "dependencies": {
     "@file-share/shared-utils": "file:../../shared/file-share-shared-utils-1.0.5.tgz"
   }
