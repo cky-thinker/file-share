@@ -2,9 +2,11 @@
   "name": "file-share-utools",
   "version": "1.0.0",
   "scripts": {
-    "postinstall": "rm -rf node_modules/registry-js/dist/lib/*.map"
+    "postinstall": "node -e \"const fs=require('fs');const path=require('path');const dir='node_modules/registry-js/dist/lib';if(fs.existsSync(dir)){for(const f of fs.readdirSync(dir)){if(f.endsWith('.map')){fs.rmSync(path.join(dir,f),{force:true});}}}\"",
+    "install:prod": "node ../../scripts/prepare-utools-preload-deps.js",
+    "prepare:bundle-deps": "node ../../scripts/prepare-utools-preload-deps.js"
   },
   "dependencies": {
-    "@file-share/shared-utils": "file:../../shared/file-share-shared-utils-1.0.5.tgz"
+    "@file-share/shared-utils": "workspace:*"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "name": "file-share-workspace",
+  "private": true,
+  "workspaces": [
+    "shared"
+  ],
+  "scripts": {
+    "install:all": "npm install --workspaces",
+    "prepare:utools-preload": "node scripts/prepare-utools-preload-deps.js",
+    "build:utools:deps": "node scripts/prepare-utools-preload-deps.js"
+  }
+}

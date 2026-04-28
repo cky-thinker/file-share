@@ -3,8 +3,16 @@
   "version": "1.0.5",
   "description": "Shared utilities for file-share project",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "utils/**",
+    "page_web/**",
+    "scripts/**",
+    "README.md"
+  ],
   "scripts": {
-    "postinstall": "rm -rf node_modules/registry-js/dist/lib/*.map"
+    "prepack": "node scripts/refresh-page-web.js",
+    "postinstall": "node scripts/postinstall-clean-registry-map.js"
   },
   "exports": {
     ".": "./index.js",
