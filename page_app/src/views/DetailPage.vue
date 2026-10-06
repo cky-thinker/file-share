@@ -19,7 +19,11 @@
         </div>
       </template>
       <el-row class="row-bg">
-        <el-col :span="12">分享链接：{{ settingForm.url }}</el-col>
+        <el-col :span="12" class="share-url">
+          <el-tooltip effect="light" placement="top" :content="settingForm.url">
+            <span class="url-text">分享链接：{{ settingForm.url }}</span>
+          </el-tooltip>
+        </el-col>
         <el-col :span="4">
           <el-popover placement="left" :width="125" trigger="hover">
             <template #reference>
@@ -37,20 +41,6 @@
             <qrcode-vue :value="settingForm.url"></qrcode-vue>
           </el-popover>
         </el-col>
-        <el-col v-if="netInterfaceNames.length > 1" :span="4">
-          <el-tooltip effect="dark" content="切换网卡" placement="top-start">
-            <el-button
-              type="default"
-              title="切换网卡"
-              @click="changeNetInterface()"
-            >
-              <el-icon>
-                <Sort />
-              </el-icon>
-              &nbsp;切换网卡
-            </el-button>
-          </el-tooltip>
-        </el-col>
         <el-col :span="4">
           <el-tooltip effect="dark" content="切换ip协议" placement="top-start">
             <el-button
@@ -62,6 +52,20 @@
                 <Sort />
               </el-icon>
               &nbsp;切换{{ ipFamily === "ipv6" ? "ipv4" : "ipv6" }}
+            </el-button>
+          </el-tooltip>
+        </el-col>
+        <el-col v-if="netInterfaceNames.length > 1" :span="4">
+          <el-tooltip effect="dark" content="切换网卡" placement="top-start">
+            <el-button
+              type="default"
+              title="切换网卡"
+              @click="changeNetInterface()"
+            >
+              <el-icon>
+                <Sort />
+              </el-icon>
+              &nbsp;切换网卡
             </el-button>
           </el-tooltip>
         </el-col>
@@ -383,6 +387,17 @@ export default {
 </script>
 
 <style>
+.share-url {
+  overflow: hidden;
+}
+
+.url-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .detail-space {
   display: flex;
   justify-content: center;
