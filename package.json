@@ -5,6 +5,7 @@
   "scripts": {
     "install:all": "pnpm install",
     "prepare:utools-preload": "node scripts/prepare-utools-preload-deps.js",
-    "build:utools:deps": "node scripts/prepare-utools-preload-deps.js"
+    "build:utools:deps": "node scripts/prepare-utools-preload-deps.js",
+    "release": "node scripts/autorelease.js"
   }
 }
