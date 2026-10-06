@@ -8,19 +8,24 @@
         title="设置"
       >
         <el-icon>
-          <Setting />
+          <SettingIcon />
         </el-icon>
         设置
       </el-button>
-      <setting-dialog v-model="settingFormVisible"></setting-dialog>
+      <el-dialog v-model="settingFormVisible" title="设置" style="width: 70%">
+        <setting></setting>
+        <template #footer>
+          <el-button type="primary" @click="closeSettingsForm">关闭</el-button>
+        </template>
+      </el-dialog>
       <router-view></router-view>
     </div>
   </div>
 </template>
 
 <script>
-import { Setting } from "@element-plus/icons-vue";
-import SettingDialog from "@/components/SettingDialog.vue";
+import { Setting as SettingIcon } from "@element-plus/icons-vue";
+import Setting from "@/components/Setting.vue";
 import { store, initStore } from "@/store";
 
 let api = window.api;
@@ -28,8 +33,8 @@ let api = window.api;
 export default {
   name: "App",
   components: {
+    SettingIcon,
     Setting,
-    SettingDialog,
   },
   data: () => {
     return {
@@ -41,7 +46,12 @@ export default {
   methods: {
     onHandlerSetting: function () {
       console.log("--onHandlerSetting--");
+      // 每次打开时从 api 重新加载配置
+      store.settingForm = api.getSetting();
       this.settingFormVisible = true;
+    },
+    closeSettingsForm: function () {
+      this.settingFormVisible = false;
     },
     // 根据服务状态在起始页与详情页之间切换
     syncRoute: function () {
