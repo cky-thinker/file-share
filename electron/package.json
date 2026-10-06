@@ -24,8 +24,10 @@
     "express": "^4.18.2",
     "multer": "^1.4.3",
     "node-machine-id": "^1.1.12",
-    "registry-js": "^1.16.0",
     "uuid": "^9.0.1"
+  },
+  "optionalDependencies": {
+    "registry-js": "^1.16.0"
   },
   "devDependencies": {
     "@babel/core": "^7.17.9",

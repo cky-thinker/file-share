@@ -40,12 +40,15 @@ jobs:
           cache: 'pnpm'
 
       # Workaround: Fix native build failure due to outdated node-gyp version.
+      # 注意：unix runner 上不能沿用 pwsh + Windows 反斜杠路径（会把 node_gyp
+      # 设成 /usr/local\node_modules\node-gyp\bin\node-gyp.js 这类非法路径），
+      # 这里改用 bash + npm root -g 拿到正确的正斜杠路径。
       - name: Fix node-gyp
         run: |
           npm install --global node-gyp@latest
-          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
+          npm config set node_gyp "$(npm root -g)/node-gyp/bin/node-gyp.js"
           node-gyp install
-        shell: pwsh
+        shell: bash
       - name: Fix No module named 'distutils'
         if: runner.os == 'macOS'
         run: |

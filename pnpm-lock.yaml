@@ -165,6 +165,8 @@ settings:
 overrides:
   node-gyp: ^12.1.0
 
+pnpmfileChecksum: sha256-4l95FkG5z0oLrnDSlkxLRNFk9jNPYqkYxDKYE3Rk8gg=
+
 importers:
 
   .: {}
@@ -204,9 +206,6 @@ importers:
       node-machine-id:
         specifier: ^1.1.12
         version: 1.1.12
-      registry-js:
-        specifier: ^1.16.0
-        version: 1.16.1
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
@@ -301,6 +300,10 @@ importers:
       webpack-merge:
         specifier: ^5.8.0
         version: 5.10.0
+    optionalDependencies:
+      registry-js:
+        specifier: ^1.16.0
+        version: 1.16.1
 
   page_app:
     dependencies:
@@ -5679,6 +5682,7 @@ packages:
 
   registry-js@1.16.1:
     resolution: {integrity: sha512-pQ2kD36lh+YNtpaXm6HCCb0QZtV/zQEeKnkfEIj5FDSpF/oFts7pwizEUkWSvP8IbGb4A4a5iBhhS9eUearMmQ==}
+    os: [win32]
 
   regjsgen@0.8.0:
     resolution: {integrity: sha512-RvwtGe3d7LvWiDQXeQw8p5asZUmfU1G/l6WbUXeHta7Y2PEIvBTwH6E2EfmYUK8pxcxEdEmaomqyp0vZZ7C+3Q==}
@@ -9069,7 +9073,8 @@ snapshots:
 
   append-field@1.0.0: {}
 
-  aproba@1.2.0: {}
+  aproba@1.2.0:
+    optional: true
 
   arch@2.2.0: {}
 
@@ -9160,6 +9165,7 @@ snapshots:
     dependencies:
       delegates: 1.0.0
       readable-stream: 2.3.8
+    optional: true
 
   argparse@1.0.10:
     dependencies:
@@ -9590,7 +9596,8 @@ snapshots:
     dependencies:
       readdirp: 5.1.1
 
-  chownr@1.1.4: {}
+  chownr@1.1.4:
+    optional: true
 
   chownr@2.0.0: {}
 
@@ -9781,7 +9788,8 @@ snapshots:
 
   connect-history-api-fallback@2.0.0: {}
 
-  console-control-strings@1.1.0: {}
+  console-control-strings@1.1.0:
+    optional: true
 
   consolidate@0.15.1(ejs@3.1.10)(lodash@4.18.1):
     dependencies:
@@ -10036,12 +10044,14 @@ snapshots:
   decompress-response@4.2.1:
     dependencies:
       mimic-response: 2.1.0
+    optional: true
 
   decompress-response@6.0.0:
     dependencies:
       mimic-response: 3.1.0
 
-  deep-extend@0.6.0: {}
+  deep-extend@0.6.0:
+    optional: true
 
   deep-is@0.1.4: {}
 
@@ -10101,7 +10111,8 @@ snapshots:
 
   delegate@3.2.0: {}
 
-  delegates@1.0.0: {}
+  delegates@1.0.0:
+    optional: true
 
   depd@1.1.2: {}
 
@@ -10109,7 +10120,8 @@ snapshots:
 
   destroy@1.2.0: {}
 
-  detect-libc@1.0.3: {}
+  detect-libc@1.0.3:
+    optional: true
 
   detect-libc@2.1.2: {}
 
@@ -10695,7 +10707,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expand-template@2.0.3: {}
+  expand-template@2.0.3:
+    optional: true
 
   exponential-backoff@3.1.3: {}
 
@@ -10992,6 +11005,7 @@ snapshots:
       string-width: 1.0.2
       strip-ansi: 3.0.1
       wide-align: 1.1.5
+    optional: true
 
   generator-function@2.0.1: {}
 
@@ -11039,7 +11053,8 @@ snapshots:
 
   get-value@2.0.6: {}
 
-  github-from-package@0.0.0: {}
+  github-from-package@0.0.0:
+    optional: true
 
   glob-parent@5.1.2:
     dependencies:
@@ -11168,7 +11183,8 @@ snapshots:
     dependencies:
       has-symbols: 1.1.0
 
-  has-unicode@2.0.1: {}
+  has-unicode@2.0.1:
+    optional: true
 
   has-value@0.3.1:
     dependencies:
@@ -11377,7 +11393,8 @@ snapshots:
 
   inherits@2.0.4: {}
 
-  ini@1.3.8: {}
+  ini@1.3.8:
+    optional: true
 
   internal-slot@1.1.0:
     dependencies:
@@ -12030,7 +12047,8 @@ snapshots:
 
   mimic-response@1.0.1: {}
 
-  mimic-response@2.1.0: {}
+  mimic-response@2.1.0:
+    optional: true
 
   mimic-response@3.1.0: {}
 
@@ -12116,7 +12134,8 @@ snapshots:
       for-in: 1.0.2
       is-extendable: 1.0.1
 
-  mkdirp-classic@0.5.3: {}
+  mkdirp-classic@0.5.3:
+    optional: true
 
   mkdirp@0.5.6:
     dependencies:
@@ -12174,7 +12193,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  napi-build-utils@1.0.2: {}
+  napi-build-utils@1.0.2:
+    optional: true
 
   natural-compare@1.4.0: {}
 
@@ -12194,6 +12214,7 @@ snapshots:
   node-abi@2.30.1:
     dependencies:
       semver: 5.7.2
+    optional: true
 
   node-abi@3.97.0:
     dependencies:
@@ -12202,7 +12223,8 @@ snapshots:
   node-addon-api@1.7.2:
     optional: true
 
-  node-addon-api@3.2.1: {}
+  node-addon-api@3.2.1:
+    optional: true
 
   node-addon-api@7.1.1:
     optional: true
@@ -12241,7 +12263,8 @@ snapshots:
 
   node-releases@2.0.57: {}
 
-  noop-logger@0.1.1: {}
+  noop-logger@0.1.1:
+    optional: true
 
   nopt@9.0.0:
     dependencies:
@@ -12276,6 +12299,7 @@ snapshots:
       console-control-strings: 1.1.0
       gauge: 2.7.4
       set-blocking: 2.0.0
+    optional: true
 
   nth-check@2.1.1:
     dependencies:
@@ -12753,6 +12777,7 @@ snapshots:
       tar-fs: 2.1.5
       tunnel-agent: 0.6.0
       which-pm-runs: 1.1.0
+    optional: true
 
   prelude-ls@1.2.1: {}
 
@@ -12839,6 +12864,7 @@ snapshots:
       ini: 1.3.8
       minimist: 1.2.8
       strip-json-comments: 2.0.1
+    optional: true
 
   read-binary-file-arch@1.0.6(supports-color@8.1.1):
     dependencies:
@@ -12950,6 +12976,7 @@ snapshots:
     dependencies:
       node-addon-api: 3.2.1
       prebuild-install: 5.3.6
+    optional: true
 
   regjsgen@0.8.0: {}
 
@@ -13179,7 +13206,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  set-blocking@2.0.0: {}
+  set-blocking@2.0.0:
+    optional: true
 
   set-function-length@1.2.2:
     dependencies:
@@ -13262,13 +13290,15 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
-  simple-concat@1.0.1: {}
+  simple-concat@1.0.1:
+    optional: true
 
   simple-get@3.1.1:
     dependencies:
       decompress-response: 4.2.1
       once: 1.4.0
       simple-concat: 1.0.1
+    optional: true
 
   simple-update-notifier@2.0.0:
     dependencies:
@@ -13512,7 +13542,8 @@ snapshots:
 
   strip-indent@2.0.0: {}
 
-  strip-json-comments@2.0.1: {}
+  strip-json-comments@2.0.1:
+    optional: true
 
   strip-json-comments@3.1.1: {}
 
@@ -13619,6 +13650,7 @@ snapshots:
       mkdirp-classic: 0.5.3
       pump: 3.0.4
       tar-stream: 2.2.0
+    optional: true
 
   tar-stream@2.2.0:
     dependencies:
@@ -13781,6 +13813,7 @@ snapshots:
   tunnel-agent@0.6.0:
     dependencies:
       safe-buffer: 5.2.1
+    optional: true
 
   type-check@0.4.0:
     dependencies:
@@ -14306,7 +14339,8 @@ snapshots:
       is-weakmap: 2.0.2
       is-weakset: 2.0.4
 
-  which-pm-runs@1.1.0: {}
+  which-pm-runs@1.1.0:
+    optional: true
 
   which-typed-array@1.1.24:
     dependencies:
@@ -14333,6 +14367,7 @@ snapshots:
   wide-align@1.1.5:
     dependencies:
       string-width: 1.0.2
+    optional: true
 
   wildcard@2.0.1: {}
 

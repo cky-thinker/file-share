@@ -4,7 +4,11 @@ appId: "com.github.ckythinker.fileshare"
 asar: false
 directories:
   output: "build"
-buildDependenciesFromSource: true
+# 注意：不要开启 buildDependenciesFromSource。
+# 它会让 @electron/rebuild 跳过预编译产物、对所有原生依赖强制 node-gyp 源码编译，
+# 而本项目唯一的原生模块 registry-js 是 N-API 模块（ABI 跨 Electron 版本稳定），
+# 官方已提供 win32 预编译包，无需重编译。开启后会在各平台卡在
+# "preparing moduleName=registry-js"。
 files:
   - "dist/**/*"
   # Don't bundle these files
