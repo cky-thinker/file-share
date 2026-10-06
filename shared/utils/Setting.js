@@ -9,7 +9,6 @@ const uploadPathKey = 'uploadPath' // 上传路径
 const portKey = 'port' // 端口号
 const ipKey = 'ip' // 端口号
 const AuthEnable = 'authEnable' // 是否开启密码校验
-const Password = 'password' // 密码
 const tusEnableKey = 'tusEnable' // 是否启用续传功能
 const chunkSizeKey = 'chunkSize' // 上传文件的分片大小
 const AutoStart = 'autoStart' // 自动启动
@@ -117,26 +116,6 @@ function getAuthEnable() {
     return AppDatabase.getStorageItem(AuthEnable, false)
 }
 
-function updatePassword(value) {
-    return new Promise((resolve, reject) => {
-        if (value == null) {
-            return reject({ success: false, message: '更新失败，值为空' });
-        }
-        // 值没变，不更新
-        if (getPassword() === value) {
-            console.log("password 值没变，不更新")
-            return resolve({ success: true, message: 'ValueNotChange' })
-        }
-        console.log('--updatePassword--', value)
-        AppDatabase.setStorageItem(Password, value)
-        return resolve({ success: true, message: '修改成功' });
-    });
-}
-
-function getPassword() {
-    return AppDatabase.getStorageItem(Password, 'password')
-}
-
 function getTusEnable() {
     return AppDatabase.getStorageItem(tusEnableKey, false)
 }
@@ -242,7 +221,6 @@ function getSetting() {
         port: getPort(),
         ip: getIp(),
         url: getUrl(),
-        password: getPassword(),
         authEnable: getAuthEnable(),
         tusEnable: getTusEnable(),
         chunkSize: getChunkSize(),
@@ -253,17 +231,15 @@ function getSetting() {
 function updateSetting(setting) {
     let updateUploadPathR = updateUploadPath(setting[uploadPathKey]);
     let updatePortR = updatePort(setting[portKey])
-    let passwordR = updatePassword(setting[Password])
     let authEnableR = updateAuthEnable(setting[AuthEnable])
     let tusEnableR = updateTusEnable(setting[tusEnableKey])
     let chunkSizeR = updateChunkSize(setting[chunkSizeKey])
     let autoStartR = updateAutoStart(setting[AutoStart])
-    return Promise.all([updateUploadPathR, updatePortR, passwordR, authEnableR, tusEnableR, chunkSizeR, autoStartR])
+    return Promise.all([updateUploadPathR, updatePortR, authEnableR, tusEnableR, chunkSizeR, autoStartR])
 }
 
 exports.uploadPathKey = uploadPathKey
 exports.portKey = portKey
-exports.Password = Password
 exports.AuthEnable = AuthEnable
 exports.tusEnableKey = tusEnableKey
 exports.chunkSizeKey = chunkSizeKey
@@ -281,8 +257,6 @@ exports.getIp = getIp
 exports.updateIp = updateIp
 exports.updateAuthEnable = updateAuthEnable
 exports.getAuthEnable = getAuthEnable
-exports.updatePassword = updatePassword
-exports.getPassword = getPassword
 exports.getTusEnable = getTusEnable
 exports.updateTusEnable = updateTusEnable
 exports.getChunkSize = getChunkSize

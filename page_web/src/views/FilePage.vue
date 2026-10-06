@@ -24,19 +24,19 @@
             <el-row class="row-bg">
               <el-col :span="12">
                 <span style="margin-right: 20px">分享列表</span>
-                <el-button v-if="batchDownload" @click="batchDownloadHandler">
+                <el-button v-if="permissions.download && batchDownload" @click="batchDownloadHandler">
                   <svg-icon name="批量下载"/>
                   {{ isPC ? "批量下载" : "" }}
                 </el-button>
               </el-col>
               <el-col :span="6">
-                <el-button @click="fileFormVisible= true">
+                <el-button v-if="permissions.uploadFile" @click="fileFormVisible= true">
                   <svg-icon name="发送文件"/>
                   {{ isPC ? "上传文件" : "" }}
                 </el-button>
               </el-col>
               <el-col :span="6">
-                <el-button @click="showMsgForm" type="default" title="分享一段文本">
+                <el-button v-if="permissions.uploadText" @click="showMsgForm" type="default" title="分享一段文本">
                   <svg-icon name="发送消息"/>
                   {{ isPC ? "上传文本" : "" }}
                 </el-button>
@@ -122,7 +122,7 @@
             </el-table-column>
             <el-table-column width="70">
               <template #default="scope">
-                <el-button v-if="['file', 'directory'].includes(scope.row.type)"
+                <el-button v-if="['file', 'directory'].includes(scope.row.type) && permissions.download"
                            @click="handleDownload(scope.row, $event)" plain>
                   <el-icon size="16">
                     <Download/>
@@ -218,6 +218,13 @@ export default {
       files: [],
       query: undefined,
       authEnable: true,
+      permissions: {
+        download: true,
+        uploadFile: true,
+        uploadText: true,
+        allowAccess: '',
+        denyAccess: ''
+      },
       headers: {
         Authorization: ''
       },
@@ -227,6 +234,9 @@ export default {
   async created() {
     let settingRes = await getSetting()
     this.authEnable = settingRes.data.authEnable
+    if (settingRes.data.permissions) {
+      this.permissions = settingRes.data.permissions
+    }
     this.refreshPath();
     await this.showFiles();
     this.updateRouter();

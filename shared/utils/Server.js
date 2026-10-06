@@ -10,27 +10,89 @@ const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const jsonParser = bodyParser.json()
 
 const Setting = require('./Setting')
+const Account = require('./Account')
 const EventDispatcher = require('./EventDispatcher')
 const FileDb = require('./FileDb')
 const FileUtil = require('./FileUtil')
 const ZipUtil = require('./ZipUtil')
 const SseUtil = require('./SseUtil')
 
-let session = new Set()
+// ----- JWT -----
+// 签名密钥在服务进程内随机生成，服务重启后旧 token 自动失效
+const JWT_SECRET = crypto.randomBytes(32)
 
-function clearSession() {
-    session.clear()
+function base64UrlEncode(str) {
+    return Buffer.from(str).toString('base64')
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-function getToken(permanent = true, timeoutSec = 3600) {
-    if (Setting.getAuthEnable()) {
-        let md5 = crypto.createHash('md5');
-        let token =  md5.update(Setting.getPassword()).digest('hex');
-        session.add(token)
-        return token;
-    } else {
-        return "";
+function base64UrlDecode(str) {
+    return Buffer.from(str.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')
+}
+
+function hmacSign(data) {
+    return crypto.createHmac('sha256', JWT_SECRET).update(data).digest('base64')
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+/**
+ * 生成 JWT（HS256）
+ * @param {object} payload 载荷
+ * @param {number} expiresInSec 有效期（秒），<=0 表示永久有效
+ */
+function signJwt(payload, expiresInSec = 0) {
+    let now = Math.floor(Date.now() / 1000)
+    let body = {...payload, iat: now}
+    if (expiresInSec > 0) {
+        body.exp = now + expiresInSec
     }
+    let data = `${base64UrlEncode(JSON.stringify({alg: 'HS256', typ: 'JWT'}))}.${base64UrlEncode(JSON.stringify(body))}`
+    return `${data}.${hmacSign(data)}`
+}
+
+/**
+ * 校验 JWT
+ * @param {string} token
+ * @returns {object|null} 校验通过返回载荷，否则返回 null
+ */
+function verifyJwt(token) {
+    if (!token || typeof token !== 'string') {
+        return null
+    }
+    let parts = token.split('.')
+    if (parts.length !== 3) {
+        return null
+    }
+    let data = `${parts[0]}.${parts[1]}`
+    let expected = hmacSign(data)
+    if (parts[2].length !== expected.length ||
+        !crypto.timingSafeEqual(Buffer.from(parts[2]), Buffer.from(expected))) {
+        return null
+    }
+    let payload
+    try {
+        payload = JSON.parse(base64UrlDecode(parts[1]))
+    } catch (e) {
+        return null
+    }
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        return null
+    }
+    return payload
+}
+
+// 管理员（未开启认证）权限：全部允许
+function adminPermissions() {
+    return {admin: true, ...Account.defaultPermissions()}
+}
+
+/**
+ * 生成管理员 token（供本地应用拼装分享/下载链接）
+ * @param {boolean} permanent 是否永久有效
+ * @param {number} timeoutSec 非永久时的有效期（秒）
+ */
+function getToken(permanent = true, timeoutSec = 3600) {
+    return signJwt({permissions: adminPermissions()}, permanent ? 0 : timeoutSec)
 }
 
 const StatusStart = "start"
@@ -45,6 +107,7 @@ function authFilter(req, res, next) {
     // no auth
     if (!Setting.getAuthEnable()) {
         // console.log('no auth')
+        req.permissions = adminPermissions()
         next()
         return;
     }
@@ -60,7 +123,10 @@ function authFilter(req, res, next) {
         return;
     }
     // validate
-    if (session.has(req.get('Authorization'))) {
+    let token = req.get('Authorization')
+    let payload = verifyJwt(token)
+    if (payload && payload.permissions) {
+        req.permissions = payload.permissions
         next()
     } else {
         res.json({ code: 401, message: '认证失败' })
@@ -130,6 +196,7 @@ const initApp = () => {
     app.get('/api/files', function (req, res) {
         let path = req.query.path
         console.log('/api/files', path)
+        let permissions = req.permissions || adminPermissions()
         let sourceFilePath, filePaths;
         try {
             let parseResult = parsePath(path)
@@ -140,24 +207,42 @@ const initApp = () => {
                 res.sendStatus(404);
                 return;
             }
+            if (sourceFilePath !== '' && !Account.canAccessPath(sourceFilePath, permissions)) {
+                console.log("无权访问该路径", sourceFilePath)
+                res.sendStatus(403);
+                return;
+            }
         } catch (e) {
             res.json({ code: 500, message: e.message });
             return;
         }
 
+        let filterByPermission = (files) => files.filter(f => Account.canAccessPath(f.path, permissions))
+
         if (sourceFilePath.length === 0) {
-            res.json({ code: 200, data: { path: [], files: FileDb.listFiles() } });
+            res.json({ code: 200, data: { path: [], files: filterByPermission(FileDb.listFiles()) } });
             return;
         }
-        return res.json({ code: 200, data: { path: filePaths, files: FileUtil.listFiles(sourceFilePath) } });
+        return res.json({ code: 200, data: { path: filePaths, files: filterByPermission(FileUtil.listFiles(sourceFilePath)) } });
     });
     // download
     app.get('/api/download', function (req, res) {
         let token = req.query.token
         console.log('/api/download token', token)
-        if (Setting.getAuthEnable() && (!token || !session.has(token))) {
-            res.sendStatus(403)
-            return;
+        let permissions
+        if (Setting.getAuthEnable()) {
+            let payload = verifyJwt(token)
+            if (!payload || !payload.permissions) {
+                res.sendStatus(403)
+                return;
+            }
+            permissions = payload.permissions
+            if (!permissions.download) {
+                res.sendStatus(403)
+                return;
+            }
+        } else {
+            permissions = adminPermissions()
         }
 
         let filename = req.query.filename
@@ -176,6 +261,11 @@ const initApp = () => {
             if (!fs.existsSync(sourceFilePath)) {
                 console.log("文件在系统不存在", sourceFilePath)
                 res.sendStatus(404);
+                return;
+            }
+            if (!Account.canAccessPath(sourceFilePath, permissions)) {
+                console.log("无权下载该文件", sourceFilePath)
+                res.sendStatus(403);
                 return;
             }
         } catch (e) {
@@ -218,11 +308,11 @@ const initApp = () => {
 
     app.get("/api/getSetting", (req, res) => {
         let { authEnable } = Setting.getSetting()
-        res.json({ code: 200, data: { authEnable }, message: 'success' })
+        res.json({ code: 200, data: { authEnable, permissions: req.permissions || adminPermissions() }, message: 'success' })
     })
 
+    // JWT 为无状态 token，登出由客户端清除本地凭证即可
     app.get("/api/logout", (req, res) => {
-        clearSession()
         res.json({ code: 200, message: 'success' })
     })
 
@@ -230,25 +320,27 @@ const initApp = () => {
         console.log("api/login")
         // no auth
         if (!Setting.getAuthEnable()) {
-            let md5 = crypto.createHash('md5');
-            let token = md5.update("noAuth").digest('hex');
-            res.json({ code: 200, data: { Authorization: token }, message: 'success' })
+            let permissions = adminPermissions()
+            let token = signJwt({permissions})
+            res.json({ code: 200, data: { Authorization: token, permissions }, message: 'success' })
             return;
         }
-        // password error
+        let username = (req.body.username || '').trim()
         let password = req.body.password
-        console.log("password", password)
-        console.log("Setting.getPassword()", Setting.getPassword())
-        if (Setting.getPassword() !== password) {
-            res.json({ code: 403, message: '密码错误' })
+        console.log("username", username)
+        if (!username) {
+            res.json({ code: 403, message: '请输入用户名' })
             return;
         }
-        // update auth
-        let md5 = crypto.createHash('md5');
-        let token = md5.update(password).digest('hex');
-        console.log("token", token)
-        session.add(token)
-        res.json({ code: 200, data: { Authorization: token }, message: 'success' })
+        // 账号登录
+        let account = Account.getAccountByUsername(username)
+        if (!account || account.password !== password) {
+            res.json({ code: 403, message: '用户名或密码错误' })
+            return;
+        }
+        let permissions = account.permissions
+        let token = signJwt({username: account.username, permissions})
+        res.json({ code: 200, data: { Authorization: token, permissions }, message: 'success' })
     });
 
     //filename
@@ -263,6 +355,11 @@ const initApp = () => {
 
     let upload = multer({ storage: storage });
     app.post('/api/addFile', upload.single('file'), function (req, res, next) {
+        let permissions = req.permissions || adminPermissions()
+        if (!permissions.uploadFile) {
+            res.json({ code: 403, message: '无上传文件权限' })
+            return;
+        }
         let file = req.file;
         let sourceip = getClientIp(req)
         FileDb.addFile({ name: file.originalname, path: file.path, username: sourceip })
@@ -271,6 +368,11 @@ const initApp = () => {
 
     app.post('/api/addText', jsonParser, function (req, res, next) {
         console.log(req)
+        let permissions = req.permissions || adminPermissions()
+        if (!permissions.uploadText) {
+            res.json({ code: 403, message: '无上传文本权限' })
+            return;
+        }
         let sourceip = getClientIp(req)
         let text = req.body.message
         if (!text) {
@@ -324,5 +426,4 @@ exports.stopServer = stopServer
 exports.getServerStatus = getServerStatus
 exports.StatusStart = StatusStart
 exports.StatusStop = StatusStop
-exports.clearSession = clearSession
 exports.getToken = getToken

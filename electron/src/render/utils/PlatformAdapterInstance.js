@@ -55,6 +55,12 @@ const PlatformAdapter = {
     getPlatform: () => {
         return 'electron'
     },
+    getVersion: () => {
+        return ipcRenderer.invoke('get-app-version')
+    },
+    openExternal: (url) => {
+        return ipcRenderer.invoke('open-external', url)
+    },
     initDatabaseAdapter: () => {
         // 设置适配器
         Database.setAdapter(new ElectronDatabaseAdapter())

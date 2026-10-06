@@ -63,6 +63,17 @@ const PlatformAdapter = {
   getPlatform: () => {
     return "utools";
   },
+  getVersion: () => {
+    return Promise.resolve(require("../package.json").version);
+  },
+  openExternal: (url) => {
+    if (typeof utools !== "undefined" && utools.shellOpenExternal) {
+      utools.shellOpenExternal(url);
+    } else {
+      window.open(url);
+    }
+    return Promise.resolve();
+  },
   initDatabaseAdapter: () => {
     // 设置适配器
     Database.setAdapter(new UtoolsDatabaseAdapter());

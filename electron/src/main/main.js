@@ -3,7 +3,7 @@ import setupExceptionHandler, {initExceptionLogger} from "../common/exceptionHan
 import log from 'electron-log'
 import {getLogLevel, getLogPath, getPageAppDevUrl, getPageAppPath, getPreloadPath, isDev} from "../common/globalSetting";
 
-const {app, BrowserWindow, Menu, ipcMain} = require('electron')
+const {app, BrowserWindow, Menu, ipcMain, shell} = require('electron')
 const path = require('node:path')
 
 // NOTE: We only support Linux, macOS and Windows but not BSD nor SunOS.
@@ -64,6 +64,12 @@ const createWindow = () => {
     ipcMain.on('close-dev-tools', () => {
         win.webContents.closeDevTools();
     });
+
+    // 获取应用版本号
+    ipcMain.handle('get-app-version', () => app.getVersion());
+
+    // 打开外部链接
+    ipcMain.handle('open-external', (event, url) => shell.openExternal(url));
 }
 
 app.whenReady().then(() => {

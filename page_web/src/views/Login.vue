@@ -12,6 +12,25 @@
         <div class="input-group">
           <div class="input-wrapper">
             <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M4 20C4 16.6863 7.58172 14 12 14C16.4183 14 20 16.6863 20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input
+              v-model="loginForm.username"
+              type="text"
+              placeholder="请输入用户名"
+              class="custom-input"
+              :class="{ 'error': usernameError }"
+              @keyup.enter="handleLogin"
+              @input="clearUsernameError"
+            />
+          </div>
+          <div v-if="usernameError" class="error-message">{{ usernameError }}</div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6 10V8C6 5.79086 7.79086 4 10 4H14C16.2091 4 18 5.79086 18 8V10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
               <circle cx="12" cy="15" r="1" fill="currentColor"/>
@@ -19,7 +38,7 @@
             <input
               v-model="loginForm.password"
               type="password"
-              placeholder="请输入访问码"
+              placeholder="请输入密码"
               class="custom-input"
               :class="{ 'error': passwordError }"
               @keyup.enter="handleLogin"
@@ -74,24 +93,31 @@ export default {
   data() {
     return {
       loginForm: {
+        username: '',
         password: ''
       },
       loading: false,
       showPassword: false,
+      usernameError: '',
       passwordError: ''
     }
   },
   methods: {
     handleLogin() {
       // 表单验证
-      if (!this.loginForm.password.trim()) {
-        this.passwordError = '请输入访问码'
+      if (!this.loginForm.username.trim()) {
+        this.usernameError = '请输入用户名'
         return
       }
-      
+      if (!this.loginForm.password.trim()) {
+        this.passwordError = '请输入密码'
+        return
+      }
+
       this.loading = true
+      this.usernameError = ''
       this.passwordError = ''
-      
+
       login(this.loginForm)
         .then((res) => {
           ElMessage({
@@ -105,9 +131,9 @@ export default {
         })
         .catch((error) => {
           console.error('登录失败:', error)
-          this.passwordError = '登录失败，请检查访问码'
+          this.passwordError = '登录失败，请检查用户名和密码'
           ElMessage({
-            message: '登录失败，请检查密码',
+            message: '登录失败，请检查用户名和密码',
             type: 'error'
           })
         })
@@ -124,6 +150,10 @@ export default {
     
     clearError() {
       this.passwordError = ''
+    },
+
+    clearUsernameError() {
+      this.usernameError = ''
     }
   }
 }

@@ -12,6 +12,7 @@ const {
   Setting,
   Server,
   FileDb,
+  Account,
   EventDispatcher,
 } = require("@file-share/shared-utils");
 PlatformAdapter.initDatabaseAdapter();
@@ -32,14 +33,12 @@ const updateSetting = (setting) => {
       Server.startServer();
     },
   );
-  let password = Setting.updatePassword(setting[Setting.Password]);
   let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable]);
   let tusEnable = Setting.updateTusEnable(setting[Setting.tusEnableKey]);
   let chunkSize = Setting.updateChunkSize(setting[Setting.chunkSizeKey]);
   return Promise.all([
     updateUploadPath,
     updatePort,
-    password,
     authEnable,
     tusEnable,
     chunkSize,
@@ -75,7 +74,15 @@ window.api = {
   setNetInterface: IpUtil.setNetInterface,
   getIpFamily: IpUtil.getIpFamily,
   getNetInterface: IpUtil.getNetInterface,
+  getToken: Server.getToken,
   getPlatform: PlatformAdapter.getPlatform,
   openDevTool: PlatformAdapter.openDevTool,
   closeDevTool: PlatformAdapter.closeDevTool,
+  listAccounts: Account.listAccounts,
+  addAccount: Account.addAccount,
+  updateAccount: Account.updateAccount,
+  updateAccountPassword: Account.updateAccountPassword,
+  removeAccount: Account.removeAccount,
+  getVersion: PlatformAdapter.getVersion,
+  openExternal: PlatformAdapter.openExternal,
 };

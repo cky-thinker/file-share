@@ -10,6 +10,7 @@ const {
   Setting,
   Server,
   FileDb,
+  Account,
   EventDispatcher,
 } = require("@file-share/shared-utils");
 
@@ -64,7 +65,7 @@ const updateSetting = (setting) => {
   let old = Setting.getSetting();
   return Setting.updateSetting(setting)
     .then((msg) => {
-      if (old.port !== setting.port || old.password !== setting.password) {
+      if (old.port !== setting.port) {
         console.log("重启服务", old, setting);
         Server.stopServer();
         Server.startServer();
@@ -107,4 +108,11 @@ window.api = {
   getPlatform: PlatformAdapter.getPlatform,
   openDevTool: PlatformAdapter.openDevTool,
   closeDevTool: PlatformAdapter.closeDevTool,
+  listAccounts: Account.listAccounts,
+  addAccount: Account.addAccount,
+  updateAccount: Account.updateAccount,
+  updateAccountPassword: Account.updateAccountPassword,
+  removeAccount: Account.removeAccount,
+  getVersion: PlatformAdapter.getVersion,
+  openExternal: PlatformAdapter.openExternal,
 };

@@ -1,4 +1,5 @@
 // Main entry point for shared utilities
+const Account = require('./utils/Account');
 const Database = require('./utils/Database');
 const EventDispatcher = require('./utils/EventDispatcher');
 const FileDb = require('./utils/FileDb');
@@ -11,6 +12,7 @@ const ZipUtil = require('./utils/ZipUtil');
 const openFileExplorer = require('./utils/open-file-explorer');
 
 module.exports = {
+  Account,
   Database,
   EventDispatcher,
   FileDb,
@@ -23,6 +25,7 @@ module.exports = {
   openFileExplorer,
   // 便于直接访问utils
   utils: {
+    Account,
     Database,
     EventDispatcher,
     FileDb,
