@@ -16,34 +16,34 @@ corepack enable
 pnpm --version   # 应输出 12.9.1
 ```
 
-## 二、目录结构与依赖管理方式
+> 注意：全仓库统一使用 pnpm，**不要**在子目录里用 `npm install`。混用会产生双锁文件和结构冲突的 `node_modules`。
 
-本项目是「混合」结构：核心三件套用 pnpm workspace 统一管理，两个前端应用保持独立。
+## 二、目录结构与 workspace 成员
 
-| 目录 | 包名 | 是否 workspace 成员 | 包管理器 |
-|------|------|--------------------|----------|
-| `shared/` | `@file-share/shared-utils` | 是 | pnpm |
-| `electron/` | `fileshare` | 是 | pnpm |
-| `utools/preload/` | `file-share-utools` | 是 | pnpm |
-| `page_app/` | `file-share-app` | 否 | pnpm |
-| `page_web/` | `file-share-web` | 否 | pnpm |
+所有子项目都已纳入 pnpm workspace，成员在根目录 [pnpm-workspace.yaml](../pnpm-workspace.yaml) 中声明。
 
-workspace 成员在根目录 [pnpm-workspace.yaml](../pnpm-workspace.yaml) 中声明。
+| 目录 | 包名 | 职责 |
+|------|------|------|
+| `shared/` | `@file-share/shared-utils` | 共享工具库（Server、FileDb、Setting 等） |
+| `electron/` | `fileshare` | Electron 桌面应用 |
+| `utools/preload/` | `file-share-utools` | uTools 插件 preload |
+| `page_app/` | `file-share-app` | 应用界面（Electron 窗口 / uTools 界面） |
+| `page_web/` | `file-share-web` | 局域网浏览器访问页面 |
 
 ### 2.1 依赖链接方式（重要）
 
 pnpm 默认使用 **isolated** 模式：
 
-- 每个 workspace 包目录下都有**自己的 `node_modules`**；
-- 但其中的条目是指向仓库根 `node_modules/.pnpm` 的 **junction / 软链接**，不是真实文件；
+- 每个包目录下都有**自己的 `node_modules`**；
+- 但其中条目是指向仓库根 `node_modules/.pnpm` 的 **junction / 软链接**，不是真实文件；
 - 工作区内部包以链接形式互相引用，例如：
   `electron/node_modules/@file-share/shared-utils` → `../../shared`
 
-这一点对打包有直接影响：`electron-builder` 与 uTools 都需要**真实文件**，不能是软链。项目已针对两者分别验证/处理（见第四、五节）。
+这一点对打包有直接影响：`electron-builder` 与 uTools 都需要**真实文件**。项目已分别验证/处理（见第四、五节）。
 
 ### 2.2 构建脚本白名单
 
-pnpm 10+ 出于供应链安全考虑，**默认禁止依赖执行安装脚本**。缺少白名单时会报错：
+pnpm 10+ 出于供应链安全，**默认禁止依赖执行安装脚本**，且是**直接报错中断安装**：
 
 ```
 ERR_PNPM_IGNORED_BUILDS
@@ -54,21 +54,28 @@ Ignored build scripts: electron@..., registry-js@...
 
 ```yaml
 allowBuilds:
-  electron: true      # postinstall 下载 Electron 二进制
-  registry-js: true   # 原生模块，需要 node-gyp 编译
+  electron: true            # postinstall 下载 Electron 二进制
+  registry-js: true         # 原生模块，需要 node-gyp 编译
+  "@parcel/watcher": true   # 前端工具链原生模块
+  core-js: true
+  yorkie: true
 ```
 
-**新增原生依赖时**，若安装报此错误，把包名加入 `allowBuilds` 即可。
+**新增依赖时若报此错误**，把报错列出的包名加入 `allowBuilds` 即可。
+
+### 2.3 幽灵依赖（phantom dependency）
+
+pnpm 的严格隔离会**暴露**那些「用了但没声明」的依赖——这类代码在 npm 扁平化下能跑，换 pnpm 后就会报 `Module not found`。
+
+本项目已修复一处历史遗留：`page_web` / `page_app` 都 import 了 `@element-plus/icons-vue`，但只在 `element-plus` 的传递依赖里，现已显式加入两个包的 `dependencies`。
+
+**新增 import 时，请确保对应包已写入当前包的 `package.json`**，不要依赖其他包的传递依赖。
 
 ## 三、安装依赖
 
 ```bash
-# 1. 根目录：一次装好 shared + electron + utools/preload
+# 根目录一次装好全部 5 个 workspace 包
 pnpm install
-
-# 2. 两个独立前端应用（仍用 npm）
-cd page_app && npm install
-cd page_web && npm install
 ```
 
 ## 四、Electron 开发与打包
@@ -96,10 +103,10 @@ pnpm --filter fileshare run release:linux  # 完整打包 Linux
 
 ```bash
 # 产出 electron/dist/page_app（Electron 窗口界面）
-cd page_app && npm run build:desktop
+pnpm --filter file-share-app run build:desktop
 
 # 产出 shared/page_web（局域网浏览器访问的页面）
-cd page_web && npm run build
+pnpm --filter file-share-web run build
 ```
 
 否则打出来的包会缺少界面资源。
@@ -114,7 +121,7 @@ cd page_web && npm run build
 
 - `@file-share/shared-utils` 为真实目录，非软链；
 - 传递依赖齐全，原生模块 `registry-js` 已按 Electron ABI 重新编译；
-- 未混入 `page_app` / `page_web` 的依赖（无 `element-plus` / `vue` / `tailwindcss` 等）。
+- **未混入** `page_app` / `page_web` 的依赖（无 `element-plus` / `vue` / `tailwindcss` / `axios` 等）。
 
 **升级 electron-builder 或调整 `node-linker` 后，请重新按此清单验证产物。**
 
@@ -135,7 +142,7 @@ pnpm run prepare:utools-preload
 3. 用其整体替换 `utools/preload/node_modules`；
 4. 清理临时目录。
 
-> 说明：这一步刻意使用 npm 并脱离 workspace，目的是绕开 pnpm 的软链结构，得到可直接打包的扁平依赖树。
+> 说明：这一步刻意使用 npm 并脱离 workspace，目的是绕开 pnpm 的软链结构，得到可直接打包的扁平依赖树。这是**唯一**保留 npm 的地方，属于打包步骤而非依赖管理。
 
 ### 5.2 打包步骤
 
@@ -144,33 +151,49 @@ pnpm run prepare:utools-preload
 pnpm run prepare:utools-preload
 
 # 2. 构建 uTools 界面到 utools/page_app
-cd page_app && npm run build:utool
+pnpm --filter file-share-app run build:utool
 
 # 3. 用 uTools 开发者工具加载 utools/ 目录并打包
 ```
 
 `utools/plugin.json` 指向 `preload/index.js` 与 `page_app/index.html`。
 
-## 六、CI 发布流程
+## 六、各前端构建命令速查
+
+```bash
+# page_app（file-share-app）
+pnpm --filter file-share-app run dev
+pnpm --filter file-share-app run build:desktop   # → electron/dist/page_app
+pnpm --filter file-share-app run build:utool     # → utools/page_app
+
+# page_web（file-share-web）
+pnpm --filter file-share-web run dev
+pnpm --filter file-share-web run build           # → shared/page_web
+```
+
+## 七、CI 发布流程
 
 [.github/workflows/release.yml](../.github/workflows/release.yml) 在推送 `v*` tag 时触发：
 
 1. `pnpm/action-setup` 安装 pnpm，`actions/setup-node` 使用 Node 22 并缓存 pnpm store；
-2. `pnpm install --frozen-lockfile` 安装 workspace 依赖；
-3. `page_app` / `page_web` 仍用 `npm install` 单独安装并构建；
+2. `pnpm install --frozen-lockfile` 安装全部 workspace 依赖；
+3. `pnpm --filter file-share-app run build:desktop`、`pnpm --filter file-share-web run build` 构建前端；
 4. 在 `electron/` 目录执行 `pnpm run release:linux|mac|win`；
 5. 上传产物到 GitHub Release。
 
-## 七、常见问题
+## 八、常见问题
 
 **Q：`pnpm install` 报 `ERR_PNPM_IGNORED_BUILDS`？**
 把报错里列出的包名加入 [pnpm-workspace.yaml](../pnpm-workspace.yaml) 的 `allowBuilds`。
 
+**Q：构建报 `Module not found: Can't resolve 'xxx'`？**
+幽灵依赖。把 `xxx` 加进**当前包**的 `dependencies`（不要依赖其他包的传递依赖），再 `pnpm install`。
+
 **Q：改了 `shared/` 的代码，electron 里没生效？**
 workspace 链接是实时的，通常无需重装。若确认未生效，执行 `pnpm install` 重新链接。
 
-**Q：`page_app` / `page_web` 为什么不用 pnpm？**
-它们不属于 workspace，保持独立的 npm 安装与锁文件，改动隔离、互不影响。
-
 **Q：uTools 打包后运行报模块找不到？**
 多半是漏跑了 `pnpm run prepare:utools-preload`，导致 `utools/preload/node_modules` 仍是软链。
+
+**Q：不小心在子目录跑了 `npm install`？**
+删除该目录下的 `package-lock.json` 和 `node_modules`，回到根目录重新 `pnpm install`。

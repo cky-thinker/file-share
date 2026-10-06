@@ -2,9 +2,17 @@ packages:
   - "shared"
   - "electron"
   - "utools/preload"
+  - "page_app"
+  - "page_web"
 
-# pnpm 10+ 默认禁止依赖执行生命周期脚本（供应链安全）。
-# electron 需要 postinstall 下载二进制，registry-js 是原生模块需要编译，故显式放行。
+# pnpm 10+ 默认禁止依赖执行生命周期脚本（供应链安全），且会直接报错中断安装。
+# 这里放行确实需要执行安装脚本的依赖。
 allowBuilds:
+  # electron：postinstall 下载 Electron 二进制
   electron: true
+  # registry-js：原生模块，需要 node-gyp 编译
   registry-js: true
+  # 以下为 vue-cli 前端工具链依赖
+  "@parcel/watcher": true
+  core-js: true
+  yorkie: true

@@ -60,43 +60,15 @@ jobs:
           path: ${{ env.HOME }}/.cache/electron-builder
           key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Cache app dir node_modules
-        uses: actions/cache@v4
-        id: cacheAppDirNodeModules
-        with:
-          path: ${{ github.workspace }}/page_app/node_modules
-          key: ${{ runner.os }}-app-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'page_app/package-lock.json')) }}
-          restore-keys: |
-            ${{ runner.os }}-app-dir-node_modules-cache-v2-
-
-      - name: Cache web dir node_modules
-        uses: actions/cache@v4
-        id: cacheWebDirNodeModules
-        with:
-          path: ${{ github.workspace }}/page_web/node_modules
-          key: ${{ runner.os }}-web-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\page_web\package-lock.json')) }}
-          restore-keys: |
-            ${{ runner.os }}-web-dir-node_modules-cache-v2-
-
-      - name: Install workspace dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install page_app dependencies
-        working-directory: ./page_app
-        run: npm install
-
-      - name: Install page_web dependencies
-        working-directory: ./page_web
-        run: npm install
-
       - name: Build page_app
-        working-directory: ./page_app
-        run: npm run build:desktop
+        run: pnpm --filter file-share-app run build:desktop
         shell: bash
 
       - name: Build page_web
-        working-directory: ./page_web
-        run: npm run build:desktop
+        run: pnpm --filter file-share-web run build
         shell: bash
 
       - name: Build electron
@@ -179,43 +151,15 @@ jobs:
           path: ${{ env.LOCALAPPDATA }}\electron-builder\cache
           key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles('pnpm-lock.yaml') }}
 
-      - name: Cache app dir node_modules
-        uses: actions/cache@v4
-        id: cacheAppDirNodeModules
-        with:
-          path: ${{ github.workspace }}\page_app\node_modules
-          key: ${{ runner.os }}-app-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'page_app/package-lock.json')) }}
-          restore-keys: |
-            ${{ runner.os }}-app-dir-node_modules-cache-v2-
-
-      - name: Cache web dir node_modules
-        uses: actions/cache@v4
-        id: cacheWebDirNodeModules
-        with:
-          path: ${{ github.workspace }}\page_web\node_modules
-          key: ${{ runner.os }}-web-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\page_web\package-lock.json')) }}
-          restore-keys: |
-            ${{ runner.os }}-web-dir-node_modules-cache-v2-
-
-      - name: Install workspace dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install page_app dependencies
-        working-directory: ./page_app
-        run: npm install
-
-      - name: Install page_web dependencies
-        working-directory: ./page_web
-        run: npm install
-
       - name: Build page_app
-        working-directory: ./page_app
-        run: npm run build:desktop
+        run: pnpm --filter file-share-app run build:desktop
         shell: bash
 
       - name: Build page_web
-        working-directory: ./page_web
-        run: npm run build:desktop
+        run: pnpm --filter file-share-web run build
         shell: bash
 
       - name: Build electron
