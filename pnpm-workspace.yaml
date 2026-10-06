@@ -1,0 +1,10 @@
+packages:
+  - "shared"
+  - "electron"
+  - "utools/preload"
+
+# pnpm 10+ 默认禁止依赖执行生命周期脚本（供应链安全）。
+# electron 需要 postinstall 下载二进制，registry-js 是原生模块需要编译，故显式放行。
+allowBuilds:
+  electron: true
+  registry-js: true

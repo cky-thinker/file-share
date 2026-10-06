@@ -24,11 +24,17 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
-      - name: Install Node.js
-        uses: actions/setup-node@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 18
+          version: 12.9.1
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
           check-latest: true
+          cache: 'pnpm'
 
       # Workaround: Fix native build failure due to outdated node-gyp version.
       - name: Fix node-gyp
@@ -46,22 +52,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path:  ${{ env.HOME }}/.cache/electron
-          key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
+          key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Cache Electron-Builder
         uses: actions/cache@v4
         with:
           path: ${{ env.HOME }}/.cache/electron-builder
-          key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
-
-      - name: Cache electron dir node_modules
-        uses: actions/cache@v4
-        id: cacheElectronDirNodeModules
-        with:
-          path: ${{ github.workspace }}/electron/node_modules
-          key: ${{ runner.os }}-electron-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'electron/package-lock.json')) }}
-          restore-keys: |
-            ${{ runner.os }}-electron-dir-node_modules-cache-v2-
+          key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Cache app dir node_modules
         uses: actions/cache@v4
@@ -81,6 +78,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-web-dir-node_modules-cache-v2-
 
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install page_app dependencies
         working-directory: ./page_app
         run: npm install
@@ -88,11 +88,6 @@ jobs:
       - name: Install page_web dependencies
         working-directory: ./page_web
         run: npm install
-
-      - name: Install electron dependencies
-        working-directory: ./electron
-        run: npm install
-        shell: bash
 
       - name: Build page_app
         working-directory: ./page_app
@@ -111,9 +106,9 @@ jobs:
           echo $RUNNER_OS
           echo $ARCH
           if [ "$RUNNER_OS" == "Linux" ]; then
-            npm run release:linux
+            pnpm run release:linux
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            npm run release:mac
+            pnpm run release:mac
           else
             echo "$RUNNER_OS not supported"
             exit 1
@@ -152,11 +147,17 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
 
-      - name: Install Node.js
-        uses: actions/setup-node@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 18
+          version: 12.9.1
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
           check-latest: true
+          cache: 'pnpm'
 
       # Workaround: Fix native build failure due to outdated node-gyp version.
       - name: Fix node-gyp
@@ -170,29 +171,20 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.LOCALAPPDATA }}\electron\Cache
-          key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
+          key: ${{ runner.os }}-electron-cache-v2-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Cache Electron-Builder
         uses: actions/cache@v4
         with:
           path: ${{ env.LOCALAPPDATA }}\electron-builder\cache
-          key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
-
-      - name: Cache electron dir node_modules
-        uses: actions/cache@v4
-        id: cacheElectronDirNodeModules
-        with:
-          path: ${{ github.workspace }}\electron\node_modules
-          key: ${{ runner.os }}-electron-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\electron\package-lock.json')) }}
-          restore-keys: |
-            ${{ runner.os }}-electron-dir-node_modules-cache-v2-
+          key: ${{ runner.os }}-electron-builder-cache-v2-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Cache app dir node_modules
         uses: actions/cache@v4
         id: cacheAppDirNodeModules
         with:
           path: ${{ github.workspace }}\page_app\node_modules
-          key: ${{ runner.os }}-app-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, '\page_app\package-lock.json')) }}
+          key: ${{ runner.os }}-app-dir-node_modules-cache-v2-${{ hashFiles(format('{0}{1}', github.workspace, 'page_app/package-lock.json')) }}
           restore-keys: |
             ${{ runner.os }}-app-dir-node_modules-cache-v2-
 
@@ -205,6 +197,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-web-dir-node_modules-cache-v2-
 
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Install page_app dependencies
         working-directory: ./page_app
         run: npm install
@@ -212,11 +207,6 @@ jobs:
       - name: Install page_web dependencies
         working-directory: ./page_web
         run: npm install
-
-      - name: Install electron dependencies
-        working-directory: ./electron
-        run: npm install
-        shell: bash
 
       - name: Build page_app
         working-directory: ./page_app
@@ -230,7 +220,7 @@ jobs:
 
       - name: Build electron
         working-directory: ./electron
-        run: npm run release:win
+        run: pnpm run release:win
         shell: bash
 
       - name: Release
