@@ -127,6 +127,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: runner.os == 'Linux'
         with:
+          body_path: changelogs/${{ github.ref_name }}.md
           files: |
             electron/build/fileshare-linux-amd64.deb
 
@@ -134,6 +135,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: runner.os == 'macOS'
         with:
+          body_path: changelogs/${{ github.ref_name }}.md
           files: |
             electron/build/fileshare-mac-arm64.dmg
             electron/build/fileshare-mac-x64.dmg
@@ -234,6 +236,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          body_path: changelogs/${{ github.ref_name }}.md
           files: |
             electron/build/fileshare-setup-win-ia32.exe
             electron/build/fileshare-setup-win-x64.exe
