@@ -5,10 +5,14 @@ asar: false
 directories:
   output: "build"
 # 注意：不要开启 buildDependenciesFromSource。
-# 它会让 @electron/rebuild 跳过预编译产物、对所有原生依赖强制 node-gyp 源码编译，
-# 而本项目唯一的原生模块 registry-js 是 N-API 模块（ABI 跨 Electron 版本稳定），
-# 官方已提供 win32 预编译包，无需重编译。开启后会在各平台卡在
-# "preparing moduleName=registry-js"。
+# 本项目唯一的原生模块 registry-js 是 N-API 模块（ABI 跨 Electron 版本稳定），
+# 官方已为 win32 ia32/x64 提供预编译包，无需源码重编译。
+#
+# 历史坑：registry-js 依赖的 prebuild-install@5 通过 npm 专有的 package.json
+# `_from` 字段判断来源，而 pnpm 不写该字段，于是它总是 "skipping download" 并 exit 1，
+# 导致 @electron/rebuild 认为没有预编译包，回退到 node-gyp 源码编译，卡在
+# "preparing moduleName=registry-js"。已在 pnpm-workspace.yaml 用 overrides 把
+# prebuild-install 提升到 ^7 解决（7.x 不再依赖 `_from`，可直接下载预编译包）。
 files:
   - "dist/**/*"
   # Don't bundle these files

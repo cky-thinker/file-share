@@ -12,13 +12,19 @@ overrides:
   #   2) 不识别 Visual Studio 2026 (v18)。
   # 提升到 12.1.0+ 可同时解决这两点（10.x 起不再依赖 distutils，12.1.0 起支持 VS 18）。
   node-gyp: ^12.1.0
+  # registry-js 依赖 prebuild-install ^5.3.5，而 5.x 通过 npm 专有的 package.json
+  # `_from` 字段判断来源；pnpm 不写该字段，于是它总是打印
+  # "installing standalone, skipping download." 并 exit 1，导致 @electron/rebuild
+  # 认为没有预编译包，回退到 node-gyp 源码编译（在 VS 2026 环境下会卡死）。
+  # 升到 7.x 后不再依赖 `_from`，可直接下载官方预编译包，避免源码编译。
+  prebuild-install: ^7.1.3
 
 # pnpm 10+ 默认禁止依赖执行生命周期脚本（供应链安全），且会直接报错中断安装。
 # 这里放行确实需要执行安装脚本的依赖。
 allowBuilds:
   # electron：postinstall 下载 Electron 二进制
   electron: true
-  # registry-js：原生模块，需要 node-gyp 编译
+  # registry-js：原生模块，install 脚本下载官方预编译包（失败时才回退 node-gyp 编译）
   registry-js: true
   # 以下为 vue-cli 前端工具链依赖
   "@parcel/watcher": true
