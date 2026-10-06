@@ -5,7 +5,7 @@
   "version": "v1.0.5",
   "main": "./dist/main.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development electron .",
+    "dev": "cross-env NODE_ENV=development node .electron_build/build.js && cross-env NODE_ENV=development electron .",
     "build": "cross-env NODE_ENV=development node .electron_build/build.js",
     "release:linux": "cross-env NODE_ENV=production node .electron_build/build.js && electron-builder build -p never --linux",
     "release:mac": "cross-env NODE_ENV=production node .electron_build/build.js && env -u CC -u CXX -u LDFLAGS -u CPPFLAGS electron-builder build -p never --mac",

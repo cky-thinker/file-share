@@ -27,14 +27,6 @@ export function getPageAppPath() {
     return path.join(global.__project_home, "page_app", "index.html")
 }
 
-export function getPageWebHome() {
-    return path.join(global.__project_home, "page_web")
-}
-
-export function getPageWebPath() {
-    return path.join(getPageWebHome(), "index.html")
-}
-
 export function getLogPath() {
     return path.join(global.__project_home, "log", 'main.log')
 }
@@ -46,4 +38,3 @@ console.log("__project_home: ", global.__project_home)
 console.log("__static: ", global.__static)
 console.log("preload path: ", getPreloadPath())
 console.log("page app path: ", getPageAppPath())
-console.log("page web path: ", getPageWebPath())
