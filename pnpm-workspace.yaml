@@ -5,6 +5,14 @@ packages:
   - "page_app"
   - "page_web"
 
+# 覆盖传递依赖版本。
+overrides:
+  # @electron/rebuild@3.6.1 依赖 node-gyp ^9，而 node-gyp 9.x：
+  #   1) 内置 gyp 仍 import distutils，Python 3.12+ 已移除该模块；
+  #   2) 不识别 Visual Studio 2026 (v18)。
+  # 提升到 12.1.0+ 可同时解决这两点（10.x 起不再依赖 distutils，12.1.0 起支持 VS 18）。
+  node-gyp: ^12.1.0
+
 # pnpm 10+ 默认禁止依赖执行生命周期脚本（供应链安全），且会直接报错中断安装。
 # 这里放行确实需要执行安装脚本的依赖。
 allowBuilds:

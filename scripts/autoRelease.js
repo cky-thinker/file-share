@@ -9,7 +9,7 @@ const { promisify } = require('util');
 const execAsync = promisify(exec);
 
 const packagePath = path.resolve(__dirname, '..', 'electron', 'package.json');
-const changelogDir = path.resolve(__dirname, '..', 'changelogs');
+const changelogDir = path.resolve(__dirname, '..', 'wiki', 'changelogs');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -179,7 +179,8 @@ async function main() {
     await execAsync(`git tag ${newVersion}`);
     console.log(`Git tag ${newVersion} added`);
 
-    await execAsync('git push && git push --all');
+    // git push --all 只推送分支，不含 tag，需单独推送 tag 才能触发 GitHub Actions
+    await execAsync(`git push && git push --all && git push origin ${newVersion}`);
     console.log(`Changes and tag ${newVersion} pushed to remote`);
 }
 
