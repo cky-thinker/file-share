@@ -1,5 +1,10 @@
 <template>
-  <el-space size="large" direction="vertical" alignment="center">
+  <el-space
+    class="detail-space"
+    size="large"
+    direction="vertical"
+    alignment="center"
+  >
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
@@ -378,6 +383,11 @@ export default {
 </script>
 
 <style>
+.detail-space {
+  display: flex;
+  justify-content: center;
+}
+
 .upload-box {
   display: flex;
   justify-content: center;
