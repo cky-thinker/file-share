@@ -43,10 +43,12 @@ jobs:
       # 注意：unix runner 上不能沿用 pwsh + Windows 反斜杠路径（会把 node_gyp
       # 设成 /usr/local\node_modules\node-gyp\bin\node-gyp.js 这类非法路径），
       # 这里改用 bash + npm root -g 拿到正确的正斜杠路径。
+      # npm 9+ 的 `npm config set` 会校验配置项白名单，node_gyp 不在其中，
+      # 会报 "`node_gyp` is not a valid npm option"，因此直接写入 .npmrc。
       - name: Fix node-gyp
         run: |
           npm install --global node-gyp@latest
-          npm config set node_gyp "$(npm root -g)/node-gyp/bin/node-gyp.js"
+          printf 'node_gyp=%s\n' "$(npm root -g)/node-gyp/bin/node-gyp.js" >> "$(npm config get userconfig)"
           node-gyp install
         shell: bash
       - name: Fix No module named 'distutils'
