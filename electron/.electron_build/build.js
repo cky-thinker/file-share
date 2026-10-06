@@ -7,10 +7,15 @@ const del = require('del')
 const fs = require('fs-extra')
 const webpack = require('webpack')
 const Listr = require('listr')
+const {spawn} = require('child_process')
 
 
 const mainConfig = require('./webpack.main.config')
 const renderConfig = require('./webpack.render.config')
+
+// page_app / page_web 构建产物需在 electron 构建前完成
+const pageAppDir = path.resolve(__dirname, '../../page_app')
+const pageWebDir = path.resolve(__dirname, '../../page_web')
 
 const doneLog = chalk.bgGreen.white(' DONE ') + ' '
 const errorLog = chalk.bgRed.white(' ERROR ') + ' '
@@ -43,6 +48,28 @@ async function build() {
 
     const tasks = new Listr(
         [
+            {
+                title: 'building page_app',
+                task: async () => {
+                    await runBuild(pageAppDir, 'build:desktop')
+                        .catch(err => {
+                            console.log(`\n  ${errorLog}failed to build page_app`)
+                            console.error(`\n${err}\n`)
+                            process.exit(1)
+                        })
+                }
+            },
+            {
+                title: 'building page_web',
+                task: async () => {
+                    await runBuild(pageWebDir, 'build')
+                        .catch(err => {
+                            console.log(`\n  ${errorLog}failed to build page_web`)
+                            console.error(`\n${err}\n`)
+                            process.exit(1)
+                        })
+                }
+            },
             {
                 title: 'building main process',
                 task: async () => {
@@ -86,6 +113,20 @@ async function build() {
         .catch(err => {
             process.exit(1)
         })
+}
+
+function runBuild(cwd, script) {
+    return new Promise((resolve, reject) => {
+        const child = spawn('pnpm', ['run', script], {cwd, shell: true})
+
+        child.stdout.on('data', data => process.stdout.write(data))
+        child.stderr.on('data', data => process.stderr.write(data))
+        child.on('error', reject)
+        child.on('close', code => {
+            if (code === 0) resolve()
+            else reject(new Error(`"pnpm run ${script}" failed with exit code ${code}`))
+        })
+    })
 }
 
 function pack(config) {

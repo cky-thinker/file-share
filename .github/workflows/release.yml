@@ -63,14 +63,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build page_app
-        run: pnpm --filter file-share-app run build:desktop
-        shell: bash
-
-      - name: Build page_web
-        run: pnpm --filter file-share-web run build
-        shell: bash
-
       - name: Build electron
         working-directory: ./electron
         run: |
@@ -153,14 +145,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Build page_app
-        run: pnpm --filter file-share-app run build:desktop
-        shell: bash
-
-      - name: Build page_web
-        run: pnpm --filter file-share-web run build
-        shell: bash
 
       - name: Build electron
         working-directory: ./electron
