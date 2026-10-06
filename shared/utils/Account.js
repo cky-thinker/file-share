@@ -167,7 +167,8 @@ function removeAccount(id) {
 
 // 将通配符规则编译为正则，作为路径前缀匹配
 function compileRule(pattern) {
-    let normalized = (pattern || '').replace(/\\/g, '/').trim()
+    // 统一分隔符，去除首尾空白及末尾路径分隔符
+    let normalized = (pattern || '').replace(/\\/g, '/').trim().replace(/\/+$/, '')
     if (!normalized) {
         return null
     }
@@ -177,8 +178,16 @@ function compileRule(pattern) {
     return new RegExp('^' + escaped, 'i')
 }
 
+// 拆分规则，支持英文逗号、中文逗号及换行分隔
+function splitRules(rulesStr) {
+    return (rulesStr || '')
+        .split(/[,\n，]/)
+        .map(r => r.trim())
+        .filter(Boolean)
+}
+
 /**
- * 判断路径是否命中规则（多条规则以 , 分隔，支持通配符 *）
+ * 判断路径是否命中规则（多条规则以 , 或换行分隔，支持通配符 *）
  * @param {string} filePath
  * @param {string} rulesStr
  */
@@ -187,8 +196,7 @@ function matchRules(filePath, rulesStr) {
         return false
     }
     let normalizedPath = (filePath || '').replace(/\\/g, '/')
-    let rules = rulesStr.split(',').map(r => r.trim()).filter(Boolean)
-    return rules.some(rule => {
+    return splitRules(rulesStr).some(rule => {
         let regex = compileRule(rule)
         return regex ? regex.test(normalizedPath) : false
     })

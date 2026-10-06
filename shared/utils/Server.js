@@ -95,6 +95,24 @@ function getToken(permanent = true, timeoutSec = 3600) {
     return signJwt({permissions: adminPermissions()}, permanent ? 0 : timeoutSec)
 }
 
+/**
+ * 解析 token 载荷对应的最新权限：
+ * 账号 token 以账号当前权限为准（保证修改权限/访问规则后立即生效），
+ * 管理员 token 使用 token 内权限。
+ * @param {object|null} payload
+ * @returns {object|null} 权限对象；账号不存在时返回 null
+ */
+function resolvePermissions(payload) {
+    if (!payload) {
+        return null
+    }
+    if (payload.username) {
+        let account = Account.getAccountByUsername(payload.username)
+        return account ? account.permissions : null
+    }
+    return payload.permissions || null
+}
+
 const StatusStart = "start"
 const StatusStop = "stop"
 
@@ -124,9 +142,9 @@ function authFilter(req, res, next) {
     }
     // validate
     let token = req.get('Authorization')
-    let payload = verifyJwt(token)
-    if (payload && payload.permissions) {
-        req.permissions = payload.permissions
+    let permissions = resolvePermissions(verifyJwt(token))
+    if (permissions) {
+        req.permissions = permissions
         next()
     } else {
         res.json({ code: 401, message: '认证失败' })
@@ -231,13 +249,8 @@ const initApp = () => {
         console.log('/api/download token', token)
         let permissions
         if (Setting.getAuthEnable()) {
-            let payload = verifyJwt(token)
-            if (!payload || !payload.permissions) {
-                res.sendStatus(403)
-                return;
-            }
-            permissions = payload.permissions
-            if (!permissions.download) {
+            permissions = resolvePermissions(verifyJwt(token))
+            if (!permissions || !permissions.download) {
                 res.sendStatus(403)
                 return;
             }

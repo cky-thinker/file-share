@@ -103,9 +103,6 @@
               <el-button size="small" @click="openEditAccount(row)"
                 >编辑</el-button
               >
-              <el-button size="small" @click="openPasswordDialog(row)"
-                >改密</el-button
-              >
               <el-popconfirm title="确定删除该账号？" @confirm="deleteAccount(row)">
                 <template #reference>
                   <el-button size="small" type="danger">删除</el-button>
@@ -204,24 +201,6 @@
         <el-button type="primary" @click="submitAccount">确定</el-button>
       </template>
     </el-dialog>
-
-    <!-- 修改密码弹窗 -->
-    <el-dialog
-      v-model="passwordDialogVisible"
-      title="修改密码"
-      width="380px"
-      append-to-body
-    >
-      <el-form :model="passwordForm" label-width="80px">
-        <el-form-item label="新密码">
-          <el-input v-model="passwordForm.password" show-password></el-input>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="passwordDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitPassword">确定</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -254,8 +233,6 @@ export default {
       },
       accountDialogVisible: false,
       accountForm: this.emptyAccountForm(),
-      passwordDialogVisible: false,
-      passwordForm: { id: "", password: "" },
     };
   },
   computed: {
@@ -339,21 +316,6 @@ export default {
         })
         .catch((e) => {
           errorMessage((e && e.message) || "操作失败");
-        });
-    },
-    openPasswordDialog(row) {
-      this.passwordForm = { id: row.id, password: "" };
-      this.passwordDialogVisible = true;
-    },
-    submitPassword() {
-      api
-        .updateAccountPassword(this.passwordForm.id, this.passwordForm.password)
-        .then(() => {
-          successMessage("修改成功");
-          this.passwordDialogVisible = false;
-        })
-        .catch((e) => {
-          errorMessage((e && e.message) || "修改失败");
         });
     },
     deleteAccount(row) {
