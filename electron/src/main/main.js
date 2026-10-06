@@ -1,7 +1,7 @@
 import '../common/globalSetting'
 import setupExceptionHandler, {initExceptionLogger} from "../common/exceptionHandler";
 import log from 'electron-log'
-import {getLogLevel, getLogPath, getPageAppPath, getPreloadPath, isDev} from "../common/globalSetting";
+import {getLogLevel, getLogPath, getPageAppDevUrl, getPageAppPath, getPreloadPath, isDev} from "../common/globalSetting";
 
 const {app, BrowserWindow, Menu, ipcMain} = require('electron')
 const path = require('node:path')
@@ -42,7 +42,11 @@ const createWindow = () => {
         }
     })
 
-    win.loadFile(getPageAppPath()).then(() => {
+    const loadPageApp = isDev()
+        ? win.loadURL(getPageAppDevUrl())
+        : win.loadFile(getPageAppPath())
+
+    loadPageApp.then(() => {
         console.log("load success!")
         if (isDev()) {
             win.webContents.openDevTools();

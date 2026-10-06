@@ -27,6 +27,11 @@ export function getPageAppPath() {
     return path.join(global.__project_home, "page_app", "index.html")
 }
 
+// page_app 开发服务器地址（见 page_app/vue.config.js 的 devServer.port）
+export function getPageAppDevUrl() {
+    return 'http://localhost:8001'
+}
+
 export function getLogPath() {
     return path.join(global.__project_home, "log", 'main.log')
 }

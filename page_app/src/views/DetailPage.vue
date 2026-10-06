@@ -1,5 +1,5 @@
 <template>
-  <el-space size="large" direction="vertical">
+  <el-space size="large" direction="vertical" alignment="center">
     <el-card class="box-card">
       <template #header>
         <div class="card-header">

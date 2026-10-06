@@ -21,6 +21,7 @@ const doneLog = chalk.bgGreen.white(' DONE ') + ' '
 const errorLog = chalk.bgRed.white(' ERROR ') + ' '
 const okayLog = chalk.bgBlue.white(' OKAY ') + ' '
 const isCI = process.env.CI || false
+const isDev = process.env.NODE_ENV === 'development'
 
 console.log('process.env.NODE_ENV', process.env.NODE_ENV)
 
@@ -48,28 +49,33 @@ async function build() {
 
     const tasks = new Listr(
         [
-            {
-                title: 'building page_app',
-                task: async () => {
-                    await runBuild(pageAppDir, 'build:desktop')
-                        .catch(err => {
-                            console.log(`\n  ${errorLog}failed to build page_app`)
-                            console.error(`\n${err}\n`)
-                            process.exit(1)
-                        })
+            // 开发环境启动 page_app 开发服务器，跳过前端构建
+            ...(isDev ? [
+                
+            ] : [
+                {
+                    title: 'building page_app',
+                    task: async () => {
+                        await runBuild(pageAppDir, 'build:desktop')
+                            .catch(err => {
+                                console.log(`\n  ${errorLog}failed to build page_app`)
+                                console.error(`\n${err}\n`)
+                                process.exit(1)
+                            })
+                    }
+                },
+                {
+                    title: 'building page_web',
+                    task: async () => {
+                        await runBuild(pageWebDir, 'build')
+                            .catch(err => {
+                                console.log(`\n  ${errorLog}failed to build page_web`)
+                                console.error(`\n${err}\n`)
+                                process.exit(1)
+                            })
+                    }
                 }
-            },
-            {
-                title: 'building page_web',
-                task: async () => {
-                    await runBuild(pageWebDir, 'build')
-                        .catch(err => {
-                            console.log(`\n  ${errorLog}failed to build page_web`)
-                            console.error(`\n${err}\n`)
-                            process.exit(1)
-                        })
-                }
-            },
+            ]),
             {
                 title: 'building main process',
                 task: async () => {
