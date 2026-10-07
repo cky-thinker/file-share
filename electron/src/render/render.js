@@ -19,9 +19,6 @@ PlatformAdapter.initDatabaseAdapter();
 
 // 配置更新
 const updateSetting = (setting) => {
-  let updateUploadPath = Setting.updateUploadPath(
-    setting[Setting.uploadPathKey],
-  );
   let updatePort = Setting.updatePort(setting[Setting.portKey]).then(
     (result) => {
       if (result.message === "ValueNotChange") {
@@ -33,17 +30,10 @@ const updateSetting = (setting) => {
       Server.startServer();
     },
   );
-  let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable]);
-  let tusEnable = Setting.updateTusEnable(setting[Setting.tusEnableKey]);
-  let chunkSize = Setting.updateChunkSize(setting[Setting.chunkSizeKey]);
-  let language = Setting.updateLanguage(setting[Setting.languageKey]);
+  let updateSetting = Setting.updateSetting(setting);
   return Promise.all([
-    updateUploadPath,
     updatePort,
-    authEnable,
-    tusEnable,
-    chunkSize,
-    language,
+    updateSetting
   ]).catch((e) => {
     console.log(e);
     throw e;
