@@ -54,7 +54,7 @@
             &nbsp;{{ $t("setting.addAccount") }}
           </el-button>
         </div>
-        <el-table :data="accounts" size="small" border class="account-table">
+        <el-table :data="accounts" size="small" class="account-table">
           <el-table-column
             prop="username"
             :label="$t('setting.username')"
@@ -399,6 +399,7 @@ export default {
   align-items: center;
   max-width: 720px;
   margin: 8px 0 12px;
+  padding: 0 20px;
 }
 
 .account-title {
@@ -406,15 +407,16 @@ export default {
 }
 
 .account-table {
-  max-width: 720px;
+  max-width: 100%;
+  padding: 0 16px;
 }
 
 .link-list {
-  max-width: 520px;
+  max-width: 100%;
 }
 
 .help-page {
-  max-width: 520px;
+  max-width: 100%;
 }
 
 .app-info {
