@@ -3,13 +3,24 @@ const { ipcRenderer } = require('electron');
 const { Database } = require('@file-share/shared-utils');
 const { machineId } = require('node-machine-id')
 
-let map = {}
+// 持久化存储（基于 localStorage，跨会话保留），JSON 序列化以保留原始数据类型
 let dbStorage = {
     setItem: function (key, value) {
-        map[key] = value
+        localStorage.setItem(key, JSON.stringify(value))
     },
     getItem: function (key) {
-        return map[key]
+        const value = localStorage.getItem(key)
+        if (value === null || value === undefined) {
+            return null
+        }
+        try {
+            return JSON.parse(value)
+        } catch (e) {
+            return value
+        }
+    },
+    removeItem: function (key) {
+        localStorage.removeItem(key)
     }
 }
 
