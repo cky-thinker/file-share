@@ -30,7 +30,7 @@ const createWindow = () => {
     console.log("PreloadPath", getPreloadPath())
     const win = new BrowserWindow({
         width: 1200,
-        height: 600,
+        height: 800,
         title: "file-share-desktop",
         icon: path.join(__static, 'icon.png'),
         webPreferences: {

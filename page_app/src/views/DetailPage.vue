@@ -3,25 +3,25 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <el-row class="row-bg" justify="space-between">
-            <el-col :span="6">{{ $t("detail.sharing") }}</el-col>
-            <el-col :span="6">
+          <div class="header-flex">
+            <div>{{ $t("detail.sharing") }}</div>
+            <div>
               <el-button type="danger" @click="stopServer" plain
                 >{{ $t("detail.stopShare") }}</el-button
               >
-            </el-col>
-          </el-row>
+            </div>
+          </div>
         </div>
       </template>
-      <el-row class="row-bg">
-        <el-col :span="12" class="share-url">
+      <div class="share-flex">
+        <div class="share-url">
           <el-tooltip effect="light" placement="top" :content="settingForm.url">
             <span class="url-text"
               >{{ $t("detail.shareLink") }}{{ settingForm.url }}</span
             >
           </el-tooltip>
-        </el-col>
-        <el-col :span="4">
+        </div>
+        <div class="share-action">
           <el-popover placement="left" :width="125" trigger="hover">
             <template #reference>
               <el-button
@@ -37,8 +37,8 @@
             </template>
             <qrcode-vue :value="settingForm.url"></qrcode-vue>
           </el-popover>
-        </el-col>
-        <el-col :span="4">
+        </div>
+        <div class="share-action">
           <el-tooltip
             effect="dark"
             :content="$t('detail.switchIpProtocol')"
@@ -56,8 +56,8 @@
               }}{{ ipFamily === "ipv6" ? "ipv4" : "ipv6" }}
             </el-button>
           </el-tooltip>
-        </el-col>
-        <el-col v-if="netInterfaceNames.length > 1" :span="4">
+        </div>
+        <div class="share-action">
           <el-tooltip
             effect="dark"
             :content="$t('detail.switchNetInterface')"
@@ -66,6 +66,7 @@
             <el-button
               type="default"
               :title="$t('detail.switchNetInterface')"
+              :disabled="netInterfaceNames.length <= 1"
               @click="changeNetInterface()"
             >
               <el-icon>
@@ -74,8 +75,8 @@
               &nbsp;{{ $t("detail.switchNetInterface") }}
             </el-button>
           </el-tooltip>
-        </el-col>
-      </el-row>
+        </div>
+      </div>
     </el-card>
 
     <el-card class="box-card">
@@ -100,9 +101,9 @@
         </el-dialog>
 
         <div class="card-header">
-          <el-row class="row-bg">
-            <el-col :span="12">{{ $t("detail.shareList") }}</el-col>
-            <el-col :span="4">
+          <div class="list-header-flex">
+            <div class="list-title">{{ $t("detail.shareList") }}</div>
+            <div class="list-action">
               <el-button
                 @click="dialogFormVisible = true"
                 type="default"
@@ -113,8 +114,8 @@
                 </el-icon>
                 &nbsp;{{ $t("detail.shareTextBtn") }}
               </el-button>
-            </el-col>
-            <el-col :span="4">
+            </div>
+            <div class="list-action">
               <el-popconfirm
                 @confirm="removeFileAll()"
                 :title="$t('detail.clearListConfirm')"
@@ -126,9 +127,8 @@
                   </el-button>
                 </template>
               </el-popconfirm>
-            </el-col>
-            <el-col :span="4"> </el-col>
-          </el-row>
+            </div>
+          </div>
         </div>
       </template>
 
@@ -407,8 +407,40 @@ export default {
 </script>
 
 <style>
+.header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.share-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-action {
+  flex-shrink: 0;
+}
+
 .share-url {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
+}
+
+.list-header-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.list-title {
+  flex: 1;
+}
+
+.list-action {
+  flex-shrink: 0;
 }
 
 .url-text {
