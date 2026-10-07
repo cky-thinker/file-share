@@ -24,7 +24,7 @@ export default {
     uploadPath: "上传路径",
     port: "服务端口",
     language: "语言",
-    authEnable: "密码认证",
+    authEnable: "开启认证",
     accountManage: "账号管理",
     addAccount: "添加账号",
     editAccount: "编辑账号",
