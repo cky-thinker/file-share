@@ -29,7 +29,7 @@ const createWindow = () => {
     console.log("PageAppPath", getPageAppPath())
     console.log("PreloadPath", getPreloadPath())
     const win = new BrowserWindow({
-        width: 800,
+        width: 1200,
         height: 600,
         title: "file-share-desktop",
         icon: path.join(__static, 'icon.png'),
