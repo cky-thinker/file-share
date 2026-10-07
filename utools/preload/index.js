@@ -48,16 +48,6 @@ utools.onPluginOut(() => {
 utools.onPluginReady(() => {
   console.log("插件装配完成，已准备好");
   Setting.getSetting(); // 初始化配置
-
-  // 初始化IP相关配置
-  const savedIpFamily = IpUtil.getIpFamily();
-  const savedNetInterface = IpUtil.getNetInterface();
-  const ipAddress = IpUtil.getIp();
-  console.log("加载保存的IP配置:", {
-    ipFamily: savedIpFamily,
-    netInterface: savedNetInterface,
-    ipAddress: ipAddress,
-  });
 });
 
 // 配置更新

@@ -17,27 +17,28 @@ const {
 } = require("@file-share/shared-utils");
 PlatformAdapter.initDatabaseAdapter();
 
+// 服务自启
+if (Setting.getAutoStart() && Server.getServerStatus() === Server.StatusStop) {
+  console.log("服务自启");
+  Server.startServer();
+}
+
 // 配置更新
 const updateSetting = (setting) => {
-  let updatePort = Setting.updatePort(setting[Setting.portKey]).then(
-    (result) => {
-      if (result.message === "ValueNotChange") {
-        console.log("端口未变更");
-        return;
+  let old = Setting.getSetting();
+  return Setting.updateSetting(setting)
+    .then((msg) => {
+      if (old.port !== setting.port) {
+        console.log("重启服务", old, setting);
+        Server.stopServer();
+        Server.startServer();
       }
-      // 端口更新成功后重启服务
-      Server.stopServer();
-      Server.startServer();
-    },
-  );
-  let updateSetting = Setting.updateSetting(setting);
-  return Promise.all([
-    updatePort,
-    updateSetting
-  ]).catch((e) => {
-    console.log(e);
-    throw e;
-  });
+      return msg;
+    })
+    .catch((e) => {
+      console.log(e);
+      throw e;
+    });
 };
 
 const openFile = (filename) => {

@@ -10,6 +10,17 @@ module.exports = defineConfig({
     productionSourceMap: process.env.NODE_ENV === 'production' ? false : true,
     devServer: {
         port: port,
+        client: {
+            overlay: {
+                // ResizeObserver 的循环通知告警是浏览器的无害提示，屏蔽掉避免遮挡页面
+                runtimeErrors: (error) => {
+                    if (error && error.message === 'ResizeObserver loop completed with undelivered notifications.') {
+                        return false;
+                    }
+                    return true;
+                },
+            },
+        },
         proxy: {
             '/sockjs-node/info': {
                 target: 'http://127.0.0.1:8001',

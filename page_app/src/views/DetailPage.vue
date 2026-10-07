@@ -1,10 +1,5 @@
 <template>
-  <el-space
-    class="detail-space"
-    size="large"
-    direction="vertical"
-    alignment="center"
-  >
+  <div class="detail-space">
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
@@ -239,7 +234,7 @@
       >
       </el-alert>
     </el-card>
-  </el-space>
+  </div>
 </template>
 
 <script>
@@ -424,8 +419,11 @@ export default {
 }
 
 .detail-space {
+  width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .upload-box {
@@ -456,7 +454,7 @@ export default {
 }
 
 .box-card {
-  width: 700px;
+  width: 90%;
 }
 
 .el-popover.el-popper {
