@@ -4,7 +4,7 @@
       <div class="text-center mb-8">
         <div class="overlay">
           <h1>File Share</h1>
-          <h3>跨平台、高速的文件传输工具</h3>
+          <h3>{{ $t("login.slogan") }}</h3>
         </div>
       </div>
       
@@ -18,7 +18,7 @@
             <input
               v-model="loginForm.username"
               type="text"
-              placeholder="请输入用户名"
+              :placeholder="$t('login.usernamePlaceholder')"
               class="custom-input"
               :class="{ 'error': usernameError }"
               @keyup.enter="handleLogin"
@@ -38,7 +38,7 @@
             <input
               v-model="loginForm.password"
               type="password"
-              placeholder="请输入密码"
+              :placeholder="$t('login.passwordPlaceholder')"
               class="custom-input"
               :class="{ 'error': passwordError }"
               @keyup.enter="handleLogin"
@@ -76,7 +76,7 @@
               <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
             </circle>
           </svg>
-          <span>{{ loading ? '登录中...' : '登录' }}</span>
+          <span>{{ loading ? $t("login.loggingIn") : $t("login.login") }}</span>
         </button>
       </form>
     </div>
@@ -87,6 +87,7 @@
 import { login } from '@/api/UserApi'
 import { setToken } from '@/utils/auth'
 import { ElMessage } from 'element-plus'
+import { t } from '@/i18n'
 
 export default {
   name: 'LoginPage',
@@ -106,11 +107,11 @@ export default {
     handleLogin() {
       // 表单验证
       if (!this.loginForm.username.trim()) {
-        this.usernameError = '请输入用户名'
+        this.usernameError = t('login.usernameRequired')
         return
       }
       if (!this.loginForm.password.trim()) {
-        this.passwordError = '请输入密码'
+        this.passwordError = t('login.passwordRequired')
         return
       }
 
@@ -121,7 +122,7 @@ export default {
       login(this.loginForm)
         .then((res) => {
           ElMessage({
-            message: '登录成功',
+            message: t('login.loginSuccess'),
             type: 'success'
           })
           console.log("res", res)
@@ -131,9 +132,9 @@ export default {
         })
         .catch((error) => {
           console.error('登录失败:', error)
-          this.passwordError = '登录失败，请检查用户名和密码'
+          this.passwordError = t('login.loginFail')
           ElMessage({
-            message: '登录失败，请检查用户名和密码',
+            message: t('login.loginFail'),
             type: 'error'
           })
         })

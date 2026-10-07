@@ -103,21 +103,21 @@ async function summarizeChanges({ version, lastTag, commits, stat }) {
     }
 
     const prompt = [
-        `请根据以下信息，为版本 ${version} 撰写更新日志。`,
+        `Please write a changelog for version ${version} based on the following information.`,
         '',
-        `上一个版本：${lastTag || '无（首次发布）'}`,
+        `Previous version: ${lastTag || 'none (first release)'}`,
         '',
-        '提交记录：',
-        commits || '（无提交记录）',
+        'Commits:',
+        commits || '(no commits)',
         '',
-        '文件变更统计：',
-        stat || '（无文件变更）',
+        'File change statistics:',
+        stat || '(no file changes)',
         '',
-        '要求：',
-        `1. 使用中文 Markdown 输出，第一行为标题 "# ${version}"。`,
-        '2. 按类型分组（如 新增 / 修复 / 优化 / 文档 / 其他），仅保留有内容的分组。',
-        '3. 合并同类提交，剔除无意义提交（如 "代码调整"），语言简洁、面向用户。',
-        '4. 不要输出任何额外说明、前言或代码块标记。'
+        'Requirements:',
+        `1. Output in English Markdown, with the first line as the title "# ${version}".`,
+        '2. Group by type (e.g. Added / Fixed / Improved / Docs / Other), keeping only groups that have content.',
+        '3. Merge similar commits, drop meaningless commits (e.g. "code tweaks"), keep it concise and user-facing.',
+        '4. Do not output any extra explanation, preface, or code block markers.'
     ].join('\n');
 
     const data = await requestJson(`${llmConfig.baseUrl}/chat/completions`, {
@@ -126,7 +126,7 @@ async function summarizeChanges({ version, lastTag, commits, stat }) {
             model: llmConfig.model,
             temperature: 0.2,
             messages: [
-                { role: 'system', content: '你是一名专业的软件发布工程师，擅长根据 git 提交记录撰写简洁、准确的中文版本更新日志。' },
+                { role: 'system', content: 'You are a professional software release engineer, skilled at writing concise and accurate English release changelogs based on git commit records.' },
                 { role: 'user', content: prompt }
             ]
         }

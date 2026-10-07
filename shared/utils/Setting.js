@@ -14,6 +14,7 @@ const chunkSizeKey = 'chunkSize' // 上传文件的分片大小
 const AutoStart = 'autoStart' // 自动启动
 const ipFamilyKey = 'ipFamily' // IP协议族
 const netInterfaceNameKey = 'netInterfaceName' // 网络接口名称
+const languageKey = 'language' // 界面语言（zh / en）
 
 let curIp = null;
 
@@ -215,6 +216,32 @@ function setNetInterfaceName(value) {
     AppDatabase.setStorageItem(netInterfaceNameKey, value);
 }
 
+// 界面语言：未设置时返回 null，由前端根据系统语言决定默认值
+function getLanguage() {
+    return AppDatabase.getStorageItem(languageKey, null)
+}
+
+/**
+ * 更新界面语言
+ * @param value 'zh' | 'en'，为空表示不修改
+ * @returns {Promise<{ success:boolean, message:string }>}
+ */
+function updateLanguage(value) {
+    return new Promise((resolve, reject) => {
+        if (value == null || value === '') {
+            return resolve({ success: true, message: 'ValueNotChange' })
+        }
+        if (value !== 'zh' && value !== 'en') {
+            return reject({ success: false, message: '不支持的语言' })
+        }
+        if (getLanguage() === value) {
+            return resolve({ success: true, message: 'ValueNotChange' })
+        }
+        AppDatabase.setStorageItem(languageKey, value)
+        resolve({ success: true, message: '修改成功' })
+    })
+}
+
 function getSetting() {
     return {
         uploadPath: getUploadPath(),
@@ -225,6 +252,7 @@ function getSetting() {
         tusEnable: getTusEnable(),
         chunkSize: getChunkSize(),
         autoStart: getAutoStart(),
+        language: getLanguage(),
     }
 }
 
@@ -235,7 +263,8 @@ function updateSetting(setting) {
     let tusEnableR = updateTusEnable(setting[tusEnableKey])
     let chunkSizeR = updateChunkSize(setting[chunkSizeKey])
     let autoStartR = updateAutoStart(setting[AutoStart])
-    return Promise.all([updateUploadPathR, updatePortR, authEnableR, tusEnableR, chunkSizeR, autoStartR])
+    let languageR = updateLanguage(setting[languageKey])
+    return Promise.all([updateUploadPathR, updatePortR, authEnableR, tusEnableR, chunkSizeR, autoStartR, languageR])
 }
 
 exports.uploadPathKey = uploadPathKey
@@ -246,6 +275,7 @@ exports.chunkSizeKey = chunkSizeKey
 exports.AutoStart = AutoStart
 exports.ipFamilyKey = ipFamilyKey
 exports.netInterfaceNameKey = netInterfaceNameKey
+exports.languageKey = languageKey
 exports.getUploadPath = getUploadPath
 exports.updateUploadPath = updateUploadPath
 exports.getPort = getPort
@@ -267,3 +297,5 @@ exports.getIpFamily = getIpFamily
 exports.setIpFamily = setIpFamily
 exports.getNetInterfaceName = getNetInterfaceName
 exports.setNetInterfaceName = setNetInterfaceName
+exports.getLanguage = getLanguage
+exports.updateLanguage = updateLanguage

@@ -5,12 +5,12 @@
 </template>
 
 <script setup>
-import {computed, ref} from 'vue'
+import {computed} from 'vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import en from 'element-plus/dist/locale/en.mjs'
+import {i18nState} from '@/i18n'
 
-const language = ref('zh-cn')
-const locale = computed(() => (language.value === 'zh-cn' ? zhCn : en))
+const locale = computed(() => (i18nState.locale === 'zh' ? zhCn : en))
 </script>
 
 

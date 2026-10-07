@@ -1,32 +1,43 @@
 <template>
-  <div class="body">
-    <div class="container">
-      <el-button
-        class="setting-btn"
-        @click="onHandlerSetting()"
-        type="default"
-        title="设置"
-      >
-        <el-icon>
-          <SettingIcon />
-        </el-icon>
-        设置
-      </el-button>
-      <el-dialog v-model="settingFormVisible" title="设置" style="width: 70%">
-        <setting></setting>
-        <template #footer>
-          <el-button type="primary" @click="closeSettingsForm">关闭</el-button>
-        </template>
-      </el-dialog>
-      <router-view></router-view>
+  <el-config-provider :locale="elementLocale">
+    <div class="body">
+      <div class="container">
+        <el-button
+          class="setting-btn"
+          @click="onHandlerSetting()"
+          type="default"
+          :title="$t('app.setting')"
+        >
+          <el-icon>
+            <SettingIcon />
+          </el-icon>
+          {{ $t("app.setting") }}
+        </el-button>
+        <el-dialog
+          v-model="settingFormVisible"
+          :title="$t('app.setting')"
+          style="width: 70%"
+        >
+          <setting></setting>
+          <template #footer>
+            <el-button type="primary" @click="closeSettingsForm">{{
+              $t("common.close")
+            }}</el-button>
+          </template>
+        </el-dialog>
+        <router-view></router-view>
+      </div>
     </div>
-  </div>
+  </el-config-provider>
 </template>
 
 <script>
 import { Setting as SettingIcon } from "@element-plus/icons-vue";
 import Setting from "@/components/Setting.vue";
 import { store, initStore } from "@/store";
+import { i18nState, getLocale } from "@/i18n";
+import zhCn from "element-plus/dist/locale/zh-cn.mjs";
+import en from "element-plus/dist/locale/en.mjs";
 
 let api = window.api;
 
@@ -43,11 +54,21 @@ export default {
       timer: null,
     };
   },
+  computed: {
+    // Element Plus 组件内置文案随语言切换
+    elementLocale() {
+      return i18nState.locale === "zh" ? zhCn : en;
+    },
+  },
   methods: {
     onHandlerSetting: function () {
       console.log("--onHandlerSetting--");
       // 每次打开时从 api 重新加载配置
       store.settingForm = api.getSetting();
+      // 未保存过语言时，回显当前生效的语言
+      if (!store.settingForm.language) {
+        store.settingForm.language = getLocale();
+      }
       this.settingFormVisible = true;
     },
     closeSettingsForm: function () {

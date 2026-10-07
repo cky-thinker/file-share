@@ -9,10 +9,10 @@
       <template #header>
         <div class="card-header">
           <el-row class="row-bg" justify="space-between">
-            <el-col :span="6">正在分享...</el-col>
+            <el-col :span="6">{{ $t("detail.sharing") }}</el-col>
             <el-col :span="6">
               <el-button type="danger" @click="stopServer" plain
-                >取消分享</el-button
+                >{{ $t("detail.stopShare") }}</el-button
               >
             </el-col>
           </el-row>
@@ -21,7 +21,9 @@
       <el-row class="row-bg">
         <el-col :span="12" class="share-url">
           <el-tooltip effect="light" placement="top" :content="settingForm.url">
-            <span class="url-text">分享链接：{{ settingForm.url }}</span>
+            <span class="url-text"
+              >{{ $t("detail.shareLink") }}{{ settingForm.url }}</span
+            >
           </el-tooltip>
         </el-col>
         <el-col :span="4">
@@ -29,43 +31,52 @@
             <template #reference>
               <el-button
                 type="default"
-                title="复制链接到剪切板"
+                :title="$t('detail.copyLinkTip')"
                 @click="handleClipboard(settingForm.url, $event)"
               >
                 <el-icon>
                   <Link />
                 </el-icon>
-                &nbsp;复制链接
+                &nbsp;{{ $t("detail.copyLink") }}
               </el-button>
             </template>
             <qrcode-vue :value="settingForm.url"></qrcode-vue>
           </el-popover>
         </el-col>
         <el-col :span="4">
-          <el-tooltip effect="dark" content="切换ip协议" placement="top-start">
+          <el-tooltip
+            effect="dark"
+            :content="$t('detail.switchIpProtocol')"
+            placement="top-start"
+          >
             <el-button
               type="default"
-              title="切换ip协议"
+              :title="$t('detail.switchIpProtocol')"
               @click="changeIpFamily()"
             >
               <el-icon>
                 <Sort />
               </el-icon>
-              &nbsp;切换{{ ipFamily === "ipv6" ? "ipv4" : "ipv6" }}
+              &nbsp;{{ $t("detail.switchTo")
+              }}{{ ipFamily === "ipv6" ? "ipv4" : "ipv6" }}
             </el-button>
           </el-tooltip>
         </el-col>
         <el-col v-if="netInterfaceNames.length > 1" :span="4">
-          <el-tooltip effect="dark" content="切换网卡" placement="top-start">
+          <el-tooltip
+            effect="dark"
+            :content="$t('detail.switchNetInterface')"
+            placement="top-start"
+          >
             <el-button
               type="default"
-              title="切换网卡"
+              :title="$t('detail.switchNetInterface')"
               @click="changeNetInterface()"
             >
               <el-icon>
                 <Sort />
               </el-icon>
-              &nbsp;切换网卡
+              &nbsp;{{ $t("detail.switchNetInterface") }}
             </el-button>
           </el-tooltip>
         </el-col>
@@ -74,44 +85,49 @@
 
     <el-card class="box-card">
       <template #header>
-        <el-dialog v-model="dialogFormVisible" title="分享一段文本">
+        <el-dialog
+          v-model="dialogFormVisible"
+          :title="$t('detail.shareText')"
+        >
           <el-input
             type="textarea"
             :rows="2"
             :autosize="{ minRows: 2, maxRows: 4 }"
-            placeholder="请输入内容"
+            :placeholder="$t('detail.inputContent')"
             v-model="form.text"
           >
           </el-input>
           <template #footer>
-            <el-button type="primary" @click="formSubmit">提交</el-button>
+            <el-button type="primary" @click="formSubmit">{{
+              $t("detail.submit")
+            }}</el-button>
           </template>
         </el-dialog>
 
         <div class="card-header">
           <el-row class="row-bg">
-            <el-col :span="12">分享列表</el-col>
+            <el-col :span="12">{{ $t("detail.shareList") }}</el-col>
             <el-col :span="4">
               <el-button
                 @click="dialogFormVisible = true"
                 type="default"
-                title="分享一段文本"
+                :title="$t('detail.shareText')"
               >
                 <el-icon>
                   <Message />
                 </el-icon>
-                &nbsp;分享文本
+                &nbsp;{{ $t("detail.shareTextBtn") }}
               </el-button>
             </el-col>
             <el-col :span="4">
               <el-popconfirm
                 @confirm="removeFileAll()"
-                title="确定要清空所有文件吗？"
+                :title="$t('detail.clearListConfirm')"
               >
                 <template #reference>
-                  <el-button type="default" title="清空列表">
+                  <el-button type="default" :title="$t('detail.clearList')">
                     <el-icon><Delete /></el-icon>
-                    &nbsp;清空列表
+                    &nbsp;{{ $t("detail.clearList") }}
                   </el-button>
                 </template>
               </el-popconfirm>
@@ -132,9 +148,10 @@
           :http-request="addFiles"
         >
           <i class="el-icon-upload"></i>
-          <div class="el-upload__text">
-            拖拽<b>文件</b>或<b>文件夹</b>到此处或点击<em>选择文件</em>，进行分享~
-          </div>
+          <div
+            class="el-upload__text"
+            v-html="$t('detail.uploadDragText')"
+          ></div>
         </el-upload>
       </div>
 
@@ -142,7 +159,9 @@
         <el-row class="row-bg" justify="space-between">
           <el-col :span="5">
             <el-tooltip effect="light" placement="top">
-              <template #content>{{ `由【${file.username}】分享` }}</template>
+              <template #content>{{
+                $t("detail.sharedBy", { name: file.username })
+              }}</template>
               <span class="username">{{ file.username }}</span>
             </el-tooltip>
           </el-col>
@@ -171,7 +190,7 @@
                   "
                   type="default"
                   size="small"
-                  title="复制链接到剪切板"
+                  :title="$t('detail.copyLinkTip')"
                   @click="handleFileUrlCopy(file, $event)"
                 >
                   <el-icon><Link /></el-icon>
@@ -184,7 +203,7 @@
               v-if="['text'].includes(file.type)"
               type="default"
               size="small"
-              title="复制文本到剪切板"
+              :title="$t('detail.copyTextTip')"
               @click="handleClipboard(file.content, $event)"
             >
               <el-icon><DocumentCopy /></el-icon>
@@ -194,7 +213,7 @@
               v-if="['directory', 'file'].includes(file.type)"
               type="default"
               size="small"
-              title="打开文件所在目录"
+              :title="$t('detail.openFileDir')"
               @click="openFile(file.name, $event)"
             >
               <el-icon><FolderOpened /></el-icon>
@@ -213,7 +232,7 @@
 
       <el-alert
         v-if="files.length === 0"
-        title="无"
+        :title="$t('common.none')"
         :closable="false"
         type="info"
         center
@@ -237,6 +256,7 @@ import {
 } from "@element-plus/icons-vue";
 import { store } from "@/store";
 import { successMessage } from "@/utils/message";
+import { t } from "@/i18n";
 
 let api = window.api;
 
@@ -255,7 +275,7 @@ let copyClipboard = (text, event) => {
   });
   clipboard.on("success", () => {
     console.log("copy success", text);
-    successMessage("复制链接成功");
+    successMessage(t("detail.copyLinkSuccess"));
   });
   clipboard.onClick(event);
   clipboard.destroy();
@@ -324,7 +344,7 @@ export default {
         api.removeFile(f);
       });
       store.files = api.listFiles();
-      successMessage("已清空列表");
+      successMessage(t("detail.listCleared"));
     },
     removeFile: function (file) {
       let removeFiles = this.files.filter((f) => f.name === file.name);
@@ -334,7 +354,10 @@ export default {
     },
     openFile: function (filename) {
       api.openFile(filename, (err) => {
-        ElMessage.error({ message: `文件打开失败 "${err}"`, type: "error" });
+        ElMessage.error({
+          message: t("detail.openFileFail", { err }),
+          type: "error",
+        });
       });
     },
     handleFileUrlCopy: function (file, event) {
@@ -362,7 +385,7 @@ export default {
       store.currentInterfaceName = store.netInterfaceNames[0] || "";
       api.setNetInterface(store.currentInterfaceName);
       store.settingForm.url = api.getUrl();
-      successMessage(`切换协议为 "${store.ipFamily}"`);
+      successMessage(t("detail.switchedProtocol", { protocol: store.ipFamily }));
     },
     // 切换网卡
     changeNetInterface: function () {
@@ -380,7 +403,9 @@ export default {
         api.setNetInterface(store.currentInterfaceName);
       }
       store.settingForm.url = api.getUrl();
-      successMessage(`切换网卡为 "${store.currentInterfaceName}"`);
+      successMessage(
+        t("detail.switchedNetInterface", { name: store.currentInterfaceName })
+      );
     },
   },
 };

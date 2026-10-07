@@ -2,34 +2,43 @@
   <div class="setting-container">
     <el-tabs v-model="activeTab" tab-position="left" class="setting-tabs">
       <!-- 通用 -->
-      <el-tab-pane label="通用" name="general">
+      <el-tab-pane :label="$t('setting.general')" name="general">
         <el-form :model="settingForm" label-width="90px" class="pane-form">
-          <el-form-item label="服务自启">
+          <el-form-item :label="$t('setting.autoStart')">
             <el-switch
               v-model="settingForm.autoStart"
               @change="updateSettingsForm"
             >
             </el-switch>
           </el-form-item>
-          <el-form-item label="上传路径">
+          <el-form-item :label="$t('setting.uploadPath')">
             <el-input
               v-model="settingForm.uploadPath"
               @change="updateSettingsForm"
             ></el-input>
           </el-form-item>
-          <el-form-item label="服务端口">
+          <el-form-item :label="$t('setting.port')">
             <el-input
               v-model="settingForm.port"
               @change="updateSettingsForm"
             ></el-input>
           </el-form-item>
+          <el-form-item :label="$t('setting.language')">
+            <el-select
+              v-model="settingForm.language"
+              @change="onLanguageChange"
+            >
+              <el-option label="简体中文" value="zh"></el-option>
+              <el-option label="English" value="en"></el-option>
+            </el-select>
+          </el-form-item>
         </el-form>
       </el-tab-pane>
 
       <!-- 安全 -->
-      <el-tab-pane label="安全" name="security">
+      <el-tab-pane :label="$t('setting.security')" name="security">
         <el-form :model="settingForm" label-width="90px" class="pane-form">
-          <el-form-item label="密码认证">
+          <el-form-item :label="$t('setting.authEnable')">
             <el-switch
               v-model="settingForm.authEnable"
               @change="updateSettingsForm"
@@ -39,29 +48,35 @@
         </el-form>
 
         <div class="account-header">
-          <span class="account-title">账号管理</span>
+          <span class="account-title">{{ $t("setting.accountManage") }}</span>
           <el-button type="primary" size="small" @click="openAddAccount">
             <el-icon><Plus /></el-icon>
-            &nbsp;添加账号
+            &nbsp;{{ $t("setting.addAccount") }}
           </el-button>
         </div>
         <el-table :data="accounts" size="small" border class="account-table">
-          <el-table-column prop="username" label="用户名" width="120">
+          <el-table-column
+            prop="username"
+            :label="$t('setting.username')"
+            width="120"
+          >
           </el-table-column>
-          <el-table-column label="权限">
+          <el-table-column :label="$t('setting.permission')">
             <template #default="{ row }">
-              <el-tag v-if="row.permissions.download" size="small">下载</el-tag>
+              <el-tag v-if="row.permissions.download" size="small">{{
+                $t("setting.download")
+              }}</el-tag>
               <el-tag
                 v-if="row.permissions.uploadFile"
                 size="small"
                 type="success"
-                >上传文件</el-tag
+                >{{ $t("setting.uploadFile") }}</el-tag
               >
               <el-tag
                 v-if="row.permissions.uploadText"
                 size="small"
                 type="warning"
-                >上传文本</el-tag
+                >{{ $t("setting.uploadText") }}</el-tag
               >
               <el-tag
                 v-if="
@@ -71,41 +86,58 @@
                 "
                 size="small"
                 type="info"
-                >无</el-tag
+                >{{ $t("common.none") }}</el-tag
               >
             </template>
           </el-table-column>
-          <el-table-column label="访问范围">
+          <el-table-column :label="$t('setting.accessScope')">
             <template #default="{ row }">
               <el-tooltip
                 effect="light"
                 placement="top"
-                :content="`允许访问：${row.permissions.allowAccess || '全部'}`"
+                :content="
+                  $t('setting.allowTooltip', {
+                    value: row.permissions.allowAccess || $t('setting.all'),
+                  })
+                "
               >
-                <el-tag size="small" type="info"
-                  >允许：{{ row.permissions.allowAccess || "全部" }}</el-tag
-                >
+                <el-tag size="small" type="info">{{
+                  $t("setting.allowLabel", {
+                    value: row.permissions.allowAccess || $t("setting.all"),
+                  })
+                }}</el-tag>
               </el-tooltip>
               <el-tooltip
                 v-if="row.permissions.denyAccess"
                 effect="light"
                 placement="top"
-                :content="`禁止访问：${row.permissions.denyAccess}`"
+                :content="
+                  $t('setting.denyTooltip', {
+                    value: row.permissions.denyAccess,
+                  })
+                "
               >
-                <el-tag size="small" type="danger"
-                  >禁止：{{ row.permissions.denyAccess }}</el-tag
-                >
+                <el-tag size="small" type="danger">{{
+                  $t("setting.denyLabel", {
+                    value: row.permissions.denyAccess,
+                  })
+                }}</el-tag>
               </el-tooltip>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="200">
+          <el-table-column :label="$t('setting.operation')" width="200">
             <template #default="{ row }">
-              <el-button size="small" @click="openEditAccount(row)"
-                >编辑</el-button
+              <el-button size="small" @click="openEditAccount(row)">{{
+                $t("common.edit")
+              }}</el-button>
+              <el-popconfirm
+                :title="$t('setting.deleteConfirm')"
+                @confirm="deleteAccount(row)"
               >
-              <el-popconfirm title="确定删除该账号？" @confirm="deleteAccount(row)">
                 <template #reference>
-                  <el-button size="small" type="danger">删除</el-button>
+                  <el-button size="small" type="danger">{{
+                    $t("common.delete")
+                  }}</el-button>
                 </template>
               </el-popconfirm>
             </template>
@@ -114,35 +146,35 @@
       </el-tab-pane>
 
       <!-- 帮助 -->
-      <el-tab-pane label="帮助" name="help">
+      <el-tab-pane :label="$t('setting.help')" name="help">
         <div class="help-page">
           <div class="app-info">
             <img class="app-logo" :src="appLogo" alt="File Share" />
-            <div class="app-version">{{ version || "未知" }}</div>
+            <div class="app-version">{{ version || $t("common.unknown") }}</div>
           </div>
           <div class="link-list">
             <div class="link-item" @click="openLink(links.help)">
-              <span>使用帮助</span>
+              <span>{{ $t("setting.helpUse") }}</span>
               <el-icon><ArrowRight /></el-icon>
             </div>
             <div class="link-item" @click="openLink(links.feedback)">
-              <span>问题反馈</span>
+              <span>{{ $t("setting.feedback") }}</span>
               <el-icon><ArrowRight /></el-icon>
             </div>
             <div class="link-item" @click="openLink(links.star)">
-              <span>关注项目</span>
+              <span>{{ $t("setting.star") }}</span>
               <el-icon><ArrowRight /></el-icon>
             </div>
             <div class="link-item" @click="openLink(links.changelog)">
-              <span>更新日志</span>
+              <span>{{ $t("setting.changelog") }}</span>
               <el-icon><ArrowRight /></el-icon>
             </div>
             <div class="link-item" @click="openLink(links.source)">
-              <span>查看源码</span>
+              <span>{{ $t("setting.source") }}</span>
               <el-icon><ArrowRight /></el-icon>
             </div>
             <div class="link-item" @click="openLink(links.license)">
-              <span>查看许可</span>
+              <span>{{ $t("setting.license") }}</span>
               <el-icon><ArrowRight /></el-icon>
             </div>
           </div>
@@ -153,52 +185,58 @@
     <!-- 账号编辑弹窗 -->
     <el-dialog
       v-model="accountDialogVisible"
-      :title="accountForm.id ? '编辑账号' : '添加账号'"
+      :title="accountForm.id ? $t('setting.editAccount') : $t('setting.addAccount')"
       width="480px"
       append-to-body
     >
       <el-form :model="accountForm" label-width="90px">
-        <el-form-item label="用户名">
+        <el-form-item :label="$t('setting.username')">
           <el-input v-model="accountForm.username"></el-input>
         </el-form-item>
-        <el-form-item label="密码">
+        <el-form-item :label="$t('setting.password')">
           <el-input
             v-model="accountForm.password"
             show-password
-            :placeholder="accountForm.id ? '不修改请留空' : ''"
+            :placeholder="
+              accountForm.id ? $t('setting.passwordPlaceholderKeep') : ''
+            "
           ></el-input>
         </el-form-item>
-        <el-form-item label="权限">
-          <el-checkbox v-model="accountForm.permissions.download"
-            >下载</el-checkbox
-          >
-          <el-checkbox v-model="accountForm.permissions.uploadFile"
-            >上传文件</el-checkbox
-          >
-          <el-checkbox v-model="accountForm.permissions.uploadText"
-            >上传文本</el-checkbox
-          >
+        <el-form-item :label="$t('setting.permission')">
+          <el-checkbox v-model="accountForm.permissions.download">{{
+            $t("setting.download")
+          }}</el-checkbox>
+          <el-checkbox v-model="accountForm.permissions.uploadFile">{{
+            $t("setting.uploadFile")
+          }}</el-checkbox>
+          <el-checkbox v-model="accountForm.permissions.uploadText">{{
+            $t("setting.uploadText")
+          }}</el-checkbox>
         </el-form-item>
-        <el-form-item label="允许访问">
+        <el-form-item :label="$t('setting.allowAccess')">
           <el-input
             type="textarea"
             :rows="2"
             v-model="accountForm.permissions.allowAccess"
-            placeholder="路径前缀，多个以英文逗号分隔，支持 * 通配符；留空表示允许所有"
+            :placeholder="$t('setting.allowAccessPlaceholder')"
           ></el-input>
         </el-form-item>
-        <el-form-item label="禁止访问">
+        <el-form-item :label="$t('setting.denyAccess')">
           <el-input
             type="textarea"
             :rows="2"
             v-model="accountForm.permissions.denyAccess"
-            placeholder="路径前缀，多个以英文逗号分隔，支持 * 通配符；留空表示不限制"
+            :placeholder="$t('setting.denyAccessPlaceholder')"
           ></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="accountDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitAccount">确定</el-button>
+        <el-button @click="accountDialogVisible = false">{{
+          $t("common.cancel")
+        }}</el-button>
+        <el-button type="primary" @click="submitAccount">{{
+          $t("common.confirm")
+        }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -209,6 +247,7 @@ import { store } from "@/store";
 import { successMessage, errorMessage } from "@/utils/message";
 import { Plus, ArrowRight } from "@element-plus/icons-vue";
 import appLogo from "@/assets/logo.png";
+import { setLocale } from "@/i18n";
 
 let api = window.api;
 
@@ -274,13 +313,18 @@ export default {
       api
         .updateSetting(store.settingForm)
         .then(() => {
-          successMessage("更新成功");
+          successMessage(this.$t("common.updateSuccess"));
           store.settingForm = api.getSetting();
         })
         .catch(() => {
-          errorMessage("更新失败");
+          errorMessage(this.$t("common.updateFail"));
           store.settingForm = api.getSetting();
         });
+    },
+    // 切换语言：立即生效并持久化
+    onLanguageChange(value) {
+      setLocale(value);
+      this.updateSettingsForm();
     },
     openAddAccount() {
       this.accountForm = this.emptyAccountForm();
@@ -310,23 +354,25 @@ export default {
           });
       request
         .then(() => {
-          successMessage(form.id ? "修改成功" : "添加成功");
+          successMessage(
+            this.$t(form.id ? "setting.modifySuccess" : "setting.addSuccess")
+          );
           this.accountDialogVisible = false;
           this.loadAccounts();
         })
         .catch((e) => {
-          errorMessage((e && e.message) || "操作失败");
+          errorMessage((e && e.message) || this.$t("common.operationFail"));
         });
     },
     deleteAccount(row) {
       api
         .removeAccount(row.id)
         .then(() => {
-          successMessage("删除成功");
+          successMessage(this.$t("common.deleteSuccess"));
           this.loadAccounts();
         })
         .catch((e) => {
-          errorMessage((e && e.message) || "删除失败");
+          errorMessage((e && e.message) || this.$t("common.deleteFail"));
         });
     },
   },

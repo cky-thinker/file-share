@@ -1,4 +1,5 @@
 import { reactive } from "vue";
+import { getLocale, setLocale } from "@/i18n";
 
 let api = window.api;
 
@@ -46,4 +47,10 @@ export const initStore = () => {
   store.serverStatus = api.getServerStatus();
   store.files = api.listFiles();
   store.settingForm = api.getSetting();
+
+  // 语言：已保存的配置优先，未保存时使用系统语言作为默认语言
+  if (store.settingForm.language) {
+    setLocale(store.settingForm.language);
+  }
+  store.settingForm.language = getLocale();
 };

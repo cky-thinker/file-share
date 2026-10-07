@@ -36,12 +36,14 @@ const updateSetting = (setting) => {
   let authEnable = Setting.updateAuthEnable(setting[Setting.AuthEnable]);
   let tusEnable = Setting.updateTusEnable(setting[Setting.tusEnableKey]);
   let chunkSize = Setting.updateChunkSize(setting[Setting.chunkSizeKey]);
+  let language = Setting.updateLanguage(setting[Setting.languageKey]);
   return Promise.all([
     updateUploadPath,
     updatePort,
     authEnable,
     tusEnable,
     chunkSize,
+    language,
   ]).catch((e) => {
     console.log(e);
     throw e;

@@ -6,12 +6,12 @@
           <div class="header-content">
             <div class="title-section">
               <h1>File Share</h1>
-              <h3>跨平台、高速的文件传输工具</h3>
+              <h3>{{ $t("filePage.slogan") }}</h3>
             </div>
             <div v-if="authEnable" class="user-section">
               <button @click="handleLogout" class="logout-btn">
                 <el-icon class="logout-icon"><User /></el-icon>
-                <span>退出登录</span>
+                <span>{{ $t("filePage.logout") }}</span>
               </button>
             </div>
           </div>
@@ -23,22 +23,24 @@
           <div class="clearfix">
             <el-row class="row-bg">
               <el-col :span="12">
-                <span style="margin-right: 20px">分享列表</span>
+                <span style="margin-right: 20px">{{
+                  $t("filePage.shareList")
+                }}</span>
                 <el-button v-if="permissions.download && batchDownload" @click="batchDownloadHandler">
                   <svg-icon name="批量下载"/>
-                  {{ isPC ? "批量下载" : "" }}
+                  {{ isPC ? $t("filePage.batchDownload") : "" }}
                 </el-button>
               </el-col>
               <el-col :span="6">
                 <el-button v-if="permissions.uploadFile" @click="fileFormVisible= true">
                   <svg-icon name="发送文件"/>
-                  {{ isPC ? "上传文件" : "" }}
+                  {{ isPC ? $t("filePage.uploadFile") : "" }}
                 </el-button>
               </el-col>
               <el-col :span="6">
-                <el-button v-if="permissions.uploadText" @click="showMsgForm" type="default" title="分享一段文本">
+                <el-button v-if="permissions.uploadText" @click="showMsgForm" type="default" :title="$t('filePage.shareText')">
                   <svg-icon name="发送消息"/>
-                  {{ isPC ? "上传文本" : "" }}
+                  {{ isPC ? $t("filePage.uploadText") : "" }}
                 </el-button>
               </el-col>
             </el-row>
@@ -51,7 +53,7 @@
             <el-breadcrumb class="header-breadcrumb" separator="/">
               <el-breadcrumb-item>
                 <el-link :underline="false" @click="skipPath(0)">
-                  首页
+                  {{ $t("filePage.home") }}
                 </el-link>
               </el-breadcrumb-item>
               <el-breadcrumb-item v-bind:key="idx" v-for="(p, idx) in path">
@@ -63,7 +65,7 @@
           </div>
           <div class="flex-3">
             <el-input
-              placeholder="搜索"
+              :placeholder="$t('filePage.search')"
               v-model="query">
               <template #prefix>
                 <el-icon class="el-input__icon">
@@ -111,7 +113,7 @@
                     <div class="filename">{{ scope.row.name }}</div>
                   </el-tooltip>
                   <el-tooltip v-if="!!scope.row.username" effect="light"
-                              :content="`由【${scope.row.username}】分享`"
+                              :content="$t('filePage.sharedBy', { name: scope.row.username })"
                               placement="top">
                     <el-icon class="username" size="16">
                       <User/>
@@ -140,7 +142,7 @@
         </div>
       </el-card>
       <el-dialog
-        title="分享文件"
+        :title="$t('filePage.shareFile')"
         name="file"
         class="dialog"
         v-model="fileFormVisible">
@@ -157,23 +159,23 @@
             <el-icon size="20">
               <UploadFilled/>
             </el-icon>
-            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+            <div class="el-upload__text" v-html="$t('filePage.uploadDragText')"></div>
           </el-upload>
         </div>
       </el-dialog>
       <el-dialog
-        title="分享文本"
+        :title="$t('filePage.shareTextTitle')"
         class="dialog"
         v-model="msgFormVisible">
         <el-form ref="form" :model="msgForm" label-width="80px">
-          <el-form-item label="文本内容">
+          <el-form-item :label="$t('filePage.textContent')">
             <el-input type="textarea" :rows="5" v-model="msgForm.message"></el-input>
           </el-form-item>
         </el-form>
         <template #footer>
         <span class="dialog-footer">
-          <el-button type="primary" @click="submitMsgForm">提 交</el-button>
-          <el-button @click="msgFormVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitMsgForm">{{ $t("filePage.submit") }}</el-button>
+          <el-button @click="msgFormVisible = false">{{ $t("filePage.cancel") }}</el-button>
         </span>
         </template>
       </el-dialog>
@@ -192,6 +194,7 @@ import {copyClipboard} from '@/utils/clipboard'
 import {isPicture} from "@/utils/fileUtil";
 import {DocumentCopy, Download, Search, UploadFilled, User} from '@element-plus/icons-vue'
 import {getSetting} from "@/api/SettingApi";
+import { t } from '@/i18n'
 
 export default {
   name: 'HomeView',
@@ -310,9 +313,9 @@ export default {
     handleDownload(item, event) {
       if (['directory', 'file'].includes(item.type)) {
         if ('directory' === item.type) {
-          ElMessageBox.confirm('下载文件夹时, 如果文件夹过大，可能会造成压缩超时或硬盘空间不足，是否继续?', '注意', {
-            confirmButtonText: '继续',
-            cancelButtonText: '取消',
+          ElMessageBox.confirm(t('filePage.downloadFolderConfirm'), t('filePage.note'), {
+            confirmButtonText: t('filePage.continue'),
+            cancelButtonText: t('common.cancel'),
             type: 'warning'
           }).then(() => {
             this.downloadFile(item.name)
@@ -363,14 +366,14 @@ export default {
 
     uploadSuccess(response, file, fileList) {
       console.log('---uploadSuccess---', response, file, fileList)
-      ElMessage({message: '上传成功', type: 'success'})
+      ElMessage({message: t('filePage.uploadSuccess'), type: 'success'})
       this.fileList = fileList.filter((f) => {
         return f.name !== file.name;
       })
     },
     uploadError(err, file, fileList) {
       console.log('---uploadError---', err, file, fileList)
-      ElMessage({message: '上传失败', type: 'success'})
+      ElMessage({message: t('filePage.uploadFail'), type: 'success'})
       this.fileList = fileList.filter((f) => {
         return f.name !== file.name;
       })
@@ -403,18 +406,18 @@ export default {
     submitMsgForm() {
       this.msgFormVisible = false
       uploadMsg(this.msgForm).then(() => {
-        ElMessage({message: '发送成功', type: 'success'})
+        ElMessage({message: t('filePage.sendSuccess'), type: 'success'})
         this.showFiles()
       })
     },
     handleLogout() {
-      ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      ElMessageBox.confirm(t('filePage.logoutConfirm'), t('filePage.tip'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
       }).then(() => {
         logout()
-        ElMessage({message: '已退出登录', type: 'success'})
+        ElMessage({message: t('filePage.loggedOut'), type: 'success'})
         this.$router.push('/login')
       }).catch(() => {
         // 用户取消退出

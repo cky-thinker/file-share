@@ -2,6 +2,7 @@ import { getToken, logout } from '@/utils/auth'
 import errorCode from '@/utils/errorCode'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { i18nState, t } from '@/i18n'
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 对应国际化资源文件后缀
@@ -15,6 +16,8 @@ const service = axios.create({
 })
 // request拦截器
 service.interceptors.request.use(config => {
+  // 语言随当前界面语言变化
+  config.headers['Content-Language'] = i18nState.locale === 'zh' ? 'zh_CN' : 'en_US'
   // 是否需要设置 token
   const isToken = (config.headers || {}).isToken === false
   if (getToken() && !isToken) {
@@ -72,14 +75,14 @@ service.interceptors.response.use(res => {
     console.log('err' + error)
     let { message } = error;
     if (message === "Network Error") {
-      message = "后端接口连接异常";
+      message = t('request.networkError');
     } else if (message.includes("timeout")) {
-      message = "系统接口请求超时";
+      message = t('request.timeout');
     } else if (message.includes("Request failed with status code")) {
       if (error.response.status === 404) {
-        message = "文件不存在";
+        message = t('request.notFound');
       } else {
-        message = "系统接口" + message.substr(message.length - 3) + "异常";
+        message = t('request.systemError', { code: message.substr(message.length - 3) });
       }
     }
     ElMessage({

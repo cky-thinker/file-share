@@ -1,6 +1,6 @@
 <template>
   <div class="btn-box">
-    <div class="start-btn" @click="startServer">开启服务</div>
+    <div class="start-btn" @click="startServer">{{ $t("start.startService") }}</div>
     <div class="start-btn-shadow">
       <span style="--i: 1"></span>
       <span style="--i: 2"></span>
