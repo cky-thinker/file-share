@@ -102,14 +102,11 @@ jobs:
         uses: nicennnnnnnlee/action-gitee-release@master
         if: runner.os == 'Linux'
         with:
-          gitee_action: create_release
+          gitee_action: upload_asset
           gitee_owner: ${{ secrets.gitee_owner }}
           gitee_repo: ${{ secrets.gitee_repo }}
           gitee_token: ${{ secrets.gitee_token }}
           gitee_tag_name: ${{ github.ref_name }}
-          gitee_release_name: ${{ github.ref_name }}
-          gitee_release_body: wiki/changelogs/${{ github.ref_name }}.md
-          gitee_target_commitish: master
           gitee_upload_retry_times: 3
           gitee_files: |
             electron/build/fileshare-linux-amd64.deb
@@ -127,14 +124,11 @@ jobs:
         uses: nicennnnnnnlee/action-gitee-release@master
         if: runner.os == 'macOS'
         with:
-          gitee_action: create_release
+          gitee_action: upload_asset
           gitee_owner: ${{ secrets.gitee_owner }}
           gitee_repo: ${{ secrets.gitee_repo }}
           gitee_token: ${{ secrets.gitee_token }}
           gitee_tag_name: ${{ github.ref_name }}
-          gitee_release_name: ${{ github.ref_name }}
-          gitee_release_body: wiki/changelogs/${{ github.ref_name }}.md
-          gitee_target_commitish: master
           gitee_upload_retry_times: 3
           gitee_files: |
             electron/build/fileshare-mac-arm64.dmg
@@ -211,14 +205,11 @@ jobs:
       - name: Release to gitee
         uses: nicennnnnnnlee/action-gitee-release@master
         with:
-          gitee_action: create_release
+          gitee_action: upload_asset
           gitee_owner: ${{ secrets.gitee_owner }}
           gitee_repo: ${{ secrets.gitee_repo }}
           gitee_token: ${{ secrets.gitee_token }}
           gitee_tag_name: ${{ github.ref_name }}
-          gitee_release_name: ${{ github.ref_name }}
-          gitee_release_body: wiki/changelogs/${{ github.ref_name }}.md
-          gitee_target_commitish: master
           gitee_upload_retry_times: 3
           gitee_files: |
             electron/build/fileshare-setup-win-ia32.exe
