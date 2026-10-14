@@ -98,6 +98,20 @@ jobs:
           files: |
             electron/build/fileshare-linux-amd64.deb
 
+      - name: Create gitee Release
+        uses: nicennnnnnnlee/action-gitee-release@master
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        with:
+          gitee_action: create_release
+          gitee_owner: ${{ secrets.gitee_owner }}
+          gitee_repo: ${{ secrets.gitee_repo }}
+          gitee_token: ${{ secrets.gitee_token }}
+          gitee_tag_name: ${{ github.ref_name }}
+          gitee_release_name: ${{ github.ref_name }}
+          gitee_release_body: ${{ github.ref_name }}
+          gitee_target_commitish: master
+
       - name: Release linux to gitee
         uses: nicennnnnnnlee/action-gitee-release@master
         if: runner.os == 'Linux'
@@ -119,6 +133,20 @@ jobs:
           files: |
             electron/build/fileshare-mac-arm64.dmg
             electron/build/fileshare-mac-x64.dmg
+
+      - name: Create gitee Release
+        uses: nicennnnnnnlee/action-gitee-release@master
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        with:
+          gitee_action: create_release
+          gitee_owner: ${{ secrets.gitee_owner }}
+          gitee_repo: ${{ secrets.gitee_repo }}
+          gitee_token: ${{ secrets.gitee_token }}
+          gitee_tag_name: ${{ github.ref_name }}
+          gitee_release_name: ${{ github.ref_name }}
+          gitee_release_body: ${{ github.ref_name }}
+          gitee_target_commitish: master
 
       - name: Release mac to gitee
         uses: nicennnnnnnlee/action-gitee-release@master
@@ -201,6 +229,19 @@ jobs:
           files: |
             electron/build/fileshare-setup-win-ia32.exe
             electron/build/fileshare-setup-win-x64.exe
+
+      - name: Create gitee Release 
+        uses: nicennnnnnnlee/action-gitee-release@master
+        continue-on-error: true
+        with:
+          gitee_action: create_release
+          gitee_owner: ${{ secrets.gitee_owner }}
+          gitee_repo: ${{ secrets.gitee_repo }}
+          gitee_token: ${{ secrets.gitee_token }}
+          gitee_tag_name: ${{ github.ref_name }}
+          gitee_release_name: ${{ github.ref_name }}
+          gitee_release_body: ${{ github.ref_name }}
+          gitee_target_commitish: master
 
       - name: Release to gitee
         uses: nicennnnnnnlee/action-gitee-release@master
