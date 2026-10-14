@@ -115,6 +115,7 @@ jobs:
       - name: Release linux to gitee
         uses: nicennnnnnnlee/action-gitee-release@master
         if: runner.os == 'Linux'
+        continue-on-error: true
         with:
           gitee_action: upload_asset
           gitee_owner: ${{ secrets.gitee_owner }}
@@ -151,6 +152,7 @@ jobs:
       - name: Release mac to gitee
         uses: nicennnnnnnlee/action-gitee-release@master
         if: runner.os == 'macOS'
+        continue-on-error: true
         with:
           gitee_action: upload_asset
           gitee_owner: ${{ secrets.gitee_owner }}
@@ -245,6 +247,7 @@ jobs:
 
       - name: Release to gitee
         uses: nicennnnnnnlee/action-gitee-release@master
+        continue-on-error: true
         with:
           gitee_action: upload_asset
           gitee_owner: ${{ secrets.gitee_owner }}
