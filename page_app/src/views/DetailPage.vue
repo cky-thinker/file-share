@@ -1,413 +1,356 @@
 <template>
-  <div class="detail-space">
-    <!-- 共享服务信息区 -->
-    <section class="info-bar">
-      <div class="info-left">
-        <span class="info-icon">
-          <el-icon :size="18"><Link /></el-icon>
+<div class="detail-space">
+  <!-- 共享服务信息区 -->
+  <section class="info-bar">
+    <div class="info-left">
+      <span class="info-icon">
+        <el-icon :size="18">
+          <Link />
+        </el-icon>
+      </span>
+      <span class="info-label">{{ $t("detail.shareAddress") }}</span>
+      <el-tooltip effect="light" placement="top" :content="settingForm.url">
+        <span class="info-url">{{ settingForm.url }}</span>
+      </el-tooltip>
+      <el-popover placement="bottom" :width="125" trigger="hover">
+        <template #reference>
+          <el-button type="primary" class="copy-btn" @click="handleClipboard(settingForm.url, $event)">
+            <el-icon>
+              <CopyDocument />
+            </el-icon>
+            &nbsp;{{ $t("detail.copyLink") }}
+          </el-button>
+        </template>
+        <qrcode-vue :value="settingForm.url"></qrcode-vue>
+      </el-popover>
+    </div>
+    <div class="info-right">
+      <el-tooltip effect="dark" :content="$t('detail.switchIpProtocol')" placement="bottom">
+        <div class="seg-toggle">
+          <span class="seg-item" :class="{ active: ipFamily === 'ipv4' }"
+            @click="ipFamily !== 'ipv4' && changeIpFamily()">IPv4</span>
+          <span class="seg-item" :class="{ active: ipFamily === 'ipv6' }"
+            @click="ipFamily !== 'ipv6' && changeIpFamily()">IPv6</span>
+        </div>
+      </el-tooltip>
+      <el-select class="nic-select" :model-value="currentInterfaceName" :disabled="netInterfaceNames.length <= 1"
+        :placeholder="$t('detail.switchNetInterface')" @change="onNicChange">
+        <template #prefix>
+          <el-icon>
+            <Connection />
+          </el-icon>
+        </template>
+        <el-option v-for="name in netInterfaceNames" :key="name" :label="name" :value="name" />
+      </el-select>
+    </div>
+  </section>
+
+  <!-- 双视图工作区 -->
+  <main class="workspace">
+    <!-- 左侧：共享文件 -->
+    <section class="panel file-panel">
+      <header class="panel-header">
+        <span class="panel-icon file-icon">
+          <el-icon :size="17">
+            <FolderOpened />
+          </el-icon>
         </span>
-        <span class="info-label">{{ $t("detail.shareAddress") }}</span>
-        <el-tooltip effect="light" placement="top" :content="settingForm.url">
-          <span class="info-url">{{ settingForm.url }}</span>
-        </el-tooltip>
-        <el-popover placement="bottom" :width="125" trigger="hover">
-          <template #reference>
-            <el-button
-              type="primary"
-              class="copy-btn"
-              @click="handleClipboard(settingForm.url, $event)"
-            >
-              <el-icon><CopyDocument /></el-icon>
-              &nbsp;{{ $t("detail.copyLink") }}
-            </el-button>
+        <span class="panel-title">{{ $t("detail.filesTitle") }}</span>
+        <div class="panel-actions">
+          <el-button type="primary" @click="selectFiles">
+            <el-icon>
+              <Plus />
+            </el-icon>
+            &nbsp;{{ $t("detail.addFile") }}
+          </el-button>
+          <el-button :disabled="!fileItems.length" @click="clearAllFiles">
+            <el-icon>
+              <Delete />
+            </el-icon>
+            &nbsp;{{ $t("detail.clearList") }}
+          </el-button>
+        </div>
+      </header>
+      <div class="panel-toolbar">
+        <el-input v-model="fileKeyword" clearable :prefix-icon="SearchIcon"
+          :placeholder="$t('detail.searchFilePlaceholder')"></el-input>
+        <el-dropdown trigger="click" @command="fileOrder = $event">
+          <el-button class="sort-btn">
+            <el-icon>
+              <Sort />
+            </el-icon>
+            &nbsp;{{ $t("detail.sortByTime") }}
+            <el-icon class="sort-caret">
+              <ArrowDown />
+            </el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="desc">
+                <el-icon v-if="fileOrder === 'desc'">
+                  <Check />
+                </el-icon>
+                <span v-else class="check-holder"></span>
+                {{ $t("detail.sortNewest") }}
+              </el-dropdown-item>
+              <el-dropdown-item command="asc">
+                <el-icon v-if="fileOrder === 'asc'">
+                  <Check />
+                </el-icon>
+                <span v-else class="check-holder"></span>
+                {{ $t("detail.sortOldest") }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
           </template>
-          <qrcode-vue :value="settingForm.url"></qrcode-vue>
-        </el-popover>
+        </el-dropdown>
       </div>
-      <div class="info-right">
-        <el-tooltip effect="dark" :content="$t('detail.switchIpProtocol')" placement="bottom">
-          <div class="seg-toggle">
-            <span
-              class="seg-item"
-              :class="{ active: ipFamily === 'ipv4' }"
-              @click="ipFamily !== 'ipv4' && changeIpFamily()"
-              >IPv4</span
-            >
-            <span
-              class="seg-item"
-              :class="{ active: ipFamily === 'ipv6' }"
-              @click="ipFamily !== 'ipv6' && changeIpFamily()"
-              >IPv6</span
-            >
+      <div class="panel-body" @dragenter.prevent="onDragEnter" @dragover.prevent @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop">
+        <!-- 文件列表 -->
+        <template v-if="filteredFiles.length">
+          <div v-for="file in filteredFiles" :key="file.name" class="file-row">
+            <span v-if="file.type === 'directory'" class="file-badge dir-badge">
+              <el-icon :size="18">
+                <Folder />
+              </el-icon>
+            </span>
+            <span v-else class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
+              {{ fileBadge(file).label }}
+            </span>
+            <div class="file-info">
+              <el-tooltip effect="light" placement="top" :content="file.name">
+                <span class="file-name">{{ file.name }}</span>
+              </el-tooltip>
+              <span class="file-sub">
+                {{ $t("detail.sharedFrom", { name: file.username }) }}
+              </span>
+            </div>
+            <div class="file-actions">
+              <el-popover placement="left" :width="125" trigger="hover">
+                <template #reference>
+                  <el-button class="icon-btn" text :title="$t('detail.copyLinkTip')"
+                    @click="handleFileUrlCopy(file, $event)">
+                    <el-icon>
+                      <Link />
+                    </el-icon>
+                  </el-button>
+                </template>
+                <qrcode-vue :value="getFileUrl(file)"></qrcode-vue>
+              </el-popover>
+              <el-button class="icon-btn" text :title="$t('detail.openFileDir')" @click="openFile(file)">
+                <el-icon>
+                  <FolderOpened />
+                </el-icon>
+              </el-button>
+              <el-dropdown trigger="click" @command="(cmd) => onFileCommand(cmd, file)">
+                <el-button class="icon-btn" text :title="$t('detail.moreActions')">
+                  <el-icon>
+                    <MoreFilled />
+                  </el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="delete" class="danger-item">
+                      {{ $t("detail.deleteFile") }}
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </div>
-        </el-tooltip>
-        <el-select
-          class="nic-select"
-          :model-value="currentInterfaceName"
-          :disabled="netInterfaceNames.length <= 1"
-          :placeholder="$t('detail.switchNetInterface')"
-          @change="onNicChange"
-        >
-          <template #prefix>
-            <el-icon><Connection /></el-icon>
-          </template>
-          <el-option
-            v-for="name in netInterfaceNames"
-            :key="name"
-            :label="name"
-            :value="name"
-          />
-        </el-select>
+        </template>
+        <!-- 空状态 -->
+        <div v-else class="panel-empty">
+          <el-icon :size="40" class="empty-icon">
+            <Folder />
+          </el-icon>
+          <div class="empty-title">
+            {{ fileKeyword ? $t("detail.searchNoResult") : $t("detail.noFiles") }}
+          </div>
+          <div v-if="!fileKeyword" class="empty-tip">
+            {{ $t("detail.noFilesTip") }}
+          </div>
+          <el-button v-else text type="primary" @click="fileKeyword = ''">{{ $t("detail.clearSearch") }}</el-button>
+        </div>
+        <!-- 拖拽覆盖层 -->
+        <transition name="fade">
+          <div v-if="dragCount > 0" class="drop-overlay">
+            <el-icon :size="36">
+              <UploadFilled />
+            </el-icon>
+            <div class="drop-text">{{ $t("detail.dropToAdd") }}</div>
+          </div>
+        </transition>
       </div>
+      <footer class="panel-footer">
+        {{ $t("detail.fileCount", { count: filteredFiles.length }) }}
+      </footer>
     </section>
 
-    <!-- 双视图工作区 -->
-    <main class="workspace">
-      <!-- 左侧：共享文件 -->
-      <section class="panel file-panel">
-        <header class="panel-header">
-          <span class="panel-icon file-icon">
-            <el-icon :size="17"><FolderOpened /></el-icon>
-          </span>
-          <span class="panel-title">{{ $t("detail.filesTitle") }}</span>
-          <div class="panel-actions">
-            <el-button type="primary" @click="selectFiles">
-              <el-icon><Plus /></el-icon>
-              &nbsp;{{ $t("detail.addFile") }}
-            </el-button>
-            <el-button
-              :disabled="!fileItems.length"
-              @click="clearAllFiles"
-            >
-              <el-icon><Delete /></el-icon>
-              &nbsp;{{ $t("detail.clearList") }}
-            </el-button>
-          </div>
-        </header>
-        <div class="panel-toolbar">
-          <el-input
-            v-model="fileKeyword"
-            clearable
-            :prefix-icon="SearchIcon"
-            :placeholder="$t('detail.searchFilePlaceholder')"
-          ></el-input>
-          <el-dropdown trigger="click" @command="fileOrder = $event">
-            <el-button class="sort-btn">
-              <el-icon><Sort /></el-icon>
-              &nbsp;{{ $t("detail.sortByTime") }}
-              <el-icon class="sort-caret"><ArrowDown /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="desc">
-                  <el-icon v-if="fileOrder === 'desc'"><Check /></el-icon>
-                  <span v-else class="check-holder"></span>
-                  {{ $t("detail.sortNewest") }}
-                </el-dropdown-item>
-                <el-dropdown-item command="asc">
-                  <el-icon v-if="fileOrder === 'asc'"><Check /></el-icon>
-                  <span v-else class="check-holder"></span>
-                  {{ $t("detail.sortOldest") }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-        <div
-          class="panel-body"
-          @dragenter.prevent="onDragEnter"
-          @dragover.prevent
-          @dragleave.prevent="onDragLeave"
-          @drop.prevent="onDrop"
-        >
-          <!-- 文件列表 -->
-          <template v-if="filteredFiles.length">
-            <div v-for="file in filteredFiles" :key="file.name" class="file-row">
-              <span
-                v-if="file.type === 'directory'"
-                class="file-badge dir-badge"
-              >
-                <el-icon :size="18"><Folder /></el-icon>
-              </span>
-              <span v-else class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
-                {{ fileBadge(file).label }}
-              </span>
-              <div class="file-info">
-                <el-tooltip effect="light" placement="top" :content="file.name">
-                  <span class="file-name">{{ file.name }}</span>
-                </el-tooltip>
-                <span class="file-sub">
-                  {{ $t("detail.sharedFrom", { name: file.username }) }}
-                </span>
-              </div>
-              <div class="file-actions">
-                <el-popover placement="left" :width="125" trigger="hover">
-                  <template #reference>
-                    <el-button
-                      class="icon-btn"
-                      text
-                      :title="$t('detail.copyLinkTip')"
-                      @click="handleFileUrlCopy(file, $event)"
-                    >
-                      <el-icon><Link /></el-icon>
-                    </el-button>
-                  </template>
-                  <qrcode-vue :value="getFileUrl(file)"></qrcode-vue>
-                </el-popover>
-                <el-button
-                  class="icon-btn"
-                  text
-                  :title="$t('detail.openFileDir')"
-                  @click="openFile(file)"
-                >
-                  <el-icon><FolderOpened /></el-icon>
-                </el-button>
-                <el-dropdown
-                  trigger="click"
-                  @command="(cmd) => onFileCommand(cmd, file)"
-                >
-                  <el-button class="icon-btn" text :title="$t('detail.moreActions')">
-                    <el-icon><MoreFilled /></el-icon>
-                  </el-button>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item command="delete" class="danger-item">
-                        {{ $t("detail.deleteFile") }}
-                      </el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </div>
-            </div>
-          </template>
-          <!-- 空状态 -->
-          <div v-else class="panel-empty">
-            <el-icon :size="40" class="empty-icon"><Folder /></el-icon>
-            <div class="empty-title">
-              {{ fileKeyword ? $t("detail.searchNoResult") : $t("detail.noFiles") }}
-            </div>
-            <div v-if="!fileKeyword" class="empty-tip">
-              {{ $t("detail.noFilesTip") }}
-            </div>
-            <el-button
-              v-else
-              text
-              type="primary"
-              @click="fileKeyword = ''"
-            >{{ $t("detail.clearSearch") }}</el-button>
-          </div>
-          <!-- 拖拽覆盖层 -->
-          <transition name="fade">
-            <div v-if="dragCount > 0" class="drop-overlay">
-              <el-icon :size="36"><UploadFilled /></el-icon>
-              <div class="drop-text">{{ $t("detail.dropToAdd") }}</div>
-            </div>
-          </transition>
-        </div>
-        <footer class="panel-footer">
-          {{ $t("detail.fileCount", { count: filteredFiles.length }) }}
-        </footer>
-      </section>
-
-      <!-- 右侧：共享文本 -->
-      <section class="panel text-panel">
-        <header class="panel-header">
-          <span class="panel-icon text-icon">
-            <el-icon :size="17"><ChatDotRound /></el-icon>
-          </span>
-          <span class="panel-title">{{ $t("detail.textsTitle") }}</span>
-          <div class="panel-actions">
-            <el-tooltip effect="dark" :content="$t('detail.shareTextBtn')" placement="bottom">
-              <el-button class="icon-btn" text @click="dialogFormVisible = true">
-                <el-icon :size="17"><EditPen /></el-icon>
-              </el-button>
-            </el-tooltip>
-            <el-tooltip effect="dark" :content="$t('detail.clearList')" placement="bottom">
-              <el-button
-                class="icon-btn danger-icon-btn"
-                text
-                :disabled="!textItems.length"
-                @click="clearAllTexts"
-              >
-                <el-icon :size="17"><Delete /></el-icon>
-              </el-button>
-            </el-tooltip>
-          </div>
-        </header>
-        <div class="panel-toolbar">
-          <el-input
-            v-model="textKeyword"
-            clearable
-            :prefix-icon="SearchIcon"
-            :placeholder="$t('detail.searchTextPlaceholder')"
-          ></el-input>
-          <el-dropdown trigger="click" @command="textOrder = $event">
-            <el-button class="sort-btn">
-              <el-icon><Sort /></el-icon>
-              &nbsp;{{ $t("detail.sortByTime") }}
-              <el-icon class="sort-caret"><ArrowDown /></el-icon>
-            </el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="desc">
-                  <el-icon v-if="textOrder === 'desc'"><Check /></el-icon>
-                  <span v-else class="check-holder"></span>
-                  {{ $t("detail.sortNewest") }}
-                </el-dropdown-item>
-                <el-dropdown-item command="asc">
-                  <el-icon v-if="textOrder === 'asc'"><Check /></el-icon>
-                  <span v-else class="check-holder"></span>
-                  {{ $t("detail.sortOldest") }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-        <div class="panel-body msg-list">
-          <!-- 消息流 -->
-          <template v-if="filteredTexts.length">
-            <div v-for="msg in filteredTexts" :key="msg.name" class="msg-card">
-              <div class="msg-head">
-                <span
-                  class="msg-avatar"
-                  :style="{ backgroundColor: avatarColor(msg.nickname || msg.username) }"
-                >
-                  {{ (msg.nickname || msg.username || "?").charAt(0) }}
-                </span>
-                <span class="msg-name">{{ msg.nickname || msg.username }}</span>
-                <span v-if="msg.nickname && msg.username" class="msg-ip">{{ msg.username }}</span>
-                <span class="msg-head-space"></span>
-                <el-button
-                  class="icon-btn"
-                  text
-                  :title="$t('detail.copyTextTip')"
-                  @click="handleTextCopy(msg, $event)"
-                >
-                  <el-icon><CopyDocument /></el-icon>
-                </el-button>
-                <el-dropdown
-                  trigger="click"
-                  @command="(cmd) => onTextCommand(cmd, msg)"
-                >
-                  <el-button class="icon-btn" text :title="$t('detail.moreActions')">
-                    <el-icon><MoreFilled /></el-icon>
-                  </el-button>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item command="view">
-                        {{ $t("detail.viewFullText") }}
-                      </el-dropdown-item>
-                      <el-dropdown-item command="delete" divided class="danger-item">
-                        {{ $t("detail.deleteText") }}
-                      </el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </div>
-              <div class="msg-bubble" :class="{ clamp: isLongText(msg) }">
-                <div class="bubble-text">{{ msg.content }}</div>
-              </div>
-              <el-button
-                v-if="isLongText(msg)"
-                text
-                type="primary"
-                class="msg-more"
-                @click="showFullText(msg)"
-              >
-                {{ $t("detail.viewFullText") }}
-                <el-icon><ArrowDown /></el-icon>
-              </el-button>
-            </div>
-          </template>
-          <!-- 空状态 -->
-          <div v-else class="panel-empty">
-            <el-icon :size="40" class="empty-icon"><ChatDotRound /></el-icon>
-            <div class="empty-title">
-              {{ textKeyword ? $t("detail.searchNoResult") : $t("detail.noTexts") }}
-            </div>
-            <div v-if="!textKeyword" class="empty-tip">
-              {{ $t("detail.noTextsTip") }}
-            </div>
-            <el-button
-              v-else
-              text
-              type="primary"
-              @click="textKeyword = ''"
-            >{{ $t("detail.clearSearch") }}</el-button>
-          </div>
-        </div>
-        <footer class="panel-footer">
-          {{ $t("detail.textCount", { count: filteredTexts.length }) }}
-        </footer>
-      </section>
-    </main>
-
-    <!-- 分享文本弹窗 -->
-    <el-dialog
-      v-model="dialogFormVisible"
-      :title="$t('detail.shareText')"
-      width="480px"
-      append-to-body
-    >
-      <el-input
-        v-model="form.nickname"
-        :placeholder="$t('detail.nicknamePlaceholder')"
-        style="margin-bottom: 8px"
-      >
-      </el-input>
-      <el-input
-        type="textarea"
-        :rows="2"
-        :autosize="{ minRows: 2, maxRows: 4 }"
-        :placeholder="$t('detail.inputContent')"
-        v-model="form.text"
-      >
-      </el-input>
-      <template #footer>
-        <el-button type="primary" @click="formSubmit">{{
-          $t("detail.submit")
-        }}</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 查看全文弹窗 -->
-    <el-dialog
-      v-model="fullTextVisible"
-      :title="$t('detail.fullTextTitle')"
-      width="560px"
-      append-to-body
-    >
-      <div v-if="fullTextMsg" class="fulltext-meta">
-        <span
-          class="msg-avatar"
-          :style="{ backgroundColor: avatarColor(fullTextMsg.nickname || fullTextMsg.username) }"
-        >
-          {{ (fullTextMsg.nickname || fullTextMsg.username || "?").charAt(0) }}
+    <!-- 右侧：共享文本 -->
+    <section class="panel text-panel">
+      <header class="panel-header">
+        <span class="panel-icon text-icon">
+          <el-icon :size="17">
+            <ChatDotRound />
+          </el-icon>
         </span>
-        <span class="msg-name">{{ fullTextMsg.nickname || fullTextMsg.username }}</span>
-        <span v-if="fullTextMsg.nickname && fullTextMsg.username" class="msg-ip">{{ fullTextMsg.username }}</span>
+        <span class="panel-title">{{ $t("detail.textsTitle") }}</span>
+        <div class="panel-actions">
+          <el-tooltip effect="dark" :content="$t('detail.shareTextBtn')" placement="bottom">
+            <el-button class="icon-btn" text @click="dialogFormVisible = true">
+              <el-icon :size="17">
+                <EditPen />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+          <el-tooltip effect="dark" :content="$t('detail.clearList')" placement="bottom">
+            <el-button class="icon-btn danger-icon-btn" text :disabled="!textItems.length" @click="clearAllTexts">
+              <el-icon :size="17">
+                <Delete />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+        </div>
+      </header>
+      <div class="panel-toolbar">
+        <el-input v-model="textKeyword" clearable :prefix-icon="SearchIcon"
+          :placeholder="$t('detail.searchTextPlaceholder')"></el-input>
+        <el-dropdown trigger="click" @command="textOrder = $event">
+          <el-button class="sort-btn">
+            <el-icon>
+              <Sort />
+            </el-icon>
+            &nbsp;{{ $t("detail.sortByTime") }}
+            <el-icon class="sort-caret">
+              <ArrowDown />
+            </el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="desc">
+                <el-icon v-if="textOrder === 'desc'">
+                  <Check />
+                </el-icon>
+                <span v-else class="check-holder"></span>
+                {{ $t("detail.sortNewest") }}
+              </el-dropdown-item>
+              <el-dropdown-item command="asc">
+                <el-icon v-if="textOrder === 'asc'">
+                  <Check />
+                </el-icon>
+                <span v-else class="check-holder"></span>
+                {{ $t("detail.sortOldest") }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
-      <div class="fulltext-body">{{ fullTextMsg && fullTextMsg.content }}</div>
-      <template #footer>
-        <el-button @click="fullTextVisible = false">{{
-          $t("common.close")
-        }}</el-button>
-        <el-button type="primary" @click="copyFullText($event)">
-          <el-icon><CopyDocument /></el-icon>
-          &nbsp;{{ $t("detail.copyFullText") }}
-        </el-button>
-      </template>
-    </el-dialog>
+      <div class="panel-body msg-list">
+        <!-- 消息流 -->
+        <template v-if="filteredTexts.length">
+          <div v-for="msg in filteredTexts" :key="msg.name" class="msg-card">
+            <div class="msg-head">
+              <span class="msg-avatar" :style="{ backgroundColor: avatarColor(msg.nickname || msg.username) }">
+                {{ (msg.nickname || msg.username || "?").charAt(0) }}
+              </span>
+              <span class="msg-name">{{ msg.nickname || msg.username }}</span>
+              <span v-if="msg.nickname && msg.username" class="msg-ip">{{ msg.username }}</span>
+              <span class="msg-head-space"></span>
+              <el-button class="icon-btn" text :title="$t('detail.copyTextTip')" @click="handleTextCopy(msg, $event)">
+                <el-icon>
+                  <CopyDocument />
+                </el-icon>
+              </el-button>
+              <el-dropdown trigger="click" @command="(cmd) => onTextCommand(cmd, msg)">
+                <el-button class="icon-btn" text :title="$t('detail.moreActions')">
+                  <el-icon>
+                    <MoreFilled />
+                  </el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="view">
+                      {{ $t("detail.viewFullText") }}
+                    </el-dropdown-item>
+                    <el-dropdown-item command="delete" divided class="danger-item">
+                      {{ $t("detail.deleteText") }}
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+            <div class="msg-bubble" :class="{ clamp: isLongText(msg) }">
+              <div class="bubble-text">{{ msg.content }}</div>
+            </div>
+            <el-button v-if="isLongText(msg)" text type="primary" class="msg-more" @click="showFullText(msg)">
+              {{ $t("detail.viewFullText") }}
+              <el-icon>
+                <ArrowDown />
+              </el-icon>
+            </el-button>
+          </div>
+        </template>
+        <!-- 空状态 -->
+        <div v-else class="panel-empty">
+          <el-icon :size="40" class="empty-icon">
+            <ChatDotRound />
+          </el-icon>
+          <div class="empty-title">
+            {{ textKeyword ? $t("detail.searchNoResult") : $t("detail.noTexts") }}
+          </div>
+          <div v-if="!textKeyword" class="empty-tip">
+            {{ $t("detail.noTextsTip") }}
+          </div>
+          <el-button v-else text type="primary" @click="textKeyword = ''">{{ $t("detail.clearSearch") }}</el-button>
+        </div>
+      </div>
+      <footer class="panel-footer">
+        {{ $t("detail.textCount", { count: filteredTexts.length }) }}
+      </footer>
+    </section>
+  </main>
 
-    <!-- 隐藏的文件选择器 -->
-    <input
-      ref="fileInput"
-      type="file"
-      multiple
-      style="display: none"
-      @change="onInputFiles"
-    />
-  </div>
+  <!-- 分享文本弹窗 -->
+  <el-dialog v-model="dialogFormVisible" :title="$t('detail.shareText')" width="480px" append-to-body>
+    <el-input v-model="form.nickname" :placeholder="$t('detail.nicknamePlaceholder')" style="margin-bottom: 8px">
+    </el-input>
+    <el-input type="textarea" :rows="2" :autosize="{ minRows: 2, maxRows: 4 }" :placeholder="$t('detail.inputContent')"
+      v-model="form.text">
+    </el-input>
+    <template #footer>
+      <el-button type="primary" @click="formSubmit">{{
+        $t("detail.submit")
+      }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- 查看全文弹窗 -->
+  <el-dialog v-model="fullTextVisible" :title="$t('detail.fullTextTitle')" width="560px" append-to-body>
+    <div v-if="fullTextMsg" class="fulltext-meta">
+      <span class="msg-avatar" :style="{ backgroundColor: avatarColor(fullTextMsg.nickname || fullTextMsg.username) }">
+        {{ (fullTextMsg.nickname || fullTextMsg.username || "?").charAt(0) }}
+      </span>
+      <span class="msg-name">{{ fullTextMsg.nickname || fullTextMsg.username }}</span>
+      <span v-if="fullTextMsg.nickname && fullTextMsg.username" class="msg-ip">{{ fullTextMsg.username }}</span>
+    </div>
+    <div class="fulltext-body">{{ fullTextMsg && fullTextMsg.content }}</div>
+    <template #footer>
+      <el-button @click="fullTextVisible = false">{{
+        $t("common.close")
+      }}</el-button>
+      <el-button type="primary" @click="copyFullText($event)">
+        <el-icon>
+          <CopyDocument />
+        </el-icon>
+        &nbsp;{{ $t("detail.copyFullText") }}
+      </el-button>
+    </template>
+  </el-dialog>
+
+  <!-- 隐藏的文件选择器 -->
+  <input ref="fileInput" type="file" multiple style="display: none" @change="onInputFiles" />
+</div>
 </template>
 
 <script>
@@ -695,7 +638,7 @@ export default {
           store.files = api.listFiles();
           successMessage(t("detail.listCleared"));
         })
-        .catch(() => {});
+        .catch(() => { });
     },
     clearAllTexts: function () {
       ElMessageBox.confirm(
@@ -714,7 +657,7 @@ export default {
           store.files = api.listFiles();
           successMessage(t("detail.listCleared"));
         })
-        .catch(() => {});
+        .catch(() => { });
     },
     onFileCommand: function (cmd, file) {
       if (cmd === "delete") {
@@ -743,7 +686,7 @@ export default {
           store.files = api.listFiles();
           successMessage(t("common.deleteSuccess"));
         })
-        .catch(() => {});
+        .catch(() => { });
     },
     removeText: function (msg) {
       ElMessageBox.confirm(
@@ -760,7 +703,7 @@ export default {
           store.files = api.listFiles();
           successMessage(t("common.deleteSuccess"));
         })
-        .catch(() => {});
+        .catch(() => { });
     },
     openFile: function (file) {
       api.openFile(file.name, (err) => {
@@ -834,7 +777,10 @@ export default {
   justify-content: space-between;
   gap: 16px;
   padding: 12px 16px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(31, 45, 61, 0.05);
 }
@@ -929,7 +875,10 @@ export default {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(31, 45, 61, 0.05);
   overflow: hidden;
@@ -1049,8 +998,8 @@ export default {
   padding: 8px 16px;
   font-size: 12px;
   color: #98a2b3;
-  border-top: 1px solid #f0f2f7;
-  background: #fafbfd;
+  border-top: 1px solid rgba(240, 242, 247, 0.8);
+  background: rgba(250, 251, 253, 0.35);
 }
 
 /* ===== 文件列表 ===== */
@@ -1137,12 +1086,14 @@ export default {
 /* ===== 消息流 ===== */
 .msg-list {
   padding: 12px 14px;
-  background: #fafbfd;
+  background: rgba(250, 251, 253, 0.35);
 }
 
 .msg-card {
-  background: #ffffff;
-  border: 1px solid #eef1f6;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 12px;
@@ -1200,7 +1151,7 @@ export default {
 }
 
 .msg-bubble {
-  background: #f5f7fa;
+  background: rgba(245, 247, 250, 0.8);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 13px;

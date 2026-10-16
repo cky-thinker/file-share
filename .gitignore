@@ -43,3 +43,4 @@ electron/node_modules
 electron/build
 
 .DS_Store
+.trae
