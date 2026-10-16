@@ -330,7 +330,7 @@
     <template #footer>
       <el-button type="primary" @click="formSubmit">{{
         $t("detail.submit")
-        }}</el-button>
+      }}</el-button>
     </template>
   </el-dialog>
 
@@ -347,7 +347,7 @@
     <template #footer>
       <el-button @click="fullTextVisible = false">{{
         $t("common.close")
-        }}</el-button>
+      }}</el-button>
       <el-button type="primary" @click="copyFullText($event)">
         <el-icon>
           <CopyDocument />
@@ -854,8 +854,14 @@ export default {
   white-space: nowrap;
 }
 
+/* 信息栏表单控件统一高度（复制按钮 / IPv4-IPv6 切换 / 网卡选择） */
+.info-bar {
+  --control-h: 32px;
+}
+
 .copy-btn {
   flex-shrink: 0;
+  height: var(--control-h);
 }
 
 .info-right {
@@ -868,16 +874,24 @@ export default {
 /* IPv4 / IPv6 分段切换 */
 .seg-toggle {
   display: flex;
+  align-items: center;
+  height: var(--control-h);
   padding: 2px;
   border-radius: 8px;
   background: #eef1f7;
+  box-sizing: border-box;
 }
 
 .seg-item {
-  padding: 5px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--control-h) - 4px);
+  padding: 0 14px;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
+  line-height: 1;
   color: #5a6b85;
   cursor: pointer;
   user-select: none;
@@ -892,6 +906,11 @@ export default {
 
 .nic-select {
   width: 190px;
+}
+
+.nic-select .el-select__wrapper {
+  height: var(--control-h);
+  min-height: var(--control-h);
 }
 
 /* ===== 双视图工作区 ===== */
