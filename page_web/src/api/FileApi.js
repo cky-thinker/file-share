@@ -29,6 +29,50 @@ export function uploadMsg(data) {
   })
 }
 
+// 文本列表（聊天视图）
+export function listTexts() {
+  return request({
+    url: '/texts',
+    method: 'get',
+  })
+}
+
+// 新建文件夹
+export function createDirectory(data) {
+  return request({
+    url: '/createDirectory',
+    method: 'post',
+    data: data
+  })
+}
+
+// 删除文件
+export function removeFile(data) {
+  return request({
+    url: '/removeFile',
+    method: 'post',
+    data: data
+  })
+}
+
+// 删除文件夹
+export function removeDirectory(data) {
+  return request({
+    url: '/removeDirectory',
+    method: 'post',
+    data: data
+  })
+}
+
+// 自定义排序：置顶/取消置顶/上移/下移
+export function sortFile(data) {
+  return request({
+    url: '/sortFile',
+    method: 'post',
+    data: data
+  })
+}
+
 /**
  * @returns { import('axios').AxiosPromise<{enable:boolean,chunkSize:number}>}
  */

@@ -68,7 +68,8 @@ service.interceptors.response.use(res => {
     return Promise.reject('登录状态无效，请重新登录');
   } else {
     console.log("请求错误", res.data.message || msg)
-    return Promise.reject('error')
+    // 将响应数据作为拒绝值返回，便于调用方读取错误信息
+    return Promise.reject(res.data || 'error')
   }
 },
   error => {

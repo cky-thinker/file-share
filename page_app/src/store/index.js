@@ -6,6 +6,7 @@ let api = window.api;
 // 起始页与详情页共享的状态
 export const store = reactive({
   serverStatus: "stop",
+  settingsVisible: false,
   files: [],
   ipFamily: "ipv4",
   netInterfaceNames: [],
@@ -16,6 +17,7 @@ export const store = reactive({
     url: "",
     uploadPath: "",
     port: 5421,
+    uploadToFolderEnable: false,
   },
 });
 

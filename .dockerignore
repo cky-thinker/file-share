@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.git
+.idea
+.vscode
+page_web/dist
+page_app
+utools
+electron
+wiki
+data
+upload

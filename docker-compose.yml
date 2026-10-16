@@ -1,0 +1,17 @@
+services:
+  file-share:
+    build: .
+    image: file-share:latest
+    container_name: file-share
+    restart: unless-stopped
+    ports:
+      - "5421:5421"
+    environment:
+      - PORT=5421
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin123
+      # 开启网页密码认证后，访客需使用管理员账号登录
+      # - AUTH_ENABLE=true
+    volumes:
+      - ./upload:/app/upload
+      - ./data:/app/data

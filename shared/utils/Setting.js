@@ -15,6 +15,7 @@ const AutoStart = 'autoStart' // 自动启动
 const ipFamilyKey = 'ipFamily' // IP协议族
 const netInterfaceNameKey = 'netInterfaceName' // 网络接口名称
 const languageKey = 'language' // 界面语言（zh / en）
+const uploadToFolderEnableKey = 'uploadToFolderEnable' // 是否允许上传文件到当前文件夹
 
 let curIp = null;
 
@@ -137,6 +138,29 @@ function getChunkSize() {
 }
 
 /**
+ * 是否允许上传文件到当前文件夹（关闭时默认上传到根目录）
+ */
+function getUploadToFolderEnable() {
+    return AppDatabase.getStorageItem(uploadToFolderEnableKey, false)
+}
+
+/**
+ * 更新上传到当前文件夹开关
+ * @param value
+ * @returns {Promise<{ success:boolean, message:string }>}
+ */
+function updateUploadToFolderEnable(value) {
+    return new Promise((resolve, reject) => {
+        if (value == null) {
+            return reject({ success: false, message: '更新失败，值为空' });
+        }
+        console.log('--updateUploadToFolderEnable--', value)
+        AppDatabase.setStorageItem(uploadToFolderEnableKey, value)
+        return resolve({ success: true, message: '修改成功' });
+    })
+}
+
+/**
  * 更新分片大小
  * @param chunkSize
  * @returns {Promise<{ success:boolean, message:string }>}
@@ -253,6 +277,7 @@ function getSetting() {
         chunkSize: getChunkSize(),
         autoStart: getAutoStart(),
         language: getLanguage(),
+        uploadToFolderEnable: getUploadToFolderEnable(),
     }
 }
 
@@ -264,7 +289,8 @@ function updateSetting(setting) {
     let chunkSizeR = updateChunkSize(setting[chunkSizeKey])
     let autoStartR = updateAutoStart(setting[AutoStart])
     let languageR = updateLanguage(setting[languageKey])
-    return Promise.all([updateUploadPathR, updatePortR, authEnableR, tusEnableR, chunkSizeR, autoStartR, languageR])
+    let uploadToFolderEnableR = updateUploadToFolderEnable(setting[uploadToFolderEnableKey])
+    return Promise.all([updateUploadPathR, updatePortR, authEnableR, tusEnableR, chunkSizeR, autoStartR, languageR, uploadToFolderEnableR])
 }
 
 exports.uploadPathKey = uploadPathKey
@@ -276,6 +302,7 @@ exports.AutoStart = AutoStart
 exports.ipFamilyKey = ipFamilyKey
 exports.netInterfaceNameKey = netInterfaceNameKey
 exports.languageKey = languageKey
+exports.uploadToFolderEnableKey = uploadToFolderEnableKey
 exports.getUploadPath = getUploadPath
 exports.updateUploadPath = updateUploadPath
 exports.getPort = getPort
@@ -291,6 +318,8 @@ exports.getTusEnable = getTusEnable
 exports.updateTusEnable = updateTusEnable
 exports.getChunkSize = getChunkSize
 exports.updateChunkSize = updateChunkSize
+exports.getUploadToFolderEnable = getUploadToFolderEnable
+exports.updateUploadToFolderEnable = updateUploadToFolderEnable
 exports.updateAutoStart = updateAutoStart
 exports.getAutoStart = getAutoStart
 exports.getIpFamily = getIpFamily

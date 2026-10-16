@@ -23,6 +23,14 @@
               @change="updateSettingsForm"
             ></el-input>
           </el-form-item>
+          <el-form-item :label="$t('setting.uploadToFolder')">
+            <el-switch
+              v-model="settingForm.uploadToFolderEnable"
+              @change="updateSettingsForm"
+            >
+            </el-switch>
+            <span class="setting-tip">{{ $t("setting.uploadToFolderTip") }}</span>
+          </el-form-item>
           <el-form-item :label="$t('setting.language')">
             <el-select
               v-model="settingForm.language"
@@ -79,10 +87,31 @@
                 >{{ $t("setting.uploadText") }}</el-tag
               >
               <el-tag
+                v-if="row.permissions.createDirectory"
+                size="small"
+                type="danger"
+                >{{ $t("setting.createDirectory") }}</el-tag
+              >
+              <el-tag
+                v-if="row.permissions.removeDirectory"
+                size="small"
+                type="danger"
+                >{{ $t("setting.removeDirectory") }}</el-tag
+              >
+              <el-tag
+                v-if="row.permissions.removeFile"
+                size="small"
+                type="danger"
+                >{{ $t("setting.removeFile") }}</el-tag
+              >
+              <el-tag
                 v-if="
                   !row.permissions.download &&
                   !row.permissions.uploadFile &&
-                  !row.permissions.uploadText
+                  !row.permissions.uploadText &&
+                  !row.permissions.createDirectory &&
+                  !row.permissions.removeDirectory &&
+                  !row.permissions.removeFile
                 "
                 size="small"
                 type="info"
@@ -212,6 +241,15 @@
           <el-checkbox v-model="accountForm.permissions.uploadText">{{
             $t("setting.uploadText")
           }}</el-checkbox>
+          <el-checkbox v-model="accountForm.permissions.createDirectory">{{
+            $t("setting.createDirectory")
+          }}</el-checkbox>
+          <el-checkbox v-model="accountForm.permissions.removeDirectory">{{
+            $t("setting.removeDirectory")
+          }}</el-checkbox>
+          <el-checkbox v-model="accountForm.permissions.removeFile">{{
+            $t("setting.removeFile")
+          }}</el-checkbox>
         </el-form-item>
         <el-form-item :label="$t('setting.allowAccess')">
           <el-input
@@ -293,6 +331,9 @@ export default {
           download: true,
           uploadFile: true,
           uploadText: true,
+          createDirectory: true,
+          removeDirectory: true,
+          removeFile: true,
           allowAccess: "",
           denyAccess: "",
         },
@@ -391,6 +432,12 @@ export default {
 .pane-form {
   max-width: 520px;
   padding-top: 8px;
+}
+
+.setting-tip {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #909399;
 }
 
 .account-header {

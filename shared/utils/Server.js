@@ -108,7 +108,11 @@ function resolvePermissions(payload) {
     }
     if (payload.username) {
         let account = Account.getAccountByUsername(payload.username)
-        return account ? account.permissions : null
+        if (!account) {
+            return null
+        }
+        // 管理员账号合并 admin 标志，用于账号管理等管理接口鉴权
+        return account.admin ? {admin: true, ...account.permissions} : account.permissions
     }
     return payload.permissions || null
 }
@@ -190,6 +194,41 @@ function getClientIp(req) {
     let clientip = realip || sourceip
     console.log('sourceip %s, realip %s, clientip %s', sourceip, realip, clientip)
     return clientip;
+}
+
+/**
+ * 清洗相对路径（基于默认上传目录），过滤空段与越界段（..、.、含分隔符）
+ */
+function sanitizeRelativePath(relativePath) {
+    return (relativePath || '')
+        .replace(/\\/g, '/')
+        .split('/')
+        .filter(p => !!p && p !== '.' && p !== '..' && !/[\\/]/.test(p))
+}
+
+/**
+ * 拼接相对分享路径对应的真实路径（基于默认上传目录）
+ * @param {string} relativePath 相对路径，各段以 / 分隔
+ */
+function resolveUploadPath(relativePath) {
+    let uploadPath = Setting.getUploadPath()
+    let segments = sanitizeRelativePath(relativePath)
+    return segments.length > 0 ? path.join(uploadPath, ...segments) : uploadPath
+}
+
+/**
+ * 判断 targetPath 是否位于 basePath 之下（且不等于 basePath 本身）
+ */
+function isUnderPath(basePath, targetPath) {
+    let rel = path.relative(basePath, targetPath)
+    return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel)
+}
+
+/**
+ * 校验新建文件夹名称是否合法
+ */
+function isValidDirectoryName(name) {
+    return !!name && name !== '.' && name !== '..' && !/[\\/]/.test(name)
 }
 
 const initApp = () => {
@@ -320,8 +359,8 @@ const initApp = () => {
     });
 
     app.get("/api/getSetting", (req, res) => {
-        let { authEnable } = Setting.getSetting()
-        res.json({ code: 200, data: { authEnable, permissions: req.permissions || adminPermissions() }, message: 'success' })
+        let { authEnable, uploadToFolderEnable } = Setting.getSetting()
+        res.json({ code: 200, data: { authEnable, uploadToFolderEnable, permissions: req.permissions || adminPermissions() }, message: 'success' })
     })
 
     // JWT 为无状态 token，登出由客户端清除本地凭证即可
@@ -353,13 +392,74 @@ const initApp = () => {
         }
         let permissions = account.permissions
         let token = signJwt({username: account.username, permissions})
-        res.json({ code: 200, data: { Authorization: token, permissions }, message: 'success' })
+        res.json({ code: 200, data: { Authorization: token, permissions: resolvePermissions({username: account.username}) }, message: 'success' })
     });
+
+    // ----- 账号管理（仅管理员） -----
+    function requireAdmin(req, res) {
+        let permissions = req.permissions || adminPermissions()
+        if (!permissions || !permissions.admin) {
+            res.json({ code: 403, message: '仅管理员可执行该操作' })
+            return false
+        }
+        return true
+    }
+
+    app.get('/api/accounts', (req, res) => {
+        if (!requireAdmin(req, res)) return
+        let accounts = Account.listAccounts().map(account => {
+            let {password, ...rest} = account
+            return rest
+        })
+        res.json({ code: 200, data: accounts, message: 'success' })
+    })
+
+    app.post('/api/addAccount', jsonParser, async (req, res) => {
+        if (!requireAdmin(req, res)) return
+        try {
+            let result = await Account.addAccount(req.body || {})
+            res.json({ code: 200, message: result.message })
+        } catch (e) {
+            res.json({ code: 500, message: e.message || '添加失败' })
+        }
+    })
+
+    app.post('/api/updateAccount', jsonParser, async (req, res) => {
+        if (!requireAdmin(req, res)) return
+        try {
+            let {id, ...account} = req.body || {}
+            let result = await Account.updateAccount(id, account)
+            res.json({ code: 200, message: result.message })
+        } catch (e) {
+            res.json({ code: 500, message: e.message || '修改失败' })
+        }
+    })
+
+    app.post('/api/removeAccount', jsonParser, async (req, res) => {
+        if (!requireAdmin(req, res)) return
+        try {
+            let result = await Account.removeAccount((req.body || {}).id)
+            res.json({ code: 200, message: result.message })
+        } catch (e) {
+            res.json({ code: 500, message: e.message || '删除失败' })
+        }
+    })
 
     //filename
     let storage = multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, Setting.getUploadPath());
+            let dest = Setting.getUploadPath();
+            // 开启“上传到当前文件夹”时，根据 query.path 上传到对应子目录（已清洗，防止越界）
+            if (Setting.getUploadToFolderEnable()) {
+                let segments = sanitizeRelativePath(req.query.path)
+                if (segments.length > 0) {
+                    dest = path.join(dest, ...segments)
+                }
+            }
+            if (!fs.existsSync(dest)) {
+                fs.mkdirSync(dest, { recursive: true })
+            }
+            cb(null, dest);
         },
         filename: function (req, file, cb) {
             cb(null, file.originalname);
@@ -374,7 +474,18 @@ const initApp = () => {
             return;
         }
         let file = req.file;
+        if (!file) {
+            res.json({ code: 500, message: '上传失败，未接收到文件' })
+            return;
+        }
         let sourceip = getClientIp(req)
+        // 开启“上传到当前文件夹”时，文件已写入目标子目录，不加入根目录分享列表
+        let relativePath = Setting.getUploadToFolderEnable() ? sanitizeRelativePath(req.query.path).join('/') : ''
+        if (relativePath) {
+            EventDispatcher.triggerEvent({ type: 'fileDb.listChange' })
+            res.json({ code: 200, message: '添加成功' })
+            return;
+        }
         FileDb.addFile({ name: file.originalname, path: file.path, username: sourceip })
         res.json({ code: 200, message: '添加成功' })
     })
@@ -388,12 +499,167 @@ const initApp = () => {
         }
         let sourceip = getClientIp(req)
         let text = req.body.message
+        let nickname = (req.body.nickname || '').trim()
         if (!text) {
             res.json({ code: 500, message: '消息不能为空' })
             return;
         }
-        FileDb.addText(text, sourceip)
+        FileDb.addText(text, sourceip, nickname)
         res.json({ code: 200, message: '添加成功' })
+    })
+
+    // 文本列表（聊天视图使用）
+    app.get('/api/texts', function (req, res) {
+        let texts = FileDb.listFiles().filter(f => f.type === 'text')
+        res.json({ code: 200, data: texts, message: 'success' })
+    })
+
+    // 新建文件夹：根目录创建于默认上传目录，子目录创建于当前目录下
+    app.post('/api/createDirectory', jsonParser, function (req, res, next) {
+        let permissions = req.permissions || adminPermissions()
+        if (!permissions.createDirectory) {
+            res.json({ code: 403, message: '无新建文件夹权限' })
+            return;
+        }
+        let relativePath = sanitizeRelativePath(req.body.path).join('/')
+        let name = (req.body.name || '').trim()
+        if (!isValidDirectoryName(name)) {
+            res.json({ code: 500, message: '文件夹名称不合法' })
+            return;
+        }
+        let parentPath = resolveUploadPath(relativePath)
+        if (!fs.existsSync(parentPath) || !fs.lstatSync(parentPath).isDirectory()) {
+            res.json({ code: 500, message: '目标目录不存在' })
+            return;
+        }
+        let targetPath = path.join(parentPath, name)
+        if (fs.existsSync(targetPath)) {
+            res.json({ code: 500, message: '已存在同名文件或文件夹' })
+            return;
+        }
+        try {
+            fs.mkdirSync(targetPath)
+        } catch (e) {
+            console.log(e)
+            res.json({ code: 500, message: '创建文件夹失败：' + e.message })
+            return;
+        }
+        if (!relativePath) {
+            // 根目录：加入分享数据库
+            FileDb.addDirectory(name, targetPath, getClientIp(req))
+        } else {
+            // 子目录：文件系统自动列出，手动通知刷新
+            EventDispatcher.triggerEvent({ type: 'fileDb.listChange' })
+        }
+        res.json({ code: 200, message: '创建成功' })
+    })
+
+    // 删除文件
+    app.post('/api/removeFile', jsonParser, function (req, res, next) {
+        let permissions = req.permissions || adminPermissions()
+        if (!permissions.removeFile) {
+            res.json({ code: 403, message: '无删除文件权限' })
+            return;
+        }
+        let relativePath = sanitizeRelativePath(req.body.path).join('/')
+        let name = (req.body.name || '').trim()
+        if (!name) {
+            res.json({ code: 500, message: '文件名称不能为空' })
+            return;
+        }
+        try {
+            let parseResult = parsePath(relativePath ? relativePath + '/' + name : name)
+            let finalPath = parseResult.finalPath
+            if (!fs.existsSync(finalPath)) {
+                res.json({ code: 500, message: '文件不存在' })
+                return;
+            }
+            if (fs.lstatSync(finalPath).isDirectory()) {
+                res.json({ code: 500, message: '该名称是文件夹，请使用删除文件夹' })
+                return;
+            }
+            if (!isUnderPath(Setting.getUploadPath(), finalPath)) {
+                res.json({ code: 500, message: '仅支持删除上传目录内的文件' })
+                return;
+            }
+            fs.unlinkSync(finalPath)
+            if (parseResult.filePaths.length === 1) {
+                // 根目录条目需同步删除分享数据库记录
+                FileDb.removeFile(parseResult.startPath)
+            } else {
+                EventDispatcher.triggerEvent({ type: 'fileDb.listChange' })
+            }
+            res.json({ code: 200, message: '删除成功' })
+        } catch (e) {
+            console.log(e)
+            res.json({ code: 500, message: e.message || '删除失败' })
+        }
+    })
+
+    // 删除文件夹（有子文件时禁止删除）
+    app.post('/api/removeDirectory', jsonParser, function (req, res, next) {
+        let permissions = req.permissions || adminPermissions()
+        if (!permissions.removeDirectory) {
+            res.json({ code: 403, message: '无删除文件夹权限' })
+            return;
+        }
+        let relativePath = sanitizeRelativePath(req.body.path).join('/')
+        let name = (req.body.name || '').trim()
+        if (!name) {
+            res.json({ code: 500, message: '文件夹名称不能为空' })
+            return;
+        }
+        try {
+            let parseResult = parsePath(relativePath ? relativePath + '/' + name : name)
+            let finalPath = parseResult.finalPath
+            if (!fs.existsSync(finalPath)) {
+                res.json({ code: 500, message: '文件夹不存在' })
+                return;
+            }
+            if (!fs.lstatSync(finalPath).isDirectory()) {
+                res.json({ code: 500, message: '该名称是文件，请使用删除文件' })
+                return;
+            }
+            if (!isUnderPath(Setting.getUploadPath(), finalPath)) {
+                res.json({ code: 500, message: '仅支持删除上传目录内的文件夹' })
+                return;
+            }
+            if (fs.readdirSync(finalPath).length > 0) {
+                res.json({ code: 500, message: '文件夹不为空，禁止删除' })
+                return;
+            }
+            fs.rmdirSync(finalPath)
+            if (parseResult.filePaths.length === 1) {
+                FileDb.removeFile(parseResult.startPath)
+            } else {
+                EventDispatcher.triggerEvent({ type: 'fileDb.listChange' })
+            }
+            res.json({ code: 200, message: '删除成功' })
+        } catch (e) {
+            console.log(e)
+            res.json({ code: 500, message: e.message || '删除失败' })
+        }
+    })
+
+    // 自定义排序：置顶/取消置顶/上移/下移（仅根目录分享条目）
+    app.post('/api/sortFile', jsonParser, function (req, res, next) {
+        let body = req.body || {}
+        let name = body.name
+        let action = body.action
+        let result
+        if (action === 'pin' || action === 'unpin') {
+            result = FileDb.pinFile(name, action === 'pin')
+        } else if (action === 'up' || action === 'down') {
+            result = FileDb.moveFile(name, action === 'up' ? -1 : 1)
+        } else {
+            res.json({ code: 500, message: '不支持的排序操作' })
+            return;
+        }
+        if (result.success) {
+            res.json({ code: 200, message: 'success' })
+        } else {
+            res.json({ code: 500, message: result.message || '操作失败' })
+        }
     })
 
     // 注册SSE事件

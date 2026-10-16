@@ -10,6 +10,9 @@ function defaultPermissions() {
         download: true,
         uploadFile: true,
         uploadText: true,
+        createDirectory: true,
+        removeDirectory: true,
+        removeFile: true,
         allowAccess: '',
         denyAccess: '',
     }
@@ -24,6 +27,9 @@ function normalizePermissions(permissions = {}) {
         download: permissions.download == null ? base.download : !!permissions.download,
         uploadFile: permissions.uploadFile == null ? base.uploadFile : !!permissions.uploadFile,
         uploadText: permissions.uploadText == null ? base.uploadText : !!permissions.uploadText,
+        createDirectory: permissions.createDirectory == null ? base.createDirectory : !!permissions.createDirectory,
+        removeDirectory: permissions.removeDirectory == null ? base.removeDirectory : !!permissions.removeDirectory,
+        removeFile: permissions.removeFile == null ? base.removeFile : !!permissions.removeFile,
         allowAccess: typeof permissions.allowAccess === 'string' ? permissions.allowAccess : '',
         denyAccess: typeof permissions.denyAccess === 'string' ? permissions.denyAccess : '',
     }
@@ -89,6 +95,7 @@ function addAccount(account = {}) {
             username,
             password,
             permissions: normalizePermissions(account.permissions),
+            admin: account.admin === true,
         }
         accounts.push(newAccount)
         saveAccounts(accounts)
@@ -120,6 +127,10 @@ function updateAccount(id, account = {}) {
             username,
             password: account.password ? account.password : accounts[idx].password,
             permissions: account.permissions ? normalizePermissions(account.permissions) : accounts[idx].permissions,
+        }
+        // 仅在显式提供 admin 字段时更新管理员标志
+        if (account.admin != null) {
+            accounts[idx].admin = account.admin === true
         }
         saveAccounts(accounts)
         resolve({success: true, message: '修改成功', data: accounts[idx]})
