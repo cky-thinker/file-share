@@ -57,18 +57,27 @@
         </span>
         <span class="panel-title">{{ $t("detail.filesTitle") }}</span>
         <div class="panel-actions">
-          <el-button type="primary" @click="selectFiles">
-            <el-icon>
-              <Plus />
-            </el-icon>
-            &nbsp;{{ $t("detail.addFile") }}
-          </el-button>
-          <el-button :disabled="!fileItems.length" @click="clearAllFiles">
-            <el-icon>
-              <Delete />
-            </el-icon>
-            &nbsp;{{ $t("detail.clearList") }}
-          </el-button>
+          <el-tooltip effect="dark" :content="$t('detail.addFile')" placement="bottom">
+            <el-button class="icon-btn" text @click="selectFiles">
+              <el-icon :size="17">
+                <Plus />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+          <el-tooltip effect="dark" :content="$t('detail.addFolder')" placement="bottom">
+            <el-button class="icon-btn" text @click="selectFolder">
+              <el-icon :size="17">
+                <FolderAdd />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+          <el-tooltip effect="dark" :content="$t('detail.clearList')" placement="bottom">
+            <el-button class="icon-btn danger-icon-btn" text :disabled="!fileItems.length" @click="clearAllFiles">
+              <el-icon :size="17">
+                <Delete />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
         </div>
       </header>
       <div class="panel-toolbar">
@@ -321,7 +330,7 @@
     <template #footer>
       <el-button type="primary" @click="formSubmit">{{
         $t("detail.submit")
-      }}</el-button>
+        }}</el-button>
     </template>
   </el-dialog>
 
@@ -338,7 +347,7 @@
     <template #footer>
       <el-button @click="fullTextVisible = false">{{
         $t("common.close")
-      }}</el-button>
+        }}</el-button>
       <el-button type="primary" @click="copyFullText($event)">
         <el-icon>
           <CopyDocument />
@@ -350,6 +359,8 @@
 
   <!-- 隐藏的文件选择器 -->
   <input ref="fileInput" type="file" multiple style="display: none" @change="onInputFiles" />
+  <!-- 隐藏的文件夹选择器 -->
+  <input ref="folderInput" type="file" webkitdirectory style="display: none" @change="onInputFolder" />
 </div>
 </template>
 
@@ -366,6 +377,7 @@ import {
   Delete,
   EditPen,
   Folder,
+  FolderAdd,
   FolderOpened,
   Link,
   MoreFilled,
@@ -457,6 +469,7 @@ export default {
     Delete,
     EditPen,
     Folder,
+    FolderAdd,
     FolderOpened,
     Link,
     MoreFilled,
@@ -587,10 +600,29 @@ export default {
     selectFiles: function () {
       this.$refs.fileInput.click();
     },
+    // 选择文件夹
+    selectFolder: function () {
+      this.$refs.folderInput.click();
+    },
     onInputFiles: function (e) {
       const files = Array.from(e.target.files || []);
       files.forEach((file) => this.addFiles(file));
       e.target.value = "";
+    },
+    // 从 webkitdirectory 选择结果中还原所选文件夹路径
+    onInputFolder: function (e) {
+      const files = Array.from(e.target.files || []);
+      e.target.value = "";
+      if (!files.length) {
+        return;
+      }
+      const first = files[0];
+      const rel = first.webkitRelativePath || "";
+      const folderName = rel ? rel.split("/")[0] : first.name;
+      const folderPath = rel
+        ? first.path.slice(0, first.path.length - rel.length) + folderName
+        : first.path;
+      this.addFiles({ name: folderName, path: folderPath });
     },
     // 拖拽添加
     onDragEnter: function () {

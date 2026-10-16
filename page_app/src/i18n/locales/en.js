@@ -80,6 +80,7 @@ export default {
     filesTitle: "Shared Files",
     textsTitle: "Shared Texts",
     addFile: "Add Files",
+    addFolder: "Add Folder",
     clearList: "Clear List",
     searchFilePlaceholder: "Search files",
     searchTextPlaceholder: "Search texts",

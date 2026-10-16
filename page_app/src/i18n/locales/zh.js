@@ -80,6 +80,7 @@ export default {
     filesTitle: "共享文件",
     textsTitle: "共享文本",
     addFile: "添加文件",
+    addFolder: "添加文件夹",
     clearList: "清空列表",
     searchFilePlaceholder: "搜索文件名称",
     searchTextPlaceholder: "搜索共享文本",
