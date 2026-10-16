@@ -1,60 +1,53 @@
-<template>
-  <el-config-provider :locale="elementLocale">
-    <div class="body">
-      <!-- 顶部应用栏 -->
-      <header class="app-bar">
-        <div class="app-bar-left">
-          <img class="app-logo" :src="appLogo" alt="FileShare" />
-          <span class="app-name">FileShare</span>
-          <span class="app-bar-divider"></span>
-          <span class="app-desc">{{ $t("app.desc") }}</span>
-        </div>
-        <div class="app-bar-right">
-          <el-tooltip effect="dark" :content="$t('app.setting')" placement="bottom">
-            <el-button class="bar-icon-btn" text @click="onHandlerSetting">
-              <el-icon :size="18"><SettingIcon /></el-icon>
+<template><el-config-provider :locale="elementLocale">
+  <div class="body">
+    <!-- 顶部应用栏 -->
+    <header class="app-bar">
+      <div class="app-bar-left">
+        <img class="app-logo" :src="appLogo" alt="FileShare" />
+        <span class="app-name">FileShare</span>
+        <span class="app-bar-divider"></span>
+        <span class="app-desc">{{ $t("app.desc") }}</span>
+      </div>
+      <div class="app-bar-right">
+        <el-tooltip effect="dark" :content="$t('app.setting')" placement="bottom">
+          <el-button class="bar-icon-btn" text @click="onHandlerSetting">
+            <el-icon :size="18">
+              <SettingIcon />
+            </el-icon>
+          </el-button>
+        </el-tooltip>
+        <span class="status-tag" :class="{ running: isRunning }">
+          <span class="status-dot"></span>
+          {{ isRunning ? $t("app.statusRunning") : $t("app.statusStopped") }}
+        </span>
+        <el-popconfirm v-if="isRunning" :title="$t('app.stopConfirm')" :confirm-button-text="$t('common.confirm')"
+          :cancel-button-text="$t('common.cancel')" @confirm="stopServer">
+          <template #reference>
+            <el-button type="danger" plain class="stop-btn">
+              <el-icon>
+                <SwitchButton />
+              </el-icon>
+              &nbsp;{{ $t("app.stopShare") }}
             </el-button>
-          </el-tooltip>
-          <span class="status-tag" :class="{ running: isRunning }">
-            <span class="status-dot"></span>
-            {{ isRunning ? $t("app.statusRunning") : $t("app.statusStopped") }}
-          </span>
-          <el-popconfirm
-            v-if="isRunning"
-            :title="$t('app.stopConfirm')"
-            :confirm-button-text="$t('common.confirm')"
-            :cancel-button-text="$t('common.cancel')"
-            @confirm="stopServer"
-          >
-            <template #reference>
-              <el-button type="danger" plain class="stop-btn">
-                <el-icon><SwitchButton /></el-icon>
-                &nbsp;{{ $t("app.stopShare") }}
-              </el-button>
-            </template>
-          </el-popconfirm>
-        </div>
-      </header>
-
-      <!-- 内容区 -->
-      <main class="container">
-        <el-dialog
-          v-model="settingFormVisible"
-          :title="$t('app.setting')"
-          style="width: 70%"
-        >
-          <setting></setting>
-          <template #footer>
-            <el-button type="primary" @click="closeSettingsForm">{{
-              $t("common.close")
-            }}</el-button>
           </template>
-        </el-dialog>
-        <router-view></router-view>
-      </main>
-    </div>
-  </el-config-provider>
-</template>
+        </el-popconfirm>
+      </div>
+    </header>
+
+    <!-- 内容区 -->
+    <main class="container">
+      <el-dialog v-model="settingFormVisible" :title="$t('app.setting')" style="width: 70%">
+        <setting></setting>
+        <template #footer>
+          <el-button type="primary" @click="closeSettingsForm">{{
+            $t("common.close")
+          }}</el-button>
+        </template>
+      </el-dialog>
+      <router-view></router-view>
+    </main>
+  </div>
+</el-config-provider></template>
 
 <script>
 import { Setting as SettingIcon, SwitchButton } from "@element-plus/icons-vue";
@@ -170,7 +163,7 @@ body {
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
   color: #1f2d3d;
-  background: linear-gradient(180deg, #f7f9fd 0%, #eef2f9 100%);
+  background: linear-gradient(to top, #fbc2eb 0%, #a6c1ee 100%);
   height: 100%;
   position: relative;
   display: flex;

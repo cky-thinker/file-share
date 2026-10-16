@@ -43,7 +43,7 @@ export default {
     createDirectory: "新建文件夹",
     removeDirectory: "删除文件夹",
     removeFile: "删除文件",
-    uploadToFolder: "网页端上传到当前目录",
+    uploadToFolder: "上传当前目录",
     uploadToFolderTip: "开启后，网页端上传的文件将保存到当前所在目录",
     accessScope: "访问范围",
     allowAccess: "允许访问",
