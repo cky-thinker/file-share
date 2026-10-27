@@ -2,6 +2,7 @@ export default {
   common: {
     confirm: "Confirm",
     cancel: "Cancel",
+    close: "Close",
   },
   filePage: {
     slogan: "Cross-platform, high-speed file transfer tool",
@@ -59,6 +60,9 @@ export default {
     download: "Download",
     delete: "Delete",
     copyText: "Copy Text",
+    viewFullText: "View Full Text",
+    fullTextTitle: "Shared Text",
+    copyFullText: "Copy All",
     noFiles: "No shared files",
     noFilesTip: "Use the buttons in the top right to upload files or create a folder",
     searchNoResult: "No matching results",

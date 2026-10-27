@@ -9,10 +9,6 @@
               <h3>{{ $t("filePage.slogan") }}</h3>
             </div>
             <div v-if="authEnable || permissions.admin" class="user-section">
-              <button v-if="permissions.admin" @click="goAccountManager" class="logout-btn">
-                <el-icon class="logout-icon"><Setting /></el-icon>
-                <span>{{ $t("filePage.accountManage") }}</span>
-              </button>
               <button @click="handleLogout" class="logout-btn">
                 <el-icon class="logout-icon"><User /></el-icon>
                 <span>{{ $t("filePage.logout") }}</span>
@@ -52,14 +48,6 @@
                 <el-button class="icon-btn" text :disabled="!batchDownload" @click="batchDownloadHandler">
                   <el-icon :size="17">
                     <Download />
-                  </el-icon>
-                </el-button>
-              </el-tooltip>
-              <el-tooltip v-if="permissions.createDirectory" effect="dark" :content="$t('filePage.createFolder')"
-                          placement="bottom">
-                <el-button class="icon-btn" text @click="dirFormVisible = true">
-                  <el-icon :size="17">
-                    <FolderAdd />
                   </el-icon>
                 </el-button>
               </el-tooltip>
@@ -118,14 +106,6 @@
                     <el-button class="icon-btn" text @click.stop="handleDownload(file)">
                       <el-icon>
                         <Download />
-                      </el-icon>
-                    </el-button>
-                  </el-tooltip>
-                  <el-tooltip v-if="canRemove(file)" effect="dark" :content="$t('filePage.delete')"
-                              placement="bottom">
-                    <el-button class="icon-btn danger-icon-btn" text @click.stop="removeHandler(file, $event)">
-                      <el-icon>
-                        <Delete />
                       </el-icon>
                     </el-button>
                   </el-tooltip>
@@ -298,24 +278,6 @@
         </span>
         </template>
       </el-dialog>
-      <el-dialog
-        :title="$t('filePage.createFolder')"
-        class="dialog"
-        width="400px"
-        v-model="dirFormVisible">
-        <el-input
-          v-model="dirForm.name"
-          :placeholder="$t('filePage.folderName')"
-          maxlength="50"
-          @keyup.enter="submitDirForm"
-        ></el-input>
-        <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="submitDirForm">{{ $t("filePage.confirm") }}</el-button>
-          <el-button @click="dirFormVisible = false">{{ $t("filePage.cancel") }}</el-button>
-        </span>
-        </template>
-      </el-dialog>
 
       <!-- 查看全文弹窗 -->
       <el-dialog
@@ -350,7 +312,7 @@
 </template>
 
 <script>
-import {createDirectory, getTusConfig, listFiles, listTexts, removeFile, removeDirectory, sortFile, uploadMsg} from "@/api/FileApi";
+import {getTusConfig, listFiles, listTexts, sortFile, uploadMsg} from "@/api/FileApi";
 import {getToken, logout} from "@/utils/auth";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {copyClipboard} from '@/utils/clipboard'
@@ -359,15 +321,12 @@ import {
   ArrowUp,
   ChatDotRound,
   CopyDocument,
-  Delete,
   Download,
   EditPen,
   Folder,
-  FolderAdd,
   FolderOpened,
   Plus,
   Search as SearchIcon,
-  Setting,
   Top,
   UploadFilled,
   User
@@ -427,14 +386,11 @@ export default {
     ArrowUp,
     ChatDotRound,
     CopyDocument,
-    Delete,
     Download,
     EditPen,
     Folder,
-    FolderAdd,
     FolderOpened,
     Plus,
-    Setting,
     Top,
     UploadFilled,
     User
@@ -454,11 +410,6 @@ export default {
       msgForm: {
         message: '',
         nickname: ''
-      },
-      // 新建文件夹表单
-      dirFormVisible: false,
-      dirForm: {
-        name: ''
       },
 
       // 共享文件列表
@@ -532,16 +483,6 @@ export default {
       return {
         label: badge ? badge[0] : DEFAULT_BADGE[0],
         color: badge ? badge[1] : DEFAULT_BADGE[1]
-      }
-    },
-    canRemove(file) {
-      return file.type === 'directory' ? this.permissions.removeDirectory : this.permissions.removeFile
-    },
-    removeHandler(file, event) {
-      if (file.type === 'directory') {
-        this.handleRemoveDirectory(file, event)
-      } else {
-        this.handleRemoveFile(file, event)
       }
     },
     updateRouter() {
@@ -755,59 +696,6 @@ export default {
         this.loadTexts()
       })
     },
-    submitDirForm() {
-      let name = (this.dirForm.name || '').trim()
-      if (!name) {
-        ElMessage({message: t('filePage.folderNameRequired'), type: 'warning'})
-        return
-      }
-      createDirectory({path: this.path.join('/'), name}).then(() => {
-        ElMessage({message: t('filePage.createFolderSuccess'), type: 'success'})
-        this.dirFormVisible = false
-        this.dirForm.name = ''
-        this.showFiles()
-      }).catch(e => {
-        ElMessage({message: (e && e.message) || t('filePage.createFolderFail'), type: 'error'})
-      })
-    },
-    handleRemoveFile(item, event) {
-      if (event && event.stopPropagation) {
-        event.stopPropagation()
-      }
-      ElMessageBox.confirm(t('filePage.deleteFileConfirm', {name: item.name}), t('filePage.deleteConfirmTitle'), {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning'
-      }).then(() => {
-        removeFile({path: this.path.join('/'), name: item.name}).then(() => {
-          ElMessage({message: t('filePage.deleteSuccess'), type: 'success'})
-          this.showFiles()
-        }).catch(e => {
-          ElMessage({message: (e && e.message) || t('filePage.deleteFail'), type: 'error'})
-        })
-      }).catch(() => {
-        // 用户取消删除
-      })
-    },
-    handleRemoveDirectory(item, event) {
-      if (event && event.stopPropagation) {
-        event.stopPropagation()
-      }
-      ElMessageBox.confirm(t('filePage.deleteFolderConfirm', {name: item.name}), t('filePage.deleteConfirmTitle'), {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning'
-      }).then(() => {
-        removeDirectory({path: this.path.join('/'), name: item.name}).then(() => {
-          ElMessage({message: t('filePage.deleteSuccess'), type: 'success'})
-          this.showFiles()
-        }).catch(e => {
-          ElMessage({message: (e && e.message) || t('filePage.deleteFail'), type: 'error'})
-        })
-      }).catch(() => {
-        // 用户取消删除
-      })
-    },
     handleLogout() {
       ElMessageBox.confirm(t('filePage.logoutConfirm'), t('filePage.tip'), {
         confirmButtonText: t('common.confirm'),
@@ -820,9 +708,6 @@ export default {
       }).catch(() => {
         // 用户取消退出
       })
-    },
-    goAccountManager() {
-      this.$router.push('/account')
     },
     // 置顶/取消置顶/上移/下移（仅根目录分享条目）
     async handleSort(item, action) {
