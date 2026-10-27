@@ -4,7 +4,8 @@ const { spawnSync } = require("child_process");
 
 const rootDir = path.resolve(__dirname, "..");
 const sharedDir = path.join(rootDir, "shared");
-const preloadDir = path.join(rootDir, "utools", "preload");
+const utoolsDir = path.join(rootDir, "utools");
+const preloadDir = path.join(utoolsDir, "preload");
 const tempRoot = path.join(rootDir, ".tmp", "utools-preload-pack");
 const tempPackDir = path.join(tempRoot, "pack");
 const tempInstallDir = path.join(tempRoot, "install");
@@ -26,6 +27,26 @@ function run(command, args, cwd) {
     throw new Error(`Command failed: ${command} ${args.join(" ")}`);
   }
   return result.stdout || "";
+}
+
+const debugFileSuffixes = [".map", ".js.gz"];
+
+// 递归清理 uTools 产物中的调试文件（sourcemap、压缩中间产物）
+function cleanDebugFiles(dir) {
+  if (!fs.existsSync(dir)) {
+    return 0;
+  }
+  let removed = 0;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      removed += cleanDebugFiles(entryPath);
+    } else if (debugFileSuffixes.some((suffix) => entry.name.endsWith(suffix))) {
+      fs.rmSync(entryPath, { force: true });
+      removed += 1;
+    }
+  }
+  return removed;
 }
 
 function findPackedTgz(dir) {
@@ -87,6 +108,10 @@ function main() {
   fs.cpSync(path.join(tempInstallDir, "node_modules"), preloadNodeModules, {
     recursive: true,
   });
+
+  // 4. 清理 uTools 产物中的 .map、.js.gz 调试文件
+  const removed = cleanDebugFiles(utoolsDir);
+  console.log(`已清理调试文件 ${removed} 个。`);
 
   fs.rmSync(tempRoot, { recursive: true, force: true });
 

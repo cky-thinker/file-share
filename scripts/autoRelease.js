@@ -16,6 +16,7 @@ const versionedPackagePaths = [
     path.resolve(__dirname, '..', 'page_app', 'package.json'),
     path.resolve(__dirname, '..', 'page_web', 'package.json'),
     path.resolve(__dirname, '..', 'shared', 'package.json'),
+    path.resolve(__dirname, '..', 'utools', "preload", 'package.json'),
     path.resolve(__dirname, '..', 'docker', 'package.json')
 ];
 const changelogDir = path.resolve(__dirname, '..', 'wiki', 'changelogs');
