@@ -27,6 +27,7 @@ export default {
     continue: "继续",
     uploadSuccess: "上传成功",
     uploadFail: "上传失败",
+    dropToAdd: "松开鼠标，添加到共享列表",
     sendSuccess: "发送成功",
     logoutConfirm: "确定要退出登录吗？",
     tip: "提示",

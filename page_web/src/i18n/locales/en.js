@@ -27,6 +27,7 @@ export default {
     continue: "Continue",
     uploadSuccess: "Uploaded successfully",
     uploadFail: "Upload failed",
+    dropToAdd: "Release to add to the shared list",
     sendSuccess: "Sent successfully",
     logoutConfirm: "Are you sure you want to log out?",
     tip: "Tip",

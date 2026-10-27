@@ -78,7 +78,8 @@
             <el-input class="toolbar-search" v-model="query" clearable :prefix-icon="SearchIcon"
                       :placeholder="$t('filePage.search')"></el-input>
           </div>
-          <div class="panel-body">
+          <div class="panel-body" @dragenter.prevent="onDragEnter" @dragover.prevent
+               @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
             <template v-if="filteredFiles.length">
               <div v-for="file in filteredFiles" :key="file.name" class="file-row">
                 <el-checkbox class="row-check" v-model="file.selected"
@@ -149,6 +150,15 @@
               <div v-if="!query" class="empty-tip">{{ $t("filePage.noFilesTip") }}</div>
               <el-button v-else text type="primary" @click="query = ''">{{ $t("filePage.clearSearch") }}</el-button>
             </div>
+            <!-- 拖拽覆盖层 -->
+            <transition name="fade">
+              <div v-if="dragCount > 0" class="drop-overlay">
+                <el-icon :size="36">
+                  <UploadFilled />
+                </el-icon>
+                <div class="drop-text">{{ $t("filePage.dropToAdd") }}</div>
+              </div>
+            </transition>
           </div>
           <footer class="panel-footer">
             {{ $t("filePage.fileCount", { count: filteredFiles.length }) }}
@@ -426,6 +436,8 @@ export default {
       // 查看全文弹窗
       fullTextVisible: false,
       fullTextMsg: null,
+      // 拖拽上传计数（覆盖层显示状态）
+      dragCount: 0,
       permissions: {
         download: true,
         uploadFile: true,
@@ -588,6 +600,49 @@ export default {
     },
     updateHeaders() {
       this.headers = {Authorization: getToken()}
+    },
+    // 拖拽上传：进入/离开时计数，避免子元素触发闪烁
+    onDragEnter() {
+      if (!this.permissions.uploadFile) {
+        return
+      }
+      this.dragCount += 1
+    },
+    onDragLeave() {
+      this.dragCount = Math.max(0, this.dragCount - 1)
+    },
+    async onDrop(e) {
+      this.dragCount = 0
+      if (!this.permissions.uploadFile) {
+        return
+      }
+      const files = Array.from((e.dataTransfer && e.dataTransfer.files) || [])
+      if (!files.length) {
+        return
+      }
+      const results = await Promise.all(files.map(file => this.uploadDroppedFile(file)))
+      if (results.every(Boolean)) {
+        ElMessage({message: t('filePage.uploadSuccess'), type: 'success'})
+        this.showFiles()
+      }
+    },
+    uploadDroppedFile(file) {
+      const formData = new FormData()
+      formData.append('file', file)
+      return fetch(this.uploadAction, {
+        method: 'POST',
+        headers: {Authorization: getToken()},
+        body: formData
+      }).then(res => res.json()).then(data => {
+        if (data.code !== 200) {
+          ElMessage({message: data.message || t('filePage.uploadFail'), type: 'error'})
+          return false
+        }
+        return true
+      }).catch(() => {
+        ElMessage({message: t('filePage.uploadFail'), type: 'error'})
+        return false
+      })
     },
 
     uploadSuccess(response, file, fileList) {
@@ -988,6 +1043,35 @@ export default {
 
 .panel-body::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* ===== 拖拽覆盖层 ===== */
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(231, 240, 254, 0.92);
+  border: 2px dashed var(--el-color-primary);
+  border-radius: 12px;
+  color: var(--el-color-primary);
+  font-size: 14px;
+  font-weight: 500;
+  box-sizing: border-box;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 /* 面板底部统计 */
