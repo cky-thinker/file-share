@@ -78,86 +78,88 @@
             <el-input class="toolbar-search" v-model="query" clearable :prefix-icon="SearchIcon"
                       :placeholder="$t('filePage.search')"></el-input>
           </div>
-          <div class="panel-body" @dragenter.prevent="onDragEnter" @dragover.prevent
+          <div class="panel-body-wrap" @dragenter.prevent="onDragEnter" @dragover.prevent
                @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
-            <template v-if="filteredFiles.length">
-              <div v-for="file in filteredFiles" :key="file.name" class="file-row">
-                <el-checkbox class="row-check" v-model="file.selected"
-                             @change="onSelectHandler(file.name)"></el-checkbox>
-                <span v-if="file.type === 'directory'" class="file-badge dir-badge">
-                  <el-icon :size="18">
-                    <Folder />
-                  </el-icon>
-                </span>
-                <el-image v-else-if="isImage(file)" class="file-thumb" :src="file.fullUrl"
-                          :preview-src-list="[file.fullUrl]" fit="cover" preview-teleported
-                          hide-on-click-modal>
-                  <template #error>
-                    <span class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
-                      {{ fileBadge(file).label }}
-                    </span>
-                  </template>
-                </el-image>
-                <span v-else class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
-                  {{ fileBadge(file).label }}
-                </span>
-                <div class="file-info" :class="{ pointer: file.type === 'directory' }"
-                     @click="openDirectory(file, $event)">
-                  <el-tooltip effect="light" placement="top" :content="file.name">
-                    <span class="file-name">{{ file.name }}</span>
-                  </el-tooltip>
-                  <span v-if="file.username" class="file-sub">
-                    {{ $t("filePage.sharedBy", { name: file.username }) }}
+            <div class="panel-body">
+              <template v-if="filteredFiles.length">
+                <div v-for="file in filteredFiles" :key="file.name" class="file-row">
+                  <el-checkbox class="row-check" v-model="file.selected"
+                               @change="onSelectHandler(file.name)"></el-checkbox>
+                  <span v-if="file.type === 'directory'" class="file-badge dir-badge">
+                    <el-icon :size="18">
+                      <Folder />
+                    </el-icon>
                   </span>
-                </div>
-                <div class="file-actions">
-                  <el-tooltip v-if="permissions.download" effect="dark" :content="$t('filePage.download')"
-                              placement="bottom">
-                    <el-button class="icon-btn" text @click.stop="handleDownload(file)">
-                      <el-icon>
-                        <Download />
-                      </el-icon>
-                    </el-button>
-                  </el-tooltip>
-                  <!-- 自定义排序（仅根目录分享列表） -->
-                  <template v-if="path.length === 0">
-                    <el-tooltip effect="dark" :content="file.pinned ? $t('filePage.unpin') : $t('filePage.pin')"
+                  <el-image v-else-if="isImage(file)" class="file-thumb" :src="file.fullUrl"
+                            :preview-src-list="[file.fullUrl]" fit="cover" preview-teleported
+                            hide-on-click-modal>
+                    <template #error>
+                      <span class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
+                        {{ fileBadge(file).label }}
+                      </span>
+                    </template>
+                  </el-image>
+                  <span v-else class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
+                    {{ fileBadge(file).label }}
+                  </span>
+                  <div class="file-info" :class="{ pointer: file.type === 'directory' }"
+                       @click="openDirectory(file, $event)">
+                    <el-tooltip effect="light" placement="top" :content="file.name">
+                      <span class="file-name">{{ file.name }}</span>
+                    </el-tooltip>
+                    <span v-if="file.username" class="file-sub">
+                      {{ $t("filePage.sharedBy", { name: file.username }) }}
+                    </span>
+                  </div>
+                  <div class="file-actions">
+                    <el-tooltip v-if="permissions.download" effect="dark" :content="$t('filePage.download')"
                                 placement="bottom">
-                      <el-button class="icon-btn" :class="{ pinned: file.pinned }" text
-                                 @click.stop="handleSort(file, file.pinned ? 'unpin' : 'pin')">
+                      <el-button class="icon-btn" text @click.stop="handleDownload(file)">
                         <el-icon>
-                          <Top />
+                          <Download />
                         </el-icon>
                       </el-button>
                     </el-tooltip>
-                    <el-tooltip effect="dark" :content="$t('filePage.moveUp')" placement="bottom">
-                      <el-button class="icon-btn" text @click.stop="handleSort(file, 'up')">
-                        <el-icon>
-                          <ArrowUp />
-                        </el-icon>
-                      </el-button>
-                    </el-tooltip>
-                    <el-tooltip effect="dark" :content="$t('filePage.moveDown')" placement="bottom">
-                      <el-button class="icon-btn" text @click.stop="handleSort(file, 'down')">
-                        <el-icon>
-                          <ArrowDown />
-                        </el-icon>
-                      </el-button>
-                    </el-tooltip>
-                  </template>
+                    <!-- 自定义排序（仅根目录分享列表） -->
+                    <template v-if="path.length === 0">
+                      <el-tooltip effect="dark" :content="file.pinned ? $t('filePage.unpin') : $t('filePage.pin')"
+                                  placement="bottom">
+                        <el-button class="icon-btn" :class="{ pinned: file.pinned }" text
+                                   @click.stop="handleSort(file, file.pinned ? 'unpin' : 'pin')">
+                          <el-icon>
+                            <Top />
+                          </el-icon>
+                        </el-button>
+                      </el-tooltip>
+                      <el-tooltip effect="dark" :content="$t('filePage.moveUp')" placement="bottom">
+                        <el-button class="icon-btn" text @click.stop="handleSort(file, 'up')">
+                          <el-icon>
+                            <ArrowUp />
+                          </el-icon>
+                        </el-button>
+                      </el-tooltip>
+                      <el-tooltip effect="dark" :content="$t('filePage.moveDown')" placement="bottom">
+                        <el-button class="icon-btn" text @click.stop="handleSort(file, 'down')">
+                          <el-icon>
+                            <ArrowDown />
+                          </el-icon>
+                        </el-button>
+                      </el-tooltip>
+                    </template>
+                  </div>
                 </div>
+              </template>
+              <!-- 空状态 -->
+              <div v-else class="panel-empty">
+                <el-icon :size="40" class="empty-icon">
+                  <Folder />
+                </el-icon>
+                <div class="empty-title">
+                  {{ query ? $t("filePage.searchNoResult") : $t("filePage.noFiles") }}
+                </div>
+                <div v-if="!query" class="empty-tip">{{ $t("filePage.noFilesTip") }}</div>
+                <el-button v-else text type="primary" @click="query = ''">{{ $t("filePage.clearSearch") }}</el-button>
               </div>
-            </template>
-            <!-- 空状态 -->
-            <div v-else class="panel-empty">
-              <el-icon :size="40" class="empty-icon">
-                <Folder />
-              </el-icon>
-              <div class="empty-title">
-                {{ query ? $t("filePage.searchNoResult") : $t("filePage.noFiles") }}
-              </div>
-              <div v-if="!query" class="empty-tip">{{ $t("filePage.noFilesTip") }}</div>
-              <el-button v-else text type="primary" @click="query = ''">{{ $t("filePage.clearSearch") }}</el-button>
             </div>
             <!-- 拖拽覆盖层 -->
             <transition name="fade">
@@ -1039,6 +1041,15 @@ export default {
 .toolbar-search {
   flex-shrink: 0;
   width: 180px;
+}
+
+/* 面板内容区外层（拖拽覆盖层定位基准，不随内容滚动） */
+.panel-body-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 面板内容区（独立滚动） */
