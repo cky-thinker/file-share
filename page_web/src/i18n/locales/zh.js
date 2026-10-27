@@ -49,8 +49,6 @@ export default {
     deleteFail: "删除失败",
     chatRoom: "共享文本",
     noText: "暂无文本消息",
-    nickname: "昵称",
-    nicknamePlaceholder: "昵称（可选，默认显示IP）",
     chatInputPlaceholder: "输入消息，Ctrl/⌘+Enter 发送",
     send: "发送",
     accountManage: "账号管理",

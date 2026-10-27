@@ -504,7 +504,10 @@ const initApp = () => {
             res.json({ code: 500, message: '消息不能为空' })
             return;
         }
-        FileDb.addText(text, sourceip, nickname)
+        // 已登录时使用登录用户名，未登录时使用 IP
+        let payload = Setting.getAuthEnable() ? verifyJwt(req.get('Authorization')) : null
+        let username = (payload && payload.username) || sourceip
+        FileDb.addText(text, username, nickname)
         res.json({ code: 200, message: '添加成功' })
     })
 

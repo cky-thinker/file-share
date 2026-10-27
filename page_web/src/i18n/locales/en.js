@@ -49,8 +49,6 @@ export default {
     deleteFail: "Delete failed",
     chatRoom: "Chat Room",
     noText: "No messages yet",
-    nickname: "Nickname",
-    nicknamePlaceholder: "Nickname (optional, IP shown by default)",
     chatInputPlaceholder: "Type a message, Ctrl/Cmd+Enter to send",
     send: "Send",
     accountManage: "Accounts",

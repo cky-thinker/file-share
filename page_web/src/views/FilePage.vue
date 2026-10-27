@@ -235,12 +235,6 @@
           </div>
           <footer class="panel-composer">
             <el-input
-              v-model="chatNickname"
-              class="composer-nickname"
-              :placeholder="$t('filePage.nicknamePlaceholder')"
-              clearable
-            ></el-input>
-            <el-input
               v-model="chatMessage"
               class="composer-textarea"
               type="textarea"
@@ -285,9 +279,6 @@
         class="dialog"
         v-model="msgFormVisible">
         <el-form ref="form" :model="msgForm" label-width="80px">
-          <el-form-item :label="$t('filePage.nickname')">
-            <el-input v-model="msgForm.nickname" :placeholder="$t('filePage.nicknamePlaceholder')"></el-input>
-          </el-form-item>
           <el-form-item :label="$t('filePage.textContent')">
             <el-input type="textarea" :rows="5" v-model="msgForm.message"></el-input>
           </el-form-item>
@@ -432,8 +423,7 @@ export default {
       // 消息表单
       msgFormVisible: false,
       msgForm: {
-        message: '',
-        nickname: ''
+        message: ''
       },
 
       // 共享文件列表
@@ -446,7 +436,6 @@ export default {
       viewLayout: localStorage.getItem('fileShareViewLayout') || 'dual',
       texts: [],
       chatMessage: '',
-      chatNickname: localStorage.getItem('fileShareNickname') || '',
       // 查看全文弹窗
       fullTextVisible: false,
       fullTextMsg: null,
@@ -715,15 +704,11 @@ export default {
     },
     showMsgForm() {
       this.msgFormVisible = true
-      this.msgForm = {message: '', nickname: localStorage.getItem('fileShareNickname') || ''}
+      this.msgForm = {message: ''}
     },
     submitMsgForm() {
-      let nickname = (this.msgForm.nickname || '').trim()
-      if (nickname) {
-        localStorage.setItem('fileShareNickname', nickname)
-      }
       this.msgFormVisible = false
-      uploadMsg({message: this.msgForm.message, nickname}).then(() => {
+      uploadMsg({message: this.msgForm.message}).then(() => {
         ElMessage({message: t('filePage.sendSuccess'), type: 'success'})
         this.loadTexts()
         this.showFiles()
@@ -763,11 +748,7 @@ export default {
       if (!message) {
         return
       }
-      let nickname = this.chatNickname.trim()
-      if (nickname) {
-        localStorage.setItem('fileShareNickname', nickname)
-      }
-      uploadMsg({message, nickname}).then(() => {
+      uploadMsg({message}).then(() => {
         this.chatMessage = ''
         this.loadTexts()
       })
@@ -1327,11 +1308,6 @@ export default {
   gap: 8px;
   padding: 10px 16px;
   border-top: 1px solid #f0f2f7;
-}
-
-.composer-nickname {
-  width: 120px;
-  flex-shrink: 0;
 }
 
 .composer-textarea {
