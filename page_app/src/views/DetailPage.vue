@@ -1343,7 +1343,7 @@ export default {
 }
 
 /* 窄屏时上下排列，仍同时展示两个面板 */
-@media (max-width: 1024px) {
+@media (max-width: 600px) {
   .workspace {
     flex-direction: column;
   }
