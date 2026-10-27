@@ -15,6 +15,17 @@ const locale = computed(() => (i18nState.locale === 'zh' ? zhCn : en))
 
 
 <style>
+/* 主色（与 page_app 保持一致） */
+:root {
+  --el-color-primary: #2160e8;
+  --el-color-primary-light-3: #4d85ee;
+  --el-color-primary-light-5: #79a4f3;
+  --el-color-primary-light-7: #a4c3f8;
+  --el-color-primary-light-8: #bad3fa;
+  --el-color-primary-light-9: #dce7fb;
+  --el-color-primary-dark-2: #1a4dba;
+}
+
 body {
   margin: 0;
 }

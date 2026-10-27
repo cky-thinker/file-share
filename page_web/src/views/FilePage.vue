@@ -890,28 +890,32 @@ export default {
 
 .switch-group {
   display: inline-flex;
-  background: #fff;
-  border: 1px solid #e4e7ed;
-  border-radius: 20px;
-  padding: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  align-items: center;
+  padding: 2px;
+  border-radius: 8px;
+  background: #eef1f7;
+  box-sizing: border-box;
 }
 
 .switch-btn {
   border: none;
   background: transparent;
-  padding: 6px 18px;
-  border-radius: 16px;
-  font-size: 14px;
-  color: #606266;
+  height: 28px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  color: #5a6b85;
   cursor: pointer;
-  transition: all 0.2s ease;
+  user-select: none;
+  transition: all 0.15s;
 }
 
 .switch-btn.active {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
-  font-weight: 500;
+  color: #ffffff;
+  background: var(--el-color-primary);
+  box-shadow: 0 1px 3px rgba(33, 96, 232, 0.35);
 }
 
 /* ===== 双视图工作区 ===== */
@@ -1418,7 +1422,7 @@ export default {
   }
 
   .switch-btn {
-    padding: 5px 12px;
+    padding: 0 12px;
     font-size: 13px;
   }
 }
