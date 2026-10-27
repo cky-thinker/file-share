@@ -127,13 +127,15 @@ pnpm --filter file-share-web run build
 
 ## 五、uTools 打包
 
-### 5.1 依赖固化（必做）
+### 5.1 依赖固化（已自动化）
 
 uTools 打包要求依赖是**真实文件**，而 pnpm 的 junction 结构指向工作区外的虚拟 store，无法直接打包。因此提供了固化脚本：
 
 ```bash
 pnpm run prepare:utools-preload
 ```
+
+根 [package.json](../package.json) 的 `postinstall` 已挂载该脚本，`pnpm install` 后自动执行，无需手动再跑（手动执行仅用于重新固化）。
 
 脚本 [scripts/prepare-utools-preload-deps.js](../scripts/prepare-utools-preload-deps.js) 的流程：
 
@@ -147,7 +149,7 @@ pnpm run prepare:utools-preload
 ### 5.2 打包步骤
 
 ```bash
-# 1. 固化 preload 依赖
+# 1. 固化 preload 依赖（pnpm install 已自动完成；仅在需要重新固化时手动执行）
 pnpm run prepare:utools-preload
 
 # 2. 构建 uTools 界面到 utools/page_app
@@ -193,7 +195,7 @@ pnpm --filter file-share-web run build           # → shared/page_web
 workspace 链接是实时的，通常无需重装。若确认未生效，执行 `pnpm install` 重新链接。
 
 **Q：uTools 打包后运行报模块找不到？**
-多半是漏跑了 `pnpm run prepare:utools-preload`，导致 `utools/preload/node_modules` 仍是软链。
+先确认 `utools/preload/node_modules` 是真实文件而非只剩软链；若被单独执行过 `pnpm install --ignore-scripts` 或安装被中断，重跑 `pnpm run prepare:utools-preload`。
 
 **Q：不小心在子目录跑了 `npm install`？**
 删除该目录下的 `package-lock.json` 和 `node_modules`，回到根目录重新 `pnpm install`。

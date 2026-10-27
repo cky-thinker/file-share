@@ -7,6 +7,8 @@
     "prepare:bundle-deps": "node ../../scripts/prepare-utools-preload-deps.js"
   },
   "dependencies": {
-    "@file-share/shared-utils": "workspace:*"
+    "@file-share/shared-utils": "workspace:*",
+    "node-machine-id": "^1.1.12",
+    "uuid": "^9.0.1"
   }
 }

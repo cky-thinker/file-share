@@ -212,9 +212,16 @@
                     </el-icon>
                   </el-button>
                 </div>
-                <div class="msg-bubble">
+                <div class="msg-bubble" :class="{ clamp: isLongText(msg) }">
                   <div class="bubble-text">{{ msg.content }}</div>
                 </div>
+                <el-button v-if="isLongText(msg)" text type="primary" class="msg-more"
+                           @click="showFullText(msg)">
+                  {{ $t("filePage.viewFullText") }}
+                  <el-icon>
+                    <ArrowDown />
+                  </el-icon>
+                </el-button>
               </div>
             </template>
             <!-- 空状态 -->
@@ -310,6 +317,34 @@
         </template>
       </el-dialog>
 
+      <!-- 查看全文弹窗 -->
+      <el-dialog
+        :title="$t('filePage.fullTextTitle')"
+        class="dialog"
+        width="560px"
+        append-to-body
+        v-model="fullTextVisible">
+        <div v-if="fullTextMsg" class="fulltext-meta">
+          <span class="msg-avatar" :style="{ backgroundColor: avatarColor(fullTextMsg.nickname || fullTextMsg.username) }">
+            {{ (fullTextMsg.nickname || fullTextMsg.username || "?").charAt(0) }}
+          </span>
+          <span class="msg-name">{{ fullTextMsg.nickname || fullTextMsg.username }}</span>
+          <span v-if="fullTextMsg.nickname && fullTextMsg.username" class="msg-ip">{{ fullTextMsg.username }}</span>
+        </div>
+        <div class="fulltext-body">{{ fullTextMsg && fullTextMsg.content }}</div>
+        <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="fullTextVisible = false">{{ $t("common.close") }}</el-button>
+          <el-button type="primary" @click="copyFullText($event)">
+            <el-icon>
+              <CopyDocument />
+            </el-icon>
+            {{ $t("filePage.copyFullText") }}
+          </el-button>
+        </span>
+        </template>
+      </el-dialog>
+
     </div>
   </div>
 </template>
@@ -381,6 +416,10 @@ const FILE_BADGES = {
 };
 const DEFAULT_BADGE = ['FILE', '#7c8db5'];
 
+// 长文本折叠阈值：超过 6 行或 200 字符时折叠
+const LONG_TEXT_LINES = 6;
+const LONG_TEXT_CHARS = 200;
+
 export default {
   name: 'HomeView',
   components: {
@@ -433,6 +472,9 @@ export default {
       texts: [],
       chatMessage: '',
       chatNickname: localStorage.getItem('fileShareNickname') || '',
+      // 查看全文弹窗
+      fullTextVisible: false,
+      fullTextMsg: null,
       permissions: {
         download: true,
         uploadFile: true,
@@ -639,6 +681,20 @@ export default {
     },
     copyMsg(data, event) {
       copyClipboard(data, event)
+    },
+    // 长文本折叠判断
+    isLongText(msg) {
+      const content = (msg && msg.content) || ''
+      return content.split('\n').length > LONG_TEXT_LINES || content.length > LONG_TEXT_CHARS
+    },
+    showFullText(msg) {
+      this.fullTextMsg = msg
+      this.fullTextVisible = true
+    },
+    copyFullText(event) {
+      if (this.fullTextMsg) {
+        copyClipboard(this.fullTextMsg.content, event)
+      }
     },
     showMsgForm() {
       this.msgFormVisible = true
@@ -1232,6 +1288,22 @@ export default {
   overflow-wrap: anywhere;
 }
 
+/* 长文本折叠：默认显示前 5 行（部分内核不支持 -webkit-box，使用 max-height 兜底） */
+.msg-bubble.clamp .bubble-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: calc(1.65em * 5);
+}
+
+.msg-more {
+  margin-top: 4px;
+  padding: 4px 0;
+  height: auto;
+  font-size: 12px;
+}
+
 /* 消息输入区 */
 .panel-composer {
   flex-shrink: 0;
@@ -1279,6 +1351,38 @@ export default {
   color: #98a2b3;
   max-width: 260px;
   line-height: 1.6;
+}
+
+/* ===== 查看全文弹窗 ===== */
+.fulltext-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fulltext-body {
+  max-height: 55vh;
+  overflow-y: auto;
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #303133;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.fulltext-body::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+}
+
+.fulltext-body::-webkit-scrollbar-thumb {
+  background: rgba(31, 45, 61, 0.15);
+  border-radius: 3px;
 }
 
 /* ===== 通用 ===== */
