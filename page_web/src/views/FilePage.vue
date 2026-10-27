@@ -8,7 +8,7 @@
               <h1>File Share</h1>
               <h3>{{ $t("filePage.slogan") }}</h3>
             </div>
-            <div v-if="authEnable || permissions.admin" class="user-section">
+            <div v-if="authEnable" class="user-section">
               <button @click="handleLogout" class="logout-btn">
                 <el-icon class="logout-icon"><User /></el-icon>
                 <span>{{ $t("filePage.logout") }}</span>
@@ -89,6 +89,15 @@
                     <Folder />
                   </el-icon>
                 </span>
+                <el-image v-else-if="isImage(file)" class="file-thumb" :src="file.fullUrl"
+                          :preview-src-list="[file.fullUrl]" fit="cover" preview-teleported
+                          hide-on-click-modal>
+                  <template #error>
+                    <span class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
+                      {{ fileBadge(file).label }}
+                    </span>
+                  </template>
+                </el-image>
                 <span v-else class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
                   {{ fileBadge(file).label }}
                 </span>
@@ -385,6 +394,9 @@ const FILE_BADGES = {
 };
 const DEFAULT_BADGE = ['FILE', '#7c8db5'];
 
+// 支持缩略图预览的图片后缀
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp']);
+
 // 长文本折叠阈值：超过 6 行或 200 字符时折叠
 const LONG_TEXT_LINES = 6;
 const LONG_TEXT_CHARS = 200;
@@ -496,6 +508,13 @@ export default {
         label: badge ? badge[0] : DEFAULT_BADGE[0],
         color: badge ? badge[1] : DEFAULT_BADGE[1]
       }
+    },
+    // 是否为可预览的图片文件
+    isImage(file) {
+      const name = file.name || ''
+      const dot = name.lastIndexOf('.')
+      const ext = dot > -1 ? name.slice(dot + 1).toLowerCase() : ''
+      return IMAGE_EXTENSIONS.has(ext)
     },
     updateRouter() {
       // 更新路由
@@ -1125,6 +1144,22 @@ export default {
 .file-badge.dir-badge {
   color: #b7791f;
   background: #fdf3df;
+}
+
+/* 图片缩略图，点击预览大图 */
+.file-thumb {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f2f4f8;
+  cursor: zoom-in;
+}
+
+.file-thumb .el-image__inner {
+  width: 100%;
+  height: 100%;
 }
 
 .file-info {
