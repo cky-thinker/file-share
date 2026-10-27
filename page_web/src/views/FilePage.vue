@@ -36,39 +36,46 @@
         </div>
       </div>
 
-      <div class="view-content">
-        <div v-if="viewLayout !== 'chat'" class="panel file-panel">
-          <el-card class="file-list">
-            <template #header>
-              <div class="file-header">
-                <div class="file-header-left">
-                  <span class="file-header-title">{{ $t("filePage.shareList") }}</span>
-                  <el-button v-if="permissions.download && batchDownload" @click="batchDownloadHandler">
-                    <svg-icon name="批量下载"/>
-                    {{ isPC ? $t("filePage.batchDownload") : "" }}
-                  </el-button>
-                  <el-button v-if="permissions.createDirectory" @click="dirFormVisible = true">
-                    <svg-icon name="file-directory"/>
-                    {{ isPC ? $t("filePage.createFolder") : "" }}
-                  </el-button>
-                </div>
-                <div class="file-header-right">
-                  <el-button v-if="permissions.uploadFile" @click="fileFormVisible = true">
-                    <svg-icon name="发送文件"/>
-                    {{ isPC ? $t("filePage.uploadFile") : "" }}
-                  </el-button>
-                  <el-button v-if="permissions.uploadText" @click="showMsgForm" type="default" :title="$t('filePage.shareText')">
-                    <svg-icon name="发送消息"/>
-                    {{ isPC ? $t("filePage.uploadText") : "" }}
-                  </el-button>
-                </div>
-              </div>
-            </template>
-
-        <div class="flex pl-4 pr-4">
-          <div class="flex-7">
-            <el-checkbox class="select-all-btn" @change="selectAll"></el-checkbox>
-            <el-breadcrumb class="header-breadcrumb" separator="/">
+      <main class="workspace">
+        <!-- 左侧：共享文件 -->
+        <section v-if="viewLayout !== 'chat'" class="panel file-panel">
+          <header class="panel-header">
+            <span class="panel-icon file-icon">
+              <el-icon :size="17">
+                <FolderOpened />
+              </el-icon>
+            </span>
+            <span class="panel-title">{{ $t("filePage.shareList") }}</span>
+            <div class="panel-actions">
+              <el-tooltip v-if="permissions.download" effect="dark" :content="$t('filePage.batchDownload')"
+                          placement="bottom">
+                <el-button class="icon-btn" text :disabled="!batchDownload" @click="batchDownloadHandler">
+                  <el-icon :size="17">
+                    <Download />
+                  </el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip v-if="permissions.createDirectory" effect="dark" :content="$t('filePage.createFolder')"
+                          placement="bottom">
+                <el-button class="icon-btn" text @click="dirFormVisible = true">
+                  <el-icon :size="17">
+                    <FolderAdd />
+                  </el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip v-if="permissions.uploadFile" effect="dark" :content="$t('filePage.uploadFile')"
+                          placement="bottom">
+                <el-button class="icon-btn" text @click="fileFormVisible = true">
+                  <el-icon :size="17">
+                    <Plus />
+                  </el-icon>
+                </el-button>
+              </el-tooltip>
+            </div>
+          </header>
+          <div class="panel-toolbar">
+            <el-checkbox class="select-all" @change="selectAll"></el-checkbox>
+            <el-breadcrumb class="toolbar-breadcrumb" separator="/">
               <el-breadcrumb-item>
                 <el-link :underline="false" @click="skipPath(0)">
                   {{ $t("filePage.home") }}
@@ -80,157 +87,169 @@
                 </el-link>
               </el-breadcrumb-item>
             </el-breadcrumb>
+            <el-input class="toolbar-search" v-model="query" clearable :prefix-icon="SearchIcon"
+                      :placeholder="$t('filePage.search')"></el-input>
           </div>
-          <div class="flex-3">
-            <el-input
-              :placeholder="$t('filePage.search')"
-              v-model="query">
-              <template #prefix>
-                <el-icon class="el-input__icon">
-                  <search/>
-                </el-icon>
-              </template>
-            </el-input>
-          </div>
-        </div>
-        <div style="padding-left: 16px; padding-right: 16px">
-          <el-table
-            :max-height="listHeight"
-            :show-header="false"
-            :data="filteredFiles"
-            row-key="id"
-          >
-            <el-table-column width="30px" align="center">
-              <template #default="scope">
-                <el-checkbox v-if="['directory', 'file'].includes(scope.row.type)"
-                             @change="onSelectHandler(scope.row.name)"
-                             v-model="scope.row.selected"></el-checkbox>
-              </template>
-            </el-table-column>
-            <el-table-column>
-              <template #default="scope">
-                <div :class="`${scope.row.type === 'directory' ? 'pointer' : ''} file-desc`"
-                     @click="openDirectory(scope.row, $event)">
-                  <!-- 非图片文件 -->
-                  <file-icon v-if="scope.row.type === 'file' && !isPicture(scope.row.name)" :filename="scope.row.name"/>
-                  <!-- 图片文件 -->
-                  <el-image
-                    v-if="scope.row.type === 'file' && isPicture(scope.row.name)"
-                    class="file-image"
-                    fit="scale-down"
-                    :src="scope.row.fullUrl"
-                    :preview-src-list="[scope.row.fullUrl]">
-                  </el-image>
-                  <!-- 文件夹 -->
-                  <file-icon v-if="scope.row.type === 'directory'" :is-directory="true"/>
-                  <!-- 消息 -->
-                  <svg-icon v-if="scope.row.type === 'text'" name="message" icon-style="width: 2em; height: 2em;"/>
-                  <el-tooltip effect="light"
-                              :content="scope.row.type === 'text' ? scope.row.content : scope.row.name"
-                              placement="top">
-                    <div class="filename">{{ scope.row.name }}</div>
+          <div class="panel-body">
+            <template v-if="filteredFiles.length">
+              <div v-for="file in filteredFiles" :key="file.name" class="file-row">
+                <el-checkbox class="row-check" v-model="file.selected"
+                             @change="onSelectHandler(file.name)"></el-checkbox>
+                <span v-if="file.type === 'directory'" class="file-badge dir-badge">
+                  <el-icon :size="18">
+                    <Folder />
+                  </el-icon>
+                </span>
+                <span v-else class="file-badge" :style="{ backgroundColor: fileBadge(file).color }">
+                  {{ fileBadge(file).label }}
+                </span>
+                <div class="file-info" :class="{ pointer: file.type === 'directory' }"
+                     @click="openDirectory(file, $event)">
+                  <el-tooltip effect="light" placement="top" :content="file.name">
+                    <span class="file-name">{{ file.name }}</span>
                   </el-tooltip>
-                  <el-tooltip v-if="!!scope.row.username" effect="light"
-                              :content="$t('filePage.sharedBy', { name: scope.row.username })"
-                              placement="top">
-                    <el-icon class="username" size="16">
-                      <User/>
-                    </el-icon>
-                  </el-tooltip>
+                  <span v-if="file.username" class="file-sub">
+                    {{ $t("filePage.sharedBy", { name: file.username }) }}
+                  </span>
                 </div>
-              </template>
-            </el-table-column>
-            <el-table-column width="130" align="center">
-              <template #default="scope">
-                <el-button v-if="['file', 'directory'].includes(scope.row.type) && permissions.download"
-                           @click="handleDownload(scope.row, $event)" plain>
-                  <el-icon size="16">
-                    <Download/>
-                  </el-icon>
-                </el-button>
-                <el-button v-if="scope.row.type === 'file' && permissions.removeFile"
-                           @click="handleRemoveFile(scope.row, $event)" plain type="danger">
-                  <el-icon size="16">
-                    <Delete/>
-                  </el-icon>
-                </el-button>
-                <el-button v-if="scope.row.type === 'directory' && permissions.removeDirectory"
-                           @click="handleRemoveDirectory(scope.row, $event)" plain type="danger">
-                  <el-icon size="16">
-                    <Delete/>
-                  </el-icon>
-                </el-button>
-              </template>
-            </el-table-column>
-            <!-- 自定义排序（仅根目录分享列表） -->
-            <el-table-column v-if="path.length === 0" width="118" align="center">
-              <template #default="scope">
-                <el-tooltip effect="light" :content="scope.row.pinned ? $t('filePage.unpin') : $t('filePage.pin')">
-                  <el-button size="small" :type="scope.row.pinned ? 'warning' : 'default'" plain
-                             @click="handleSort(scope.row, scope.row.pinned ? 'unpin' : 'pin')">
-                    <el-icon size="14"><Top/></el-icon>
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip effect="light" :content="$t('filePage.moveUp')">
-                  <el-button size="small" @click="handleSort(scope.row, 'up')">
-                    <el-icon size="14"><ArrowUp/></el-icon>
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip effect="light" :content="$t('filePage.moveDown')">
-                  <el-button size="small" @click="handleSort(scope.row, 'down')">
-                    <el-icon size="14"><ArrowDown/></el-icon>
-                  </el-button>
-                </el-tooltip>
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-      </el-card>
-        </div> <!-- file-panel -->
-
-        <div v-if="viewLayout !== 'file'" class="panel chat-panel">
-          <el-card class="chat-card">
-            <template #header>
-              <div class="chat-header">
-                <span>{{ $t("filePage.chatRoom") }}</span>
-                <span class="chat-count">{{ texts.length }}</span>
+                <div class="file-actions">
+                  <el-tooltip v-if="permissions.download" effect="dark" :content="$t('filePage.download')"
+                              placement="bottom">
+                    <el-button class="icon-btn" text @click.stop="handleDownload(file)">
+                      <el-icon>
+                        <Download />
+                      </el-icon>
+                    </el-button>
+                  </el-tooltip>
+                  <el-tooltip v-if="canRemove(file)" effect="dark" :content="$t('filePage.delete')"
+                              placement="bottom">
+                    <el-button class="icon-btn danger-icon-btn" text @click.stop="removeHandler(file, $event)">
+                      <el-icon>
+                        <Delete />
+                      </el-icon>
+                    </el-button>
+                  </el-tooltip>
+                  <!-- 自定义排序（仅根目录分享列表） -->
+                  <template v-if="path.length === 0">
+                    <el-tooltip effect="dark" :content="file.pinned ? $t('filePage.unpin') : $t('filePage.pin')"
+                                placement="bottom">
+                      <el-button class="icon-btn" :class="{ pinned: file.pinned }" text
+                                 @click.stop="handleSort(file, file.pinned ? 'unpin' : 'pin')">
+                        <el-icon>
+                          <Top />
+                        </el-icon>
+                      </el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :content="$t('filePage.moveUp')" placement="bottom">
+                      <el-button class="icon-btn" text @click.stop="handleSort(file, 'up')">
+                        <el-icon>
+                          <ArrowUp />
+                        </el-icon>
+                      </el-button>
+                    </el-tooltip>
+                    <el-tooltip effect="dark" :content="$t('filePage.moveDown')" placement="bottom">
+                      <el-button class="icon-btn" text @click.stop="handleSort(file, 'down')">
+                        <el-icon>
+                          <ArrowDown />
+                        </el-icon>
+                      </el-button>
+                    </el-tooltip>
+                  </template>
+                </div>
               </div>
             </template>
-            <div ref="chatBox" class="chat-messages">
-              <div v-if="texts.length === 0" class="chat-empty">
-                {{ $t("filePage.noText") }}
+            <!-- 空状态 -->
+            <div v-else class="panel-empty">
+              <el-icon :size="40" class="empty-icon">
+                <Folder />
+              </el-icon>
+              <div class="empty-title">
+                {{ query ? $t("filePage.searchNoResult") : $t("filePage.noFiles") }}
               </div>
-              <div v-for="msg in texts" :key="msg.name" class="chat-msg">
-                <div class="chat-avatar" :style="{ backgroundColor: avatarColor(msg.nickname || msg.username) }">
-                  {{ (msg.nickname || msg.username || '?').charAt(0) }}
+              <div v-if="!query" class="empty-tip">{{ $t("filePage.noFilesTip") }}</div>
+              <el-button v-else text type="primary" @click="query = ''">{{ $t("filePage.clearSearch") }}</el-button>
+            </div>
+          </div>
+          <footer class="panel-footer">
+            {{ $t("filePage.fileCount", { count: filteredFiles.length }) }}
+          </footer>
+        </section>
+
+        <!-- 右侧：共享文本 -->
+        <section v-if="viewLayout !== 'file'" class="panel text-panel">
+          <header class="panel-header">
+            <span class="panel-icon text-icon">
+              <el-icon :size="17">
+                <ChatDotRound />
+              </el-icon>
+            </span>
+            <span class="panel-title">{{ $t("filePage.chatRoom") }}</span>
+            <div class="panel-actions">
+              <el-tooltip v-if="permissions.uploadText" effect="dark" :content="$t('filePage.shareText')"
+                          placement="bottom">
+                <el-button class="icon-btn" text @click="showMsgForm">
+                  <el-icon :size="17">
+                    <EditPen />
+                  </el-icon>
+                </el-button>
+              </el-tooltip>
+            </div>
+          </header>
+          <div ref="chatBox" class="panel-body msg-list">
+            <template v-if="texts.length">
+              <div v-for="msg in texts" :key="msg.name" class="msg-card">
+                <div class="msg-head">
+                  <span class="msg-avatar" :style="{ backgroundColor: avatarColor(msg.nickname || msg.username) }">
+                    {{ (msg.nickname || msg.username || "?").charAt(0) }}
+                  </span>
+                  <span class="msg-name">{{ msg.nickname || msg.username }}</span>
+                  <span v-if="msg.nickname && msg.username" class="msg-ip">{{ msg.username }}</span>
+                  <span class="msg-head-space"></span>
+                  <el-button class="icon-btn" text :title="$t('filePage.copyText')"
+                             @click="copyMsg(msg.content, $event)">
+                    <el-icon>
+                      <CopyDocument />
+                    </el-icon>
+                  </el-button>
                 </div>
-                <div class="chat-main">
-                  <div class="chat-name">{{ msg.nickname || msg.username }}</div>
-                  <div class="chat-bubble">{{ msg.content }}</div>
+                <div class="msg-bubble">
+                  <div class="bubble-text">{{ msg.content }}</div>
                 </div>
               </div>
+            </template>
+            <!-- 空状态 -->
+            <div v-else class="panel-empty">
+              <el-icon :size="40" class="empty-icon">
+                <ChatDotRound />
+              </el-icon>
+              <div class="empty-title">{{ $t("filePage.noText") }}</div>
             </div>
-            <div class="chat-input-row">
-              <el-input
-                v-model="chatNickname"
-                class="chat-nickname"
-                :placeholder="$t('filePage.nicknamePlaceholder')"
-                clearable
-              ></el-input>
-              <el-input
-                v-model="chatMessage"
-                class="chat-textarea"
-                type="textarea"
-                :rows="2"
-                :placeholder="$t('filePage.chatInputPlaceholder')"
-                @keydown.ctrl.enter.prevent="submitChat"
-                @keydown.meta.enter.prevent="submitChat"
-              ></el-input>
-              <el-button type="primary" @click="submitChat">{{ $t("filePage.send") }}</el-button>
-            </div>
-          </el-card>
-        </div>
-      </div> <!-- view-content -->
+          </div>
+          <footer class="panel-composer">
+            <el-input
+              v-model="chatNickname"
+              class="composer-nickname"
+              :placeholder="$t('filePage.nicknamePlaceholder')"
+              clearable
+            ></el-input>
+            <el-input
+              v-model="chatMessage"
+              class="composer-textarea"
+              type="textarea"
+              :rows="1"
+              :autosize="{ minRows: 1, maxRows: 4 }"
+              :placeholder="$t('filePage.chatInputPlaceholder')"
+              @keydown.ctrl.enter.prevent="submitChat"
+              @keydown.meta.enter.prevent="submitChat"
+            ></el-input>
+            <el-button type="primary" @click="submitChat">{{ $t("filePage.send") }}</el-button>
+          </footer>
+          <footer class="panel-footer">
+            {{ $t("filePage.textCount", { count: texts.length }) }}
+          </footer>
+        </section>
+      </main>
+
       <el-dialog
         :title="$t('filePage.shareFile')"
         name="file"
@@ -296,24 +315,94 @@
 </template>
 
 <script>
-import FileIcon from "@/components/FileIcon";
-import SvgIcon from "@/components/SvgIcon";
 import {createDirectory, getTusConfig, listFiles, listTexts, removeFile, removeDirectory, sortFile, uploadMsg} from "@/api/FileApi";
 import {getToken, logout} from "@/utils/auth";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {copyClipboard} from '@/utils/clipboard'
-import {isPicture} from "@/utils/fileUtil";
-import {ArrowDown, ArrowUp, Delete, Download, Search, Setting, Top, UploadFilled, User} from '@element-plus/icons-vue'
+import {
+  ArrowDown,
+  ArrowUp,
+  ChatDotRound,
+  CopyDocument,
+  Delete,
+  Download,
+  EditPen,
+  Folder,
+  FolderAdd,
+  FolderOpened,
+  Plus,
+  Search as SearchIcon,
+  Setting,
+  Top,
+  UploadFilled,
+  User
+} from '@element-plus/icons-vue'
 import {getSetting} from "@/api/SettingApi";
 import { t } from '@/i18n'
+
+// 文件类型徽标映射：{ 后缀: [徽标文字, 颜色] }
+const FILE_BADGES = {
+  doc: ['W', '#2f6fe4'],
+  docx: ['W', '#2f6fe4'],
+  xls: ['X', '#1f9d55'],
+  xlsx: ['X', '#1f9d55'],
+  csv: ['X', '#1f9d55'],
+  ppt: ['P', '#d97706'],
+  pptx: ['P', '#d97706'],
+  pdf: ['PDF', '#e5484d'],
+  png: ['IMG', '#8b5cf6'],
+  jpg: ['IMG', '#8b5cf6'],
+  jpeg: ['IMG', '#8b5cf6'],
+  gif: ['IMG', '#8b5cf6'],
+  webp: ['IMG', '#8b5cf6'],
+  svg: ['IMG', '#8b5cf6'],
+  bmp: ['IMG', '#8b5cf6'],
+  zip: ['ZIP', '#f59e0b'],
+  rar: ['ZIP', '#f59e0b'],
+  '7z': ['ZIP', '#f59e0b'],
+  tar: ['ZIP', '#f59e0b'],
+  gz: ['ZIP', '#f59e0b'],
+  exe: ['EXE', '#64748b'],
+  dmg: ['EXE', '#64748b'],
+  msi: ['EXE', '#64748b'],
+  deb: ['EXE', '#64748b'],
+  pkg: ['EXE', '#64748b'],
+  mp4: ['MP4', '#ec4899'],
+  mov: ['MP4', '#ec4899'],
+  avi: ['MP4', '#ec4899'],
+  mkv: ['MP4', '#ec4899'],
+  mp3: ['MP3', '#14b8a6'],
+  wav: ['MP3', '#14b8a6'],
+  flac: ['MP3', '#14b8a6'],
+  txt: ['TXT', '#0ea5e9'],
+  md: ['TXT', '#0ea5e9'],
+  json: ['TXT', '#0ea5e9'],
+  log: ['TXT', '#0ea5e9'],
+};
+const DEFAULT_BADGE = ['FILE', '#7c8db5'];
 
 export default {
   name: 'HomeView',
   components: {
-    FileIcon, SvgIcon, Delete, Download, UploadFilled, User, Search, Setting, ArrowUp, ArrowDown, Top
+    ArrowDown,
+    ArrowUp,
+    ChatDotRound,
+    CopyDocument,
+    Delete,
+    Download,
+    EditPen,
+    Folder,
+    FolderAdd,
+    FolderOpened,
+    Plus,
+    Setting,
+    Top,
+    UploadFilled,
+    User
   },
   data() {
     return {
+      SearchIcon,
       title: 'File Share',
       selectedFileNames: new Set(),
       batchDownload: false,
@@ -392,8 +481,26 @@ export default {
     }
   },
   methods: {
-    isPicture(filename) {
-      return isPicture(filename)
+    // 文件类型徽标
+    fileBadge(file) {
+      const name = file.name || ''
+      const dot = name.lastIndexOf('.')
+      const ext = dot > -1 ? name.slice(dot + 1).toLowerCase() : ''
+      const badge = FILE_BADGES[ext]
+      return {
+        label: badge ? badge[0] : DEFAULT_BADGE[0],
+        color: badge ? badge[1] : DEFAULT_BADGE[1]
+      }
+    },
+    canRemove(file) {
+      return file.type === 'directory' ? this.permissions.removeDirectory : this.permissions.removeFile
+    },
+    removeHandler(file, event) {
+      if (file.type === 'directory') {
+        this.handleRemoveDirectory(file, event)
+      } else {
+        this.handleRemoveFile(file, event)
+      }
     },
     updateRouter() {
       // 更新路由
@@ -450,21 +557,17 @@ export default {
       this.batchDownload = this.selectedFileNames.size > 0;
       this.files = this.addAddiFileAttrs(this.files)
     },
-    handleDownload(item, event) {
-      if (['directory', 'file'].includes(item.type)) {
-        if ('directory' === item.type) {
-          ElMessageBox.confirm(t('filePage.downloadFolderConfirm'), t('filePage.note'), {
-            confirmButtonText: t('filePage.continue'),
-            cancelButtonText: t('common.cancel'),
-            type: 'warning'
-          }).then(() => {
-            this.downloadFile(item.name)
-          });
-        } else {
+    handleDownload(item) {
+      if ('directory' === item.type) {
+        ElMessageBox.confirm(t('filePage.downloadFolderConfirm'), t('filePage.note'), {
+          confirmButtonText: t('filePage.continue'),
+          cancelButtonText: t('common.cancel'),
+          type: 'warning'
+        }).then(() => {
           this.downloadFile(item.name)
-        }
-      } else if (item.type === 'text') {
-        this.copyMsg(item.content, event)
+        });
+      } else {
+        this.downloadFile(item.name)
       }
     },
     openDirectory(item) {
@@ -535,8 +638,6 @@ export default {
       return `/api/download?filename=${name}&token=${getToken()}&timestamp=${new Date().getTime()}`;
     },
     copyMsg(data, event) {
-      console.log("data", data)
-      console.log("event", event)
       copyClipboard(data, event)
     },
     showMsgForm() {
@@ -679,12 +780,6 @@ export default {
     }
   },
   computed: {
-    isPC() {
-      return window.innerWidth > 500;
-    },
-    listHeight() {
-      return window.innerHeight - 260;
-    },
     // 文件视图仅展示文件与文件夹，文本消息进入聊天视图
     fileItems() {
       return this.files.filter(file => file.type !== 'text');
@@ -713,17 +808,6 @@ export default {
 
 .pointer {
   cursor: pointer;
-}
-
-.select-all-btn {
-  float: left;
-  margin-left: 10px;
-  margin-bottom: 4px;
-}
-
-.header-breadcrumb {
-  padding-top: 7px;
-  margin-left: 40px
 }
 
 .body {
@@ -795,68 +879,9 @@ export default {
   font-size: 16px;
 }
 
-.file-desc {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
-
-.file {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
-
-.filename {
-  line-height: 2em;
-  margin-left: 18px;
-}
-
-.username {
-  line-height: 2em;
-  font-size: 12px;
-  margin-left: 12px;
-  color: #909399;
-}
-
-.row-bg {
-  align-items: center;
-}
-
-.button-group {
-  margin-bottom: 32px;
-}
-
-.list-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.file-list {
-  max-width: 750px;
-  width: 95%;
-  margin: 0 auto;
-}
-
 .dialog {
   max-width: 700px;
   width: 95%;
-}
-
-.cell {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.file-image {
-  width: 2em;
-  height: 2em;
-  overflow: hidden;
-  vertical-align: middle;
 }
 
 .layout-switcher {
@@ -891,124 +916,380 @@ export default {
   font-weight: 500;
 }
 
-.view-content {
+/* ===== 双视图工作区 ===== */
+.workspace {
   display: flex;
-  align-items: flex-start;
   gap: 16px;
+  height: calc(100vh - 340px);
+  min-height: 380px;
 }
 
-.view-content .panel {
-  flex: 1;
+.panel {
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(31, 45, 61, 0.05);
+  overflow: hidden;
 }
 
-.file-header {
+.file-panel {
+  flex: 1 1 55%;
+}
+
+.text-panel {
+  flex: 1 1 45%;
+}
+
+/* 面板头部 */
+.panel-header {
+  flex-shrink: 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 16px 10px;
 }
 
-.file-header-left,
-.file-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.file-header-title {
-  margin-right: 8px;
-  font-weight: 600;
-}
-
-.chat-card {
-  max-width: 100%;
-}
-
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.chat-count {
-  color: #909399;
-  font-size: 13px;
-}
-
-.chat-messages {
-  height: 400px;
-  overflow-y: auto;
-  padding: 8px 4px;
-}
-
-.chat-empty {
-  text-align: center;
-  color: #909399;
-  padding: 40px 0;
-}
-
-.chat-msg {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 14px;
-}
-
-.chat-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  color: #fff;
-  display: flex;
+.panel-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
-  font-weight: 600;
-  flex-shrink: 0;
-  margin-right: 10px;
-  user-select: none;
 }
 
-.chat-main {
+.panel-icon.file-icon {
+  color: #2160e8;
+  background: #e8effc;
+}
+
+.panel-icon.text-icon {
+  color: #16a34a;
+  background: #e5f6ec;
+}
+
+.panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2d3d;
+  flex: 1;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.danger-icon-btn:hover {
+  color: var(--el-color-danger) !important;
+  background: #fdecec !important;
+}
+
+/* 面板工具栏 */
+.panel-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px 12px;
+}
+
+.select-all {
+  flex-shrink: 0;
+  margin-right: 0;
+}
+
+.toolbar-breadcrumb {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.toolbar-search {
+  flex-shrink: 0;
+  width: 180px;
+}
+
+/* 面板内容区（独立滚动） */
+.panel-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid #f0f2f7;
+}
+
+.panel-body::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: rgba(31, 45, 61, 0.15);
+  border-radius: 3px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 面板底部统计 */
+.panel-footer {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #98a2b3;
+  border-top: 1px solid rgba(240, 242, 247, 0.8);
+  background: rgba(250, 251, 253, 0.35);
+}
+
+/* ===== 文件列表 ===== */
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 6px 16px;
+  border-bottom: 1px solid #f5f7fa;
+  transition: background 0.12s;
+}
+
+.file-row:hover {
+  background: #f7f9fd;
+}
+
+.file-row:last-child {
+  border-bottom: none;
+}
+
+.row-check {
+  flex-shrink: 0;
+  margin-right: -4px;
+}
+
+.file-badge {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.file-badge.dir-badge {
+  color: #b7791f;
+  background: #fdf3df;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2d3d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-sub {
+  font-size: 12px;
+  color: #98a2b3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.55;
+  transition: opacity 0.12s;
+}
+
+.file-row:hover .file-actions,
+.msg-card:hover .msg-head .icon-btn {
+  opacity: 1;
+}
+
+.file-actions .icon-btn {
+  opacity: inherit;
+}
+
+.file-actions .icon-btn.pinned {
+  color: var(--el-color-warning);
+  opacity: 1;
+}
+
+/* ===== 消息流 ===== */
+.msg-list {
+  padding: 12px 14px;
+  background: rgba(250, 251, 253, 0.35);
+}
+
+.msg-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.msg-card:hover {
+  border-color: #e2e8f3;
+  box-shadow: 0 2px 8px rgba(31, 45, 61, 0.07);
+}
+
+.msg-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.msg-avatar {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.msg-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2d3d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-ip {
+  font-size: 12px;
+  color: #98a2b3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-head-space {
   flex: 1;
 }
 
-.chat-name {
-  font-size: 12px;
-  color: #909399;
-  margin-bottom: 4px;
+.msg-head .icon-btn {
+  opacity: 0.55;
 }
 
-.chat-bubble {
-  display: inline-block;
-  background: #f0f2f5;
+.msg-bubble {
+  background: rgba(245, 247, 250, 0.8);
   border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 14px;
-  line-height: 1.5;
-  word-break: break-word;
-  white-space: pre-wrap;
-  max-width: 100%;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #303133;
 }
 
-.chat-input-row {
+.bubble-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* 消息输入区 */
+.panel-composer {
+  flex-shrink: 0;
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #ebeef5;
+  padding: 10px 16px;
+  border-top: 1px solid #f0f2f7;
 }
 
-.chat-nickname {
+.composer-nickname {
   width: 120px;
   flex-shrink: 0;
 }
 
-.chat-textarea {
+.composer-textarea {
   flex: 1;
   min-width: 0;
+}
+
+/* ===== 空状态 ===== */
+.panel-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.empty-icon {
+  color: #c4cddb;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #5a6b85;
+}
+
+.empty-tip {
+  font-size: 12px;
+  color: #98a2b3;
+  max-width: 260px;
+  line-height: 1.6;
+}
+
+/* ===== 通用 ===== */
+.icon-btn {
+  padding: 6px;
+  color: #5a6b85;
+}
+
+.icon-btn:hover {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
 
 /* 双视图模式加宽容器 */
@@ -1016,27 +1297,29 @@ export default {
   max-width: 1200px;
 }
 
-.body.dual-mode .file-list,
-.body.dual-mode .chat-card {
-  max-width: 100%;
-  width: 100%;
-  margin: 0;
-}
-
-/* 单视图时聊天面板卡片保持原有宽度 */
-.body:not(.dual-mode) .chat-card {
-  max-width: 750px;
-  width: 95%;
-  margin: 0 auto;
-}
-
-@media only screen and (max-width: 500px) {
-  .view-content {
+@media only screen and (max-width: 600px) {
+  .workspace {
     flex-direction: column;
+    height: auto;
+    min-height: 0;
   }
 
-  .chat-messages {
-    height: 320px;
+  .file-panel,
+  .text-panel {
+    flex: 1 1 auto;
+  }
+
+  .panel-body {
+    flex: none;
+    height: 45vh;
+  }
+
+  .panel-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-search {
+    width: 100%;
   }
 
   .switch-btn {
