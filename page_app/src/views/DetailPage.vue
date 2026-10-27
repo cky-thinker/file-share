@@ -322,8 +322,6 @@
 
   <!-- 分享文本弹窗 -->
   <el-dialog v-model="dialogFormVisible" :title="$t('detail.shareText')" width="480px" append-to-body>
-    <el-input v-model="form.nickname" :placeholder="$t('detail.nicknamePlaceholder')" style="margin-bottom: 8px">
-    </el-input>
     <el-input type="textarea" :rows="2" :autosize="{ minRows: 2, maxRows: 4 }" :placeholder="$t('detail.inputContent')"
       v-model="form.text">
     </el-input>
@@ -482,7 +480,6 @@ export default {
       SearchIcon,
       form: {
         text: "",
-        nickname: "",
       },
       dialogFormVisible: false,
       fullTextVisible: false,
@@ -543,10 +540,8 @@ export default {
       if (!text) {
         return;
       }
-      if (this.form.nickname) {
-        localStorage.setItem("fileShareNickname", this.form.nickname);
-      }
-      api.addText(text, this.settingForm.ip, this.form.nickname);
+      // 昵称固定为管理员
+      api.addText(text, this.settingForm.ip, "管理员");
       store.files = api.listFiles();
       this.form.text = "";
       this.dialogFormVisible = false;

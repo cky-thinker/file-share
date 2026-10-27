@@ -108,7 +108,6 @@ export default {
     shareTextBtn: "分享文本",
     inputContent: "请输入内容",
     submit: "提交",
-    nicknamePlaceholder: "昵称（可选，默认显示 IP）",
     viewFullText: "查看全文",
     fullTextTitle: "共享文本",
     copyFullText: "复制全文",

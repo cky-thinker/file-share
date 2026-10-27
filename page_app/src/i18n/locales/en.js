@@ -108,7 +108,6 @@ export default {
     shareTextBtn: "Share Text",
     inputContent: "Please enter content",
     submit: "Submit",
-    nicknamePlaceholder: "Nickname (optional, IP by default)",
     viewFullText: "View Full Text",
     fullTextTitle: "Shared Text",
     copyFullText: "Copy All",
