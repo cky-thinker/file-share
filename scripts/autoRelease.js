@@ -8,7 +8,16 @@ const { promisify } = require('util');
 
 const execAsync = promisify(exec);
 
-const packagePath = path.resolve(__dirname, '..', 'electron', 'package.json');
+// 版本号以根 package.json 为准，发布时同步到各子模块
+const rootPackagePath = path.resolve(__dirname, '..', 'package.json');
+const versionedPackagePaths = [
+    rootPackagePath,
+    path.resolve(__dirname, '..', 'electron', 'package.json'),
+    path.resolve(__dirname, '..', 'page_app', 'package.json'),
+    path.resolve(__dirname, '..', 'page_web', 'package.json'),
+    path.resolve(__dirname, '..', 'shared', 'package.json'),
+    path.resolve(__dirname, '..', 'docker', 'package.json')
+];
 const changelogDir = path.resolve(__dirname, '..', 'wiki', 'changelogs');
 
 const rl = readline.createInterface({
@@ -165,14 +174,17 @@ async function main() {
     fs.writeFileSync(changelogPath, changelog.endsWith('\n') ? changelog : `${changelog}\n`, 'utf8');
     console.log(`Changelog written to ${changelogPath}`);
 
-    // 2. 更新 electron/package.json 版本号
-    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-    packageJson.version = newVersion;
-    fs.writeFileSync(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf8');
-    console.log(`package.json version updated to ${newVersion}`);
+    // 2. 更新根 package.json 版本号，并同步到 electron、page_app、page_web
+    for (const pkgPath of versionedPackagePaths) {
+        const packageJson = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        packageJson.version = newVersion;
+        fs.writeFileSync(pkgPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf8');
+        console.log(`${path.relative(process.cwd(), pkgPath)} version updated to ${newVersion}`);
+    }
 
     // 3. 提交版本号与 changelog
-    await execAsync(`git add "${packagePath}" "${changelogPath}" && git commit -m "Update version to ${newVersion}"`);
+    const versionFiles = versionedPackagePaths.map(pkgPath => `"${pkgPath}"`).join(' ');
+    await execAsync(`git add ${versionFiles} "${changelogPath}" && git commit -m "Update version to ${newVersion}"`);
     console.log('Git commit for version update created');
 
     // 4. 打标签并推送，触发 GitHub Actions 发布

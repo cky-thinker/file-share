@@ -1,6 +1,6 @@
 {
   "name": "file-share-app",
-  "version": "v1.0.0",
+  "version": "v1.0.8",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV='development' && vue-cli-service serve",

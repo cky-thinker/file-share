@@ -1,5 +1,6 @@
 {
   "name": "file-share-workspace",
+  "version": "v1.0.8",
   "private": true,
   "packageManager": "pnpm@12.9.1",
   "scripts": {
