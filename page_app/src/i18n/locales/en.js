@@ -87,8 +87,6 @@ export default {
     sortByTime: "Sort by Time",
     sortNewest: "Newest first",
     sortOldest: "Oldest first",
-    fileCount: "{count} items",
-    textCount: "{count} messages",
     noFiles: "No shared files",
     noFilesTip: "Click \"Add Files\" or drag files into the panel to share",
     noTexts: "No shared texts",

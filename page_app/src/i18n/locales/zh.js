@@ -87,8 +87,6 @@ export default {
     sortByTime: "按时间排序",
     sortNewest: "最新在前",
     sortOldest: "最早在前",
-    fileCount: "共 {count} 项",
-    textCount: "共 {count} 条",
     noFiles: "还没有共享文件",
     noFilesTip: "点击右上角“添加文件”，或将文件拖拽到面板中进行分享",
     noTexts: "还没有共享文本",

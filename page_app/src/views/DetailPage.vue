@@ -199,9 +199,6 @@
           </div>
         </transition>
       </div>
-      <footer class="panel-footer">
-        {{ $t("detail.fileCount", { count: filteredFiles.length }) }}
-      </footer>
     </section>
 
     <!-- 右侧：共享文本 -->
@@ -330,9 +327,6 @@
             {{ $t("detail.publish") }}
           </el-button>
         </div>
-        <footer class="panel-footer">
-          {{ $t("detail.textCount", { count: filteredTexts.length }) }}
-        </footer>
       </section>
     </transition>
   </main>
@@ -1065,32 +1059,46 @@ export default {
   background: transparent;
 }
 
-/* 面板底部统计 */
-.panel-footer {
-  flex-shrink: 0;
-  padding: 8px 16px;
-  font-size: 12px;
-  color: #98a2b3;
-  border-top: 1px solid rgba(240, 242, 247, 0.8);
-  background: rgba(250, 251, 253, 0.35);
-}
-
 /* 文本发布区 */
 .text-composer {
   flex-shrink: 0;
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 10px 14px 12px;
   border-top: 1px solid #f0f2f7;
+  background: rgba(250, 251, 253, 0.45);
 }
 
-.text-composer .el-input {
+.text-composer .el-textarea {
   flex: 1;
+}
+
+.text-composer .el-textarea__inner {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 6px 10px;
+  line-height: 20px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #e3e8f0 inset;
+  transition: box-shadow 0.15s;
+}
+
+.text-composer .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px #cbd5e4 inset;
+}
+
+.text-composer .el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
 }
 
 .publish-btn {
   flex-shrink: 0;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 /* ===== 文件列表 ===== */
