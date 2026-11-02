@@ -450,8 +450,8 @@ const FILE_BADGES = {
 };
 const DEFAULT_BADGE = ["FILE", "#7c8db5"];
 
-// 长文本折叠阈值：超过 6 行或 200 字符时折叠
-const LONG_TEXT_LINES = 6;
+// 长文本折叠阈值：超过 3 行或 200 字符时折叠
+const LONG_TEXT_LINES = 3;
 const LONG_TEXT_CHARS = 200;
 
 export default {
@@ -1264,13 +1264,13 @@ export default {
   overflow-wrap: anywhere;
 }
 
-/* 长文本折叠：默认显示前 5 行（部分内核不支持 -webkit-box，使用 max-height 兜底） */
+/* 长文本折叠：默认显示前 3 行（部分内核不支持 -webkit-box，使用 max-height 兜底） */
 .msg-bubble.clamp .bubble-text {
   display: -webkit-box;
-  -webkit-line-clamp: 5;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  max-height: calc(1.65em * 5);
+  max-height: calc(1.65em * 3);
 }
 
 .msg-more {
