@@ -44,7 +44,7 @@ export default {
     removeDirectory: "删除文件夹",
     removeFile: "删除文件",
     uploadToFolder: "上传当前目录",
-    uploadToFolderTip: "开启后，网页端上传的文件将保存到当前所在目录",
+    uploadToFolderTip: "开启后，网页端在目录内上传的文件将保存到该目录，而不是默认上传路径",
     accessScope: "访问范围",
     allowAccess: "允许访问",
     denyAccess: "禁止访问",

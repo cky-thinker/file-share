@@ -44,7 +44,7 @@ export default {
     removeDirectory: "Delete Folder",
     removeFile: "Delete File",
     uploadToFolder: "Upload to Current Folder",
-    uploadToFolderTip: "When enabled, uploaded files are saved to the current folder",
+    uploadToFolderTip: "When enabled, files uploaded inside a folder in the web UI are saved to that folder instead of the default upload path",
     accessScope: "Access Scope",
     allowAccess: "Allow Access",
     denyAccess: "Deny Access",
