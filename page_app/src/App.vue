@@ -4,7 +4,6 @@
     <header class="app-bar">
       <div class="app-bar-left">
         <img class="app-logo" :src="appLogo" alt="FileShare" />
-        <span class="app-name">FileShare</span>
         <span class="app-bar-divider"></span>
         <span class="app-desc">{{ $t("app.desc") }}</span>
       </div>
@@ -192,9 +191,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: 16px 20px 0;
   padding: 0 16px;
-  background: #ffffff;
-  border-bottom: 1px solid #e8edf5;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(31, 45, 61, 0.05);
   gap: 12px;
 }
 
@@ -210,12 +214,6 @@ body {
   height: 28px;
   border-radius: 7px;
   object-fit: contain;
-}
-
-.app-name {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
 }
 
 .app-bar-divider {
@@ -291,6 +289,10 @@ body {
 }
 
 @media (max-width: 900px) {
+  .app-bar {
+    margin: 12px 12px 0;
+  }
+
   .app-desc {
     display: none;
   }

@@ -34,8 +34,10 @@ export default {
 
 <style>
 .btn-box {
-  width: 150px;
-  height: 150px;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  position: relative;
 }
 
 .start-btn {
@@ -47,10 +49,9 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
   z-index: 99;
   position: absolute;
-  top: 150px;
+  top: 50%;
   left: 50%;
-  margin-top: -50px;
-  margin-left: -50px;
+  transform: translate(-50%, -50%);
   background-color: #409eff;
   color: #ffffff;
 }
@@ -67,10 +68,9 @@ export default {
   justify-content: center;
   align-items: center;
   position: absolute;
-  top: 150px;
+  top: 50%;
   left: 50%;
-  margin-top: -50px;
-  margin-left: -50px;
+  transform: translate(-50%, -50%);
   z-index: 1;
 }
 
