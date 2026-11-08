@@ -44,7 +44,8 @@ export default {
     removeDirectory: "删除文件夹",
     removeFile: "删除文件",
     uploadToFolder: "上传当前目录",
-    uploadToFolderTip: "开启后，网页端在目录内上传的文件将保存到该目录，而不是默认上传路径",
+    uploadToFolderTip:
+      "开启后，网页端在目录内上传的文件将保存到该目录，而不是默认上传路径",
     accessScope: "访问范围",
     allowAccess: "允许访问",
     denyAccess: "禁止访问",
@@ -79,6 +80,7 @@ export default {
     switchNetInterface: "切换网卡",
     filesTitle: "文件列表",
     textsTitle: "文本列表",
+    addText: "共享文本",
     addFile: "添加文件",
     addFolder: "添加文件夹",
     clearList: "清空列表",

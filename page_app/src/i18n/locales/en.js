@@ -79,6 +79,7 @@ export default {
     switchNetInterface: "Switch NIC",
     filesTitle: "Shared Files",
     textsTitle: "Shared Texts",
+    addText: "Share Text",
     addFile: "Add Files",
     addFolder: "Add Folder",
     clearList: "Clear List",

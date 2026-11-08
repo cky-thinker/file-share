@@ -1,6 +1,34 @@
 <template>
   <div>
     <div class="body" :class="viewLayout === 'dual' ? 'dual-mode' : ''">
+      <!-- 上传任务面板：有正在上传的文件时显示在右上角 -->
+      <transition name="fade">
+        <div v-if="uploadTasks.length" class="upload-tasks">
+          <div class="upload-tasks-header">
+            <el-icon v-if="uploadingCount" class="is-loading upload-tasks-icon">
+              <Loading/>
+            </el-icon>
+            <el-icon v-else class="upload-tasks-icon success">
+              <CircleCheck/>
+            </el-icon>
+            <span class="upload-tasks-title">
+              {{ uploadingCount ? $t("filePage.uploadingTitle", { count: uploadingCount }) : $t("filePage.uploadDoneTitle") }}
+            </span>
+          </div>
+          <div v-for="task in uploadTasks" :key="task.uid" class="upload-task">
+            <div class="upload-task-head">
+              <span class="upload-task-name" :title="task.name">{{ task.name }}</span>
+              <span class="upload-task-status" :class="task.status">{{ taskStatusText(task) }}</span>
+            </div>
+            <el-progress
+              :percentage="task.percent"
+              :stroke-width="6"
+              :status="taskProgressStatus(task)"
+              :show-text="false"/>
+          </div>
+        </div>
+      </transition>
+
       <div class="header">
         <div class="overlay">
           <div class="header-content">
@@ -332,11 +360,13 @@ import {
   ArrowDown,
   ArrowUp,
   ChatDotRound,
+  CircleCheck,
   CopyDocument,
   Download,
   EditPen,
   Folder,
   FolderOpened,
+  Loading,
   Plus,
   Search as SearchIcon,
   Top,
@@ -345,6 +375,7 @@ import {
 } from '@element-plus/icons-vue'
 import {getSetting} from "@/api/SettingApi";
 import { t } from '@/i18n'
+import { reactive } from 'vue'
 
 // 文件类型徽标映射：{ 后缀: [徽标文字, 颜色] }
 const FILE_BADGES = {
@@ -400,11 +431,13 @@ export default {
     ArrowDown,
     ArrowUp,
     ChatDotRound,
+    CircleCheck,
     CopyDocument,
     Download,
     EditPen,
     Folder,
     FolderOpened,
+    Loading,
     Plus,
     Top,
     UploadFilled,
@@ -441,6 +474,9 @@ export default {
       fullTextMsg: null,
       // 拖拽上传计数（覆盖层显示状态）
       dragCount: 0,
+      // 上传任务列表（右上角进度面板）
+      uploadTasks: [],
+      uploadTasksTimer: null,
       permissions: {
         download: true,
         uploadFile: true,
@@ -472,6 +508,9 @@ export default {
     // 更新请求头内容
     this.updateHeaders()
     this.registrySSE();
+  },
+  beforeUnmount() {
+    this.clearUploadTasksTimer()
   },
   watch: {
     $route: function () {
@@ -630,29 +669,122 @@ export default {
       if (!files.length) {
         return
       }
-      const results = await Promise.all(files.map(file => this.uploadDroppedFile(file)))
-      if (results.every(Boolean)) {
-        ElMessage({message: t('filePage.uploadSuccess'), type: 'success'})
-        this.showFiles()
-      }
+      await this.uploadFiles(files)
     },
-    uploadDroppedFile(file) {
-      const formData = new FormData()
-      formData.append('file', file)
-      return fetch(this.uploadAction, {
-        method: 'POST',
-        headers: {Authorization: getToken()},
-        body: formData
-      }).then(res => res.json()).then(data => {
-        if (data.code !== 200) {
-          ElMessage({message: data.message || t('filePage.uploadFail'), type: 'error'})
-          return false
-        }
-        return true
-      }).catch(() => {
-        ElMessage({message: t('filePage.uploadFail'), type: 'error'})
-        return false
+    // 批量上传：登记任务、展示进度，全部结束后统一提示
+    uploadFiles(files) {
+      this.clearUploadTasksTimer()
+      // 仅保留仍在进行中的任务，避免上一轮结果残留
+      this.uploadTasks = this.uploadTasks.filter(task => task.status === 'uploading')
+      const tasks = files.map(file => {
+        const task = reactive({
+          uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          name: file.name,
+          percent: 0,
+          status: 'uploading'
+        })
+        this.uploadTasks.push(task)
+        return this.sendUpload(file, task).then(ok => {
+          task.status = ok ? 'success' : 'error'
+          if (ok) {
+            task.percent = 100
+          }
+          return ok
+        })
       })
+      return Promise.all(tasks).then(results => {
+        const successCount = results.filter(Boolean).length
+        const failCount = results.length - successCount
+        if (successCount > 0) {
+          this.showFiles()
+        }
+        this.notifyUploadResult(successCount, failCount)
+        this.scheduleClearUploadTasks()
+      })
+    },
+    // 通过 XHR 上传单个文件，实时回传进度
+    sendUpload(file, task) {
+      return new Promise(resolve => {
+        const formData = new FormData()
+        formData.append('file', file)
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', this.uploadAction)
+        const token = getToken()
+        if (token) {
+          xhr.setRequestHeader('Authorization', token)
+        }
+        xhr.upload.onprogress = event => {
+          if (event.lengthComputable && event.total > 0) {
+            // 预留最后 1% 给服务端处理完成
+            task.percent = Math.min(99, Math.round((event.loaded / event.total) * 100))
+          }
+        }
+        xhr.onload = () => {
+          let data = {}
+          try {
+            data = JSON.parse(xhr.responseText)
+          } catch (e) {
+            data = {}
+          }
+          if (xhr.status >= 200 && xhr.status < 300 && data.code === 200) {
+            resolve(true)
+            return
+          }
+          ElMessage({message: data.message || t('filePage.uploadFail'), type: 'error'})
+          resolve(false)
+        }
+        xhr.onerror = () => {
+          ElMessage({message: t('filePage.uploadFail'), type: 'error'})
+          resolve(false)
+        }
+        xhr.send(formData)
+      })
+    },
+    taskStatusText(task) {
+      if (task.status === 'success') {
+        return t('filePage.uploadStatusSuccess')
+      }
+      if (task.status === 'error') {
+        return t('filePage.uploadStatusFail')
+      }
+      return `${task.percent}%`
+    },
+    taskProgressStatus(task) {
+      if (task.status === 'success') {
+        return 'success'
+      }
+      if (task.status === 'error') {
+        return 'exception'
+      }
+      return ''
+    },
+    // 上传结束后弹框提示
+    notifyUploadResult(successCount, failCount) {
+      if (successCount === 0) {
+        return
+      }
+      const message = failCount > 0
+        ? t('filePage.uploadPartialContent', {success: successCount, fail: failCount})
+        : t('filePage.uploadSuccessContent', {count: successCount})
+      ElMessageBox.alert(message, t('filePage.uploadSuccess'), {
+        type: failCount > 0 ? 'warning' : 'success',
+        confirmButtonText: t('common.confirm')
+      })
+    },
+    // 任务结束后短暂保留进度，再自动收起
+    scheduleClearUploadTasks() {
+      this.clearUploadTasksTimer()
+      this.uploadTasksTimer = setTimeout(() => {
+        if (this.uploadingCount === 0) {
+          this.uploadTasks = []
+        }
+      }, 1600)
+    },
+    clearUploadTasksTimer() {
+      if (this.uploadTasksTimer) {
+        clearTimeout(this.uploadTasksTimer)
+        this.uploadTasksTimer = null
+      }
     },
 
     uploadSuccess(response, file, fileList) {
@@ -778,6 +910,10 @@ export default {
     }
   },
   computed: {
+    // 正在上传的任务数
+    uploadingCount() {
+      return this.uploadTasks.filter(task => task.status === 'uploading').length
+    },
     // 文件视图仅展示文件与文件夹，文本消息进入聊天视图
     fileItems() {
       return this.files.filter(file => file.type !== 'text');
@@ -1089,6 +1225,85 @@ export default {
   opacity: 0;
 }
 
+/* ===== 上传任务面板（右上角） ===== */
+.upload-tasks {
+  position: fixed;
+  top: 76px;
+  right: 20px;
+  z-index: 3000;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 243, 0.9);
+  box-shadow: 0 8px 24px rgba(31, 45, 61, 0.15);
+}
+
+.upload-tasks-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.upload-tasks-icon {
+  color: var(--el-color-primary);
+}
+
+.upload-tasks-icon.success {
+  color: var(--el-color-success);
+}
+
+.upload-tasks-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.upload-task + .upload-task {
+  margin-top: 10px;
+}
+
+.upload-task-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.upload-task-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-task-status {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #5a6b85;
+}
+
+.upload-task-status.success {
+  color: var(--el-color-success);
+}
+
+.upload-task-status.error {
+  color: var(--el-color-danger);
+}
+
+.upload-task .el-progress-bar__outer {
+  background-color: #eef1f7;
+}
+
 /* 面板底部统计 */
 .panel-footer {
   flex-shrink: 0;
@@ -1397,6 +1612,13 @@ export default {
 }
 
 @media only screen and (max-width: 600px) {
+  .upload-tasks {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
   .workspace {
     flex-direction: column;
     height: auto;

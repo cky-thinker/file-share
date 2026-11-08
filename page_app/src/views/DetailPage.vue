@@ -71,7 +71,7 @@
               </el-icon>
             </el-button>
           </el-tooltip>
-          <el-tooltip effect="dark" :content="$t('detail.textsTitle')" placement="bottom">
+          <el-tooltip effect="dark" :content="$t('detail.addText')" placement="bottom">
             <el-button class="icon-btn text-toggle-btn" :class="{ active: textPanelVisible }" text
               @click="textPanelVisible = !textPanelVisible">
               <el-icon :size="17">
