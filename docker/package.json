@@ -1,6 +1,6 @@
 {
   "name": "file-share-docker",
-  "version": "v1.0.9",
+  "version": "v1.0.10",
   "private": true,
   "description": "Docker server runtime dependencies",
   "dependencies": {
