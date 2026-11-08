@@ -412,6 +412,30 @@ const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'b
 const LONG_TEXT_LINES = 6;
 const LONG_TEXT_CHARS = 200;
 
+// 文本面板展开状态本地记忆
+const TEXT_PANEL_STORAGE_KEY = 'file-share.textPanelVisible'
+
+const readTextPanelVisible = () => {
+  try {
+    return localStorage.getItem(TEXT_PANEL_STORAGE_KEY) === '1'
+  } catch (e) {
+    // 本地存储不可用
+    console.warn("本地存储不可用，无法读取文本面板显隐状态");
+    console.error(e);
+    return false
+  }
+}
+
+const saveTextPanelVisible = (visible) => {
+  try {
+    localStorage.setItem(TEXT_PANEL_STORAGE_KEY, visible ? '1' : '0')
+  } catch (e) {
+    // 本地存储不可用
+    console.warn("本地存储不可用，无法保存文本面板显隐状态");
+    console.error(e);
+  }
+}
+
 export default {
   name: 'HomeView',
   components: {
@@ -447,8 +471,8 @@ export default {
       query: undefined,
       authEnable: true,
       uploadToFolderEnable: false,
-      // 共享文本面板显隐
-      textPanelVisible: false,
+      // 共享文本面板显隐（本地记忆）
+      textPanelVisible: readTextPanelVisible(),
       texts: [],
       textQuery: '',
       chatMessage: '',
@@ -508,6 +532,9 @@ export default {
           box.scrollTop = box.scrollHeight
         }
       })
+    },
+    textPanelVisible: function (visible) {
+      saveTextPanelVisible(visible)
     }
   },
   methods: {

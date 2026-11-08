@@ -454,6 +454,30 @@ const DEFAULT_BADGE = ["FILE", "#7c8db5"];
 const LONG_TEXT_LINES = 3;
 const LONG_TEXT_CHARS = 200;
 
+// 文本面板展开状态本地记忆
+const TEXT_PANEL_STORAGE_KEY = "file-share.textPanelVisible";
+
+const readTextPanelVisible = () => {
+  try {
+    return localStorage.getItem(TEXT_PANEL_STORAGE_KEY) === "1";
+  } catch (e) {
+    // 本地存储不可用
+    console.warn("本地存储不可用，无法读取文本面板显隐状态");
+    console.error(e);
+    return false;
+  }
+};
+
+const saveTextPanelVisible = (visible) => {
+  try {
+    localStorage.setItem(TEXT_PANEL_STORAGE_KEY, visible ? "1" : "0");
+  } catch (e) {
+    // 本地存储不可用
+    console.warn("本地存储不可用，无法保存文本面板显隐状态");
+    console.error(e);
+  }
+};
+
 export default {
   name: "DetailPage",
   components: {
@@ -480,7 +504,7 @@ export default {
       form: {
         text: "",
       },
-      textPanelVisible: false,
+      textPanelVisible: readTextPanelVisible(),
       fullTextVisible: false,
       fullTextMsg: null,
       fileKeyword: "",
@@ -531,6 +555,11 @@ export default {
         ),
         this.textOrder
       );
+    },
+  },
+  watch: {
+    textPanelVisible(visible) {
+      saveTextPanelVisible(visible);
     },
   },
   methods: {
