@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="body" :class="viewLayout === 'dual' ? 'dual-mode' : ''">
+    <div class="body" :class="textPanelVisible ? 'dual-mode' : ''">
       <!-- 上传任务面板：有正在上传的文件时显示在右上角 -->
       <transition name="fade">
         <div v-if="uploadTasks.length" class="upload-tasks">
@@ -46,23 +46,9 @@
         </div>
       </div>
 
-      <div class="layout-switcher">
-        <div class="switch-group">
-          <button :class="['switch-btn', viewLayout === 'dual' ? 'active' : '']" @click="switchLayout('dual')">
-            {{ $t("filePage.viewDual") }}
-          </button>
-          <button :class="['switch-btn', viewLayout === 'file' ? 'active' : '']" @click="switchLayout('file')">
-            {{ $t("filePage.viewFiles") }}
-          </button>
-          <button :class="['switch-btn', viewLayout === 'chat' ? 'active' : '']" @click="switchLayout('chat')">
-            {{ $t("filePage.viewChat") }}
-          </button>
-        </div>
-      </div>
-
       <main class="workspace">
         <!-- 左侧：共享文件 -->
-        <section v-if="viewLayout !== 'chat'" class="panel file-panel">
+        <section class="panel file-panel">
           <header class="panel-header">
             <span class="panel-icon file-icon">
               <el-icon :size="17">
@@ -84,6 +70,14 @@
                 <el-button class="icon-btn" text @click="fileFormVisible = true">
                   <el-icon :size="17">
                     <Plus />
+                  </el-icon>
+                </el-button>
+              </el-tooltip>
+              <el-tooltip effect="dark" :content="$t('filePage.shareText')" placement="bottom">
+                <el-button class="icon-btn text-toggle-btn" :class="{ active: textPanelVisible }" text
+                           @click="textPanelVisible = !textPanelVisible">
+                  <el-icon :size="17">
+                    <ChatDotRound />
                   </el-icon>
                 </el-button>
               </el-tooltip>
@@ -199,85 +193,90 @@
               </div>
             </transition>
           </div>
-          <footer class="panel-footer">
-            {{ $t("filePage.fileCount", { count: filteredFiles.length }) }}
-          </footer>
         </section>
 
         <!-- 右侧：共享文本 -->
-        <section v-if="viewLayout !== 'file'" class="panel text-panel">
-          <header class="panel-header">
-            <span class="panel-icon text-icon">
-              <el-icon :size="17">
-                <ChatDotRound />
-              </el-icon>
-            </span>
-            <span class="panel-title">{{ $t("filePage.chatRoom") }}</span>
-            <div class="panel-actions">
-              <el-tooltip v-if="permissions.uploadText" effect="dark" :content="$t('filePage.shareText')"
-                          placement="bottom">
-                <el-button class="icon-btn" text @click="showMsgForm">
-                  <el-icon :size="17">
-                    <EditPen />
-                  </el-icon>
-                </el-button>
-              </el-tooltip>
+        <transition name="slide-panel">
+          <section v-show="textPanelVisible" class="panel text-panel">
+            <header class="panel-header">
+              <span class="panel-icon text-icon">
+                <el-icon :size="17">
+                  <ChatDotRound />
+                </el-icon>
+              </span>
+              <span class="panel-title">{{ $t("filePage.chatRoom") }}</span>
+              <div class="panel-actions">
+                <el-tooltip effect="dark" :content="$t('common.close')" placement="bottom">
+                  <el-button class="icon-btn" text @click="textPanelVisible = false">
+                    <el-icon :size="17">
+                      <Close />
+                    </el-icon>
+                  </el-button>
+                </el-tooltip>
+              </div>
+            </header>
+            <div class="panel-toolbar">
+              <el-input v-model="textQuery" clearable :prefix-icon="SearchIcon"
+                        :placeholder="$t('filePage.searchTextPlaceholder')"></el-input>
             </div>
-          </header>
-          <div ref="chatBox" class="panel-body msg-list">
-            <template v-if="texts.length">
-              <div v-for="msg in texts" :key="msg.name" class="msg-card">
-                <div class="msg-head">
-                  <span class="msg-avatar" :style="{ backgroundColor: avatarColor(msg.nickname || msg.username) }">
-                    {{ (msg.nickname || msg.username || "?").charAt(0) }}
-                  </span>
-                  <span class="msg-name">{{ msg.nickname || msg.username }}</span>
-                  <span v-if="msg.nickname && msg.username" class="msg-ip">{{ msg.username }}</span>
-                  <span class="msg-head-space"></span>
-                  <el-button class="icon-btn" text :title="$t('filePage.copyText')"
-                             @click="copyMsg(msg.content, $event)">
+            <div ref="chatBox" class="panel-body msg-list">
+              <template v-if="filteredTexts.length">
+                <div v-for="msg in filteredTexts" :key="msg.name" class="msg-card">
+                  <div class="msg-head">
+                    <span class="msg-avatar" :style="{ backgroundColor: avatarColor(msg.nickname || msg.username) }">
+                      {{ (msg.nickname || msg.username || "?").charAt(0) }}
+                    </span>
+                    <span class="msg-name">{{ msg.nickname || msg.username }}</span>
+                    <span v-if="msg.nickname && msg.username" class="msg-ip">{{ msg.username }}</span>
+                    <span class="msg-head-space"></span>
+                    <el-button class="icon-btn" text :title="$t('filePage.copyText')"
+                               @click="copyMsg(msg.content, $event)">
+                      <el-icon>
+                        <CopyDocument />
+                      </el-icon>
+                    </el-button>
+                  </div>
+                  <div class="msg-bubble" :class="{ clamp: isLongText(msg) }">
+                    <div class="bubble-text">{{ msg.content }}</div>
+                  </div>
+                  <el-button v-if="isLongText(msg)" text type="primary" class="msg-more"
+                             @click="showFullText(msg)">
+                    {{ $t("filePage.viewFullText") }}
                     <el-icon>
-                      <CopyDocument />
+                      <ArrowDown />
                     </el-icon>
                   </el-button>
                 </div>
-                <div class="msg-bubble" :class="{ clamp: isLongText(msg) }">
-                  <div class="bubble-text">{{ msg.content }}</div>
+              </template>
+              <!-- 空状态 -->
+              <div v-else class="panel-empty">
+                <el-icon :size="40" class="empty-icon">
+                  <ChatDotRound />
+                </el-icon>
+                <div class="empty-title">
+                  {{ textQuery ? $t("filePage.searchNoResult") : $t("filePage.noTexts") }}
                 </div>
-                <el-button v-if="isLongText(msg)" text type="primary" class="msg-more"
-                           @click="showFullText(msg)">
-                  {{ $t("filePage.viewFullText") }}
-                  <el-icon>
-                    <ArrowDown />
-                  </el-icon>
-                </el-button>
+                <div v-if="!textQuery" class="empty-tip">{{ $t("filePage.noTextsTip") }}</div>
+                <el-button v-else text type="primary" @click="textQuery = ''">{{ $t("filePage.clearSearch") }}</el-button>
               </div>
-            </template>
-            <!-- 空状态 -->
-            <div v-else class="panel-empty">
-              <el-icon :size="40" class="empty-icon">
-                <ChatDotRound />
-              </el-icon>
-              <div class="empty-title">{{ $t("filePage.noText") }}</div>
             </div>
-          </div>
-          <footer class="panel-composer">
-            <el-input
-              v-model="chatMessage"
-              class="composer-textarea"
-              type="textarea"
-              :rows="1"
-              :autosize="{ minRows: 1, maxRows: 4 }"
-              :placeholder="$t('filePage.chatInputPlaceholder')"
-              @keydown.ctrl.enter.prevent="submitChat"
-              @keydown.meta.enter.prevent="submitChat"
-            ></el-input>
-            <el-button type="primary" @click="submitChat">{{ $t("filePage.send") }}</el-button>
-          </footer>
-          <footer class="panel-footer">
-            {{ $t("filePage.textCount", { count: texts.length }) }}
-          </footer>
-        </section>
+            <footer class="text-composer">
+              <el-input
+                v-model="chatMessage"
+                class="composer-textarea"
+                type="textarea"
+                resize="none"
+                :autosize="{ minRows: 1, maxRows: 4 }"
+                :placeholder="$t('filePage.inputContent')"
+                @keydown.ctrl.enter.prevent="submitChat"
+                @keydown.meta.enter.prevent="submitChat"
+              ></el-input>
+              <el-button type="primary" class="publish-btn" :disabled="!chatMessage.trim()" @click="submitChat">
+                {{ $t("filePage.publish") }}
+              </el-button>
+            </footer>
+          </section>
+        </transition>
       </main>
 
       <el-dialog
@@ -301,22 +300,6 @@
             <div class="el-upload__text" v-html="$t('filePage.uploadDragText')"></div>
           </el-upload>
         </div>
-      </el-dialog>
-      <el-dialog
-        :title="$t('filePage.shareTextTitle')"
-        class="dialog"
-        v-model="msgFormVisible">
-        <el-form ref="form" :model="msgForm" label-width="80px">
-          <el-form-item :label="$t('filePage.textContent')">
-            <el-input type="textarea" :rows="5" v-model="msgForm.message"></el-input>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="submitMsgForm">{{ $t("filePage.submit") }}</el-button>
-          <el-button @click="msgFormVisible = false">{{ $t("filePage.cancel") }}</el-button>
-        </span>
-        </template>
       </el-dialog>
 
       <!-- 查看全文弹窗 -->
@@ -361,9 +344,9 @@ import {
   ArrowUp,
   ChatDotRound,
   CircleCheck,
+  Close,
   CopyDocument,
   Download,
-  EditPen,
   Folder,
   FolderOpened,
   Loading,
@@ -432,9 +415,9 @@ export default {
     ArrowUp,
     ChatDotRound,
     CircleCheck,
+    Close,
     CopyDocument,
     Download,
-    EditPen,
     Folder,
     FolderOpened,
     Loading,
@@ -453,11 +436,6 @@ export default {
       fileFormVisible: false,
       fileForm: {},
       fileList: [],
-      // 消息表单
-      msgFormVisible: false,
-      msgForm: {
-        message: ''
-      },
 
       // 共享文件列表
       path: [],
@@ -465,9 +443,10 @@ export default {
       query: undefined,
       authEnable: true,
       uploadToFolderEnable: false,
-      // 视图布局：dual 双视图 / file 仅文件 / chat 仅聊天
-      viewLayout: localStorage.getItem('fileShareViewLayout') || 'dual',
+      // 共享文本面板显隐
+      textPanelVisible: false,
       texts: [],
+      textQuery: '',
       chatMessage: '',
       // 查看全文弹窗
       fullTextVisible: false,
@@ -834,28 +813,6 @@ export default {
         copyClipboard(this.fullTextMsg.content, event)
       }
     },
-    showMsgForm() {
-      this.msgFormVisible = true
-      this.msgForm = {message: ''}
-    },
-    submitMsgForm() {
-      this.msgFormVisible = false
-      uploadMsg({message: this.msgForm.message}).then(() => {
-        ElMessage({message: t('filePage.sendSuccess'), type: 'success'})
-        this.loadTexts()
-        this.showFiles()
-      })
-    },
-    switchLayout(mode) {
-      this.viewLayout = mode
-      localStorage.setItem('fileShareViewLayout', mode)
-      this.$nextTick(() => {
-        let box = this.$refs.chatBox
-        if (box) {
-          box.scrollTop = box.scrollHeight
-        }
-      })
-    },
     // 昵称/IP 生成稳定 hash 色
     avatarColor(str) {
       if (!str) {
@@ -926,6 +883,17 @@ export default {
       const regex = new RegExp(pattern, 'i');
 
       return this.fileItems.filter(file => regex.test(file.name));
+    },
+    // 文本检索：匹配内容、昵称、分享者
+    filteredTexts() {
+      const keyword = this.textQuery.trim().toLowerCase();
+      if (!keyword) return this.texts;
+
+      return this.texts.filter(msg =>
+        (msg.content || '').toLowerCase().includes(keyword) ||
+        (msg.nickname || '').toLowerCase().includes(keyword) ||
+        (msg.username || '').toLowerCase().includes(keyword)
+      );
     },
     // 上传到当前文件夹时，action 携带当前相对路径
     uploadAction() {
@@ -1018,46 +986,9 @@ export default {
   width: 95%;
 }
 
-.layout-switcher {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.switch-group {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px;
-  border-radius: 8px;
-  background: #eef1f7;
-  box-sizing: border-box;
-}
-
-.switch-btn {
-  border: none;
-  background: transparent;
-  height: 28px;
-  padding: 0 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1;
-  color: #5a6b85;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.15s;
-}
-
-.switch-btn.active {
-  color: #ffffff;
-  background: var(--el-color-primary);
-  box-shadow: 0 1px 3px rgba(33, 96, 232, 0.35);
-}
-
 /* ===== 双视图工作区 ===== */
 .workspace {
   display: flex;
-  gap: 16px;
   height: calc(100vh - 340px);
   min-height: 380px;
 }
@@ -1077,11 +1008,35 @@ export default {
 }
 
 .file-panel {
-  flex: 1 1 55%;
+  flex: 1 1 0;
 }
 
+/* 共享文本面板：唤出时挤压文件面板 */
 .text-panel {
-  flex: 1 1 45%;
+  flex: 0 0 auto;
+  width: 40%;
+  min-width: 0;
+  margin-left: 16px;
+  box-sizing: border-box;
+}
+
+.slide-panel-enter-active,
+.slide-panel-leave-active {
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+.slide-panel-enter-from,
+.slide-panel-leave-to {
+  width: 0;
+  margin-left: 0;
+  opacity: 0;
+}
+
+/* 文件面板中的文本面板唤出按钮高亮 */
+.text-toggle-btn.active {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
 }
 
 /* 面板头部 */
@@ -1304,16 +1259,6 @@ export default {
   background-color: #eef1f7;
 }
 
-/* 面板底部统计 */
-.panel-footer {
-  flex-shrink: 0;
-  padding: 8px 16px;
-  font-size: 12px;
-  color: #98a2b3;
-  border-top: 1px solid rgba(240, 242, 247, 0.8);
-  background: rgba(250, 251, 253, 0.35);
-}
-
 /* ===== 文件列表 ===== */
 .file-row {
   display: flex;
@@ -1519,19 +1464,47 @@ export default {
   font-size: 12px;
 }
 
-/* 消息输入区 */
-.panel-composer {
+/* 文本发布区 */
+.text-composer {
   flex-shrink: 0;
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 10px 14px 12px;
   border-top: 1px solid #f0f2f7;
+  background: rgba(250, 251, 253, 0.45);
 }
 
-.composer-textarea {
+.text-composer .el-textarea {
   flex: 1;
   min-width: 0;
+}
+
+.text-composer .el-textarea__inner {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 6px 10px;
+  line-height: 20px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #e3e8f0 inset;
+  transition: box-shadow 0.15s;
+}
+
+.text-composer .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px #cbd5e4 inset;
+}
+
+.text-composer .el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+.publish-btn {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 500;
 }
 
 /* ===== 空状态 ===== */
@@ -1625,9 +1598,15 @@ export default {
     min-height: 0;
   }
 
-  .file-panel,
-  .text-panel {
+  .file-panel {
     flex: 1 1 auto;
+  }
+
+  .text-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 16px;
   }
 
   .panel-body {
@@ -1641,11 +1620,6 @@ export default {
 
   .toolbar-search {
     width: 100%;
-  }
-
-  .switch-btn {
-    padding: 0 12px;
-    font-size: 13px;
   }
 }
 </style>
