@@ -102,7 +102,7 @@
           </div>
           <div class="panel-body-wrap" @dragenter.prevent="onDragEnter" @dragover.prevent
                @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
-            <div class="panel-body">
+            <div ref="fileList" class="panel-body">
               <template v-if="filteredFiles.length">
                 <div v-for="file in filteredFiles" :key="file.name" class="file-row">
                   <el-checkbox class="row-check" v-model="file.selected"
@@ -126,8 +126,12 @@
                   </span>
                   <div class="file-info" :class="{ pointer: file.type === 'directory' }"
                        @click="openDirectory(file, $event)">
-                    <el-tooltip effect="light" placement="top" :content="file.name">
+                    <el-tooltip effect="light" placement="top">
                       <span class="file-name">{{ file.name }}</span>
+                      <!-- 提示框遮住鼠标时，将滚轮事件转发给文件列表 -->
+                      <template #content>
+                        <span @wheel.stop.prevent="scrollFileListByTooltip">{{ file.name }}</span>
+                      </template>
                     </el-tooltip>
                     <span v-if="file.username" class="file-sub">
                       {{ $t("filePage.sharedBy", { name: file.username }) }}
@@ -783,6 +787,15 @@ export default {
     async loadTusConfig() {
       const res = await getTusConfig()
       this.tusConfig = res.data
+    },
+    // 提示框位于鼠标下方时，手动将滚轮滚动应用到文件列表
+    scrollFileListByTooltip(event) {
+      const fileList = this.$refs.fileList
+      if (!fileList) {
+        return
+      }
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? fileList.clientHeight : 1
+      fileList.scrollTop += event.deltaY * unit
     },
     downloadFile(filename) {
       let a = document.createElement('a');
