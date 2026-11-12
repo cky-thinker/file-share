@@ -120,7 +120,7 @@ pnpm --filter file-share-web run build
 已验证结果（`electron/build/win-unpacked/resources/app/node_modules/`）：
 
 - `@file-share/shared-utils` 为真实目录，非软链；
-- 传递依赖齐全，原生模块 `registry-js` 已按 Electron ABI 重新编译；
+- 传递依赖齐全，Windows 构建中的 `registry-js` 会按目标架构选择预编译二进制；
 - **未混入** `page_app` / `page_web` 的依赖（无 `element-plus` / `vue` / `tailwindcss` / `axios` 等）。
 
 **升级 electron-builder 或调整 `node-linker` 后，请重新按此清单验证产物。**

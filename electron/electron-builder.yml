@@ -4,6 +4,10 @@ appId: "com.github.ckythinker.fileshare"
 asar: false
 directories:
   output: "build"
+# Windows 需要 rebuild：registry-js 虽为 N-API 模块，但 Windows ia32/x64
+# 需要按目标架构选择各自的预编译二进制。
+# macOS/Linux 不需要 registry-js，release 脚本会传入 --config.npmRebuild=false，
+# 避免 @electron/rebuild 尝试重建 Windows 专用模块并卡在 prebuild-install/node-gyp。
 # 注意：不要开启 buildDependenciesFromSource。
 # 本项目唯一的原生模块 registry-js 是 N-API 模块（ABI 跨 Electron 版本稳定），
 # 官方已为 win32 ia32/x64 提供预编译包，无需源码重编译。
