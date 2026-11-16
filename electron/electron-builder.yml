@@ -65,6 +65,9 @@ fileAssociations:
     description: "LAN file share"
     icon: "../resources/icons/icon.icns"
 
+# Apple 图标规范要求图形四周保留视觉外边距，因此 macOS 继续使用
+# 带留白的 icon.icns。Windows/Linux 与 uTools 使用满版资源，避免小尺寸
+# 显示时应用图形被留白进一步压缩。
 mac:
   artifactName: "fileshare-mac-${arch}.${ext}"
   icon: "../resources/icons/icon.icns"
@@ -77,6 +80,7 @@ dmg:
 
 win:
   artifactName: "fileshare-setup-win-${arch}.${ext}"
+  # 满版多尺寸 ICO（16/24/32/48/64/128/256）。
   icon: "../resources/icons/icon.ico"
   target:
     - target: "nsis"
