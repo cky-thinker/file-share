@@ -1,6 +1,6 @@
 {
   "name": "@file-share/shared-utils",
-  "version": "v1.0.12",
+  "version": "v1.0.13",
   "description": "Shared utilities for file-share project",
   "main": "index.js",
   "files": [
