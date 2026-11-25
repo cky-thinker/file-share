@@ -25,7 +25,7 @@ COPY shared/ shared/
 COPY docker/ docker/
 
 # web 构建产物作为静态资源目录（page_web 的 build 脚本会将 dist 移动到 shared/page_web）
-COPY --from=web-builder /build/shared/page_web/ page_web/
+COPY --from=web-builder /build/shared/page_web/ shared/page_web/
 
 # 环境变量：
 #   PORT            服务端口
